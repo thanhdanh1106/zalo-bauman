@@ -1,0 +1,29 @@
+<?php
+
+namespace Database\Factories\Shop;
+
+use App\Models\Shop\Customer;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<Customer>
+ */
+class CustomerFactory extends Factory
+{
+    /**
+     * @var string
+     */
+    protected $model = Customer::class;
+
+    public function definition(): array
+    {
+        return [
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'phone' => $this->faker->phoneNumber(),
+            'birthday' => $this->faker->dateTimeBetween('-35 years', '-18 years'),
+            'created_at' => $createdAt = $this->faker->dateTimeBetween('-2 years', 'now'),
+            'updated_at' => $this->faker->dateTimeBetween($createdAt, 'now'),
+        ];
+    }
+}
