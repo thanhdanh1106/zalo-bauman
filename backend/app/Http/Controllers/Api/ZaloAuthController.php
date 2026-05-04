@@ -20,6 +20,9 @@ class ZaloAuthController extends Controller
      */
     public function login(Request $request)
     {
+        if (!defined('CURL_SSLVERSION_TLSv1_2')) {
+            define('CURL_SSLVERSION_TLSv1_2', 6);
+        }
         try {
             $zaloToken = $request->input('zalo_token');
             $userInfo = $request->input('userInfo', []);
@@ -45,8 +48,8 @@ class ZaloAuthController extends Controller
                     $zaloId = $zaloData['id'] ?? null;
                     $name = !empty($zaloData['name']) ? $zaloData['name'] : $name;
                 }
-            } catch (\Exception $e) {
-                Log::warning('Zalo Graph API failed, falling back to userInfo');
+            } catch (\Throwable $e) {
+                Log::warning('Zalo Graph API failed (SSL/Network): ' . $e->getMessage());
             }
 
             // Fallback to userInfo if Graph API fails
