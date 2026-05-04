@@ -114,12 +114,15 @@ class ZaloAuthController extends Controller
                 'user' => $user
             ]);
 
-        } catch (\Exception $e) {
-            Log::error('FATAL ERROR IN ZALO LOGIN: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('FATAL ERROR IN ZALO LOGIN: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
             return response()->json([
                 'error' => true, 
-                'message' => 'Lỗi Server: ' . $e->getMessage(),
-                'trace' => app()->environment('local') ? $e->getTraceAsString() : null
+                'message' => 'Backend Error: ' . $e->getMessage() . ' (Line: ' . $e->getLine() . ' in ' . basename($e->getFile()) . ')',
             ], 500);
         }
     }
