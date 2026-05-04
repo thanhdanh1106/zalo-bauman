@@ -106,6 +106,10 @@
         "allow-plugins": {
             "composer/package-versions-deprecated": true,
             "pestphp/pest-plugin": true
+        },
+        "platform-check": false,
+        "platform": {
+            "php": "8.3.0"
         }
     },
     "minimum-stability": "dev",
