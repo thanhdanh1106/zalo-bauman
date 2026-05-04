@@ -18,16 +18,33 @@ const SocialButton = () => {
     try {
       setIsLoading(true);
       
-      // 1. Get User Info from Zalo
-      const userInfoRes = await getUserInfo({});
+      // 1. Get User Info from Zalo - request permission if not granted
+      const userInfoRes = await getUserInfo({
+        autoRequestPermission: true
+      });
       const userInfo = userInfoRes.userInfo;
 
       // 2. Get Access Token from Zalo
-      let accessToken = await getAccessToken({});
+      let accessToken = "";
+      try {
+        accessToken = await getAccessToken({});
+      } catch (tokenError: any) {
+        console.error("Zalo SDK getAccessToken error:", tokenError);
+        // If -1401, it means session is invalid or not authorized
+        if (tokenError.code === -1401 || tokenError.code === -1402) {
+          // You might want to call login() here if you have code exchange set up
+          // For now, we'll try to continue with empty token and let backend handle it or show error
+        }
+      }
       
-      // Fallback for test environment if token is empty
-      if (!accessToken) {
+      // Fallback for test environment only in development
+      if (!accessToken && process.env.NODE_ENV === 'development') {
         accessToken = "mock_access_token_" + Date.now();
+      }
+
+      if (!accessToken) {
+        showMessage("error", "Không thể lấy Access Token từ Zalo");
+        return;
       }
 
       // 3. Send to backend for authentication/registration
@@ -41,12 +58,15 @@ const SocialButton = () => {
       });
 
       if (response && !response.error) {
-        const { li_at } = response;
-        if (li_at) {
-          setCookie("li_at", li_at, 15);
-          localStorage.setItem("li_at", li_at);
-        }
+        // Redux slice handles the cookie setting
         dispatch(loginSuccess(response));
+        
+        // Persist to localStorage for other utilities
+        const token = response.li_at || response.credentials?.access_token;
+        if (token) {
+          localStorage.setItem("li_at", token);
+        }
+
         localStorage.removeItem('referred_by'); // Clear after successful login
         showMessage("success", "Đăng nhập Zalo thành công");
         navigate("/");

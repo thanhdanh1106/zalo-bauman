@@ -171,8 +171,9 @@ const AccountLayout: React.FC = () => {
                 <div className="mt-6 pt-4 border-t border-[#eee]">
                   <button
                     onClick={() => {
-                      // Handle logout
-                      console.log("Logout");
+                      dispatch(logout());
+                      localStorage.removeItem("li_at");
+                      window.location.href = "/";
                     }}
                     className="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all duration-200 group"
                   >

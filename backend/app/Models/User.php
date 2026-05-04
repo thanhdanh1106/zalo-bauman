@@ -38,6 +38,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         'avatar_id',
         'referred_by',
         'zalo_id',
+        'email_verified_at',
     ];
 
     /**

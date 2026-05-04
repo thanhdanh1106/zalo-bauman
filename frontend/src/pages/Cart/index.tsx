@@ -176,15 +176,15 @@ const Cart: React.FC = () => {
         <Box className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-4">
           <Box className="flex items-center justify-between">
             <Text className="text-[15px] font-bold text-gray-800">Ưu đãi của bạn</Text>
-            <button 
-              onClick={() => setShowVouchers(true)} 
+            <button
+              onClick={() => setShowVouchers(true)}
               className="text-[#8f0012] text-[12px] font-bold flex items-center"
             >
               {vouchers.length > 0 ? `Chọn mã (${vouchers.length})` : "Tất cả ưu đãi"}
               <span className="material-symbols-outlined text-[16px] ml-1">chevron_right</span>
             </button>
           </Box>
-          
+
           <PromoCodeForm />
 
           <Box className="bg-[#fdf8e9] p-3 rounded-xl border border-[#f5e6ba] flex items-start space-x-3 shadow-sm">
@@ -209,13 +209,13 @@ const Cart: React.FC = () => {
           <Box className="px-0 pb-10">
             {/* Tab Header */}
             <Box className="flex border-b border-gray-100 mb-4 px-4">
-              <button 
+              <button
                 onClick={() => setActiveTab("vouchers")}
                 className={`flex-1 py-3 text-[14px] font-bold transition-all border-b-2 ${activeTab === "vouchers" ? "text-[#8f0012] border-[#8f0012]" : "text-gray-400 border-transparent"}`}
               >
                 Voucher
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab("rewards")}
                 className={`flex-1 py-3 text-[14px] font-bold transition-all border-b-2 ${activeTab === "rewards" ? "text-[#8f0012] border-[#8f0012]" : "text-gray-400 border-transparent"}`}
               >
@@ -233,8 +233,8 @@ const Cart: React.FC = () => {
                     {allPromotions.filter(v => v.is_visible).length > 0 ? allPromotions.filter(v => v.is_visible).map((v) => {
                       const isSelected = appliedPromotion?.id === v.id;
                       return (
-                        <Box 
-                          key={v.id} 
+                        <Box
+                          key={v.id}
                           onClick={() => {
                             if (isSelected) {
                               dispatch(removePromotion());
@@ -243,11 +243,10 @@ const Cart: React.FC = () => {
                             }
                             setShowVouchers(false);
                           }}
-                          className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${
-                            isSelected 
-                              ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm" 
-                              : "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer"
-                          }`}
+                          className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${isSelected
+                            ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
+                            : "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer"
+                            }`}
                         >
                           <Box className="flex items-center space-x-4">
                             <Box className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-[#8f0012] text-white" : "bg-gray-50 text-[#8f0012]"}`}>
@@ -295,10 +294,10 @@ const Cart: React.FC = () => {
                         const isRewardSelected = appliedReward?.id === v.id;
                         const isPromoSelected = isVoucher && appliedPromotion?.id === v.id;
                         const isSelected = isRewardSelected || isPromoSelected;
-                        
+
                         return (
-                          <Box 
-                            key={isVoucher ? `v-${v.id}` : `r-${v.id}-${idx}`} 
+                          <Box
+                            key={isVoucher ? `v-${v.id}` : `r-${v.id}-${idx}`}
                             onClick={() => {
                               if (isVoucher) {
                                 if (isPromoSelected) {
@@ -315,11 +314,10 @@ const Cart: React.FC = () => {
                               }
                               setShowVouchers(false);
                             }}
-                            className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${
-                              isSelected 
-                                ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm" 
-                                : isVoucher ? "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer" : "border-gray-50 bg-gray-50/30 opacity-80"
-                            }`}
+                            className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${isSelected
+                              ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
+                              : isVoucher ? "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer" : "border-gray-50 bg-gray-50/30 opacity-80"
+                              }`}
                           >
                             <Box className="flex items-center space-x-4">
                               <Box className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-[#8f0012] text-white" : "bg-gray-50 text-[#8f0012]"}`}>
@@ -363,7 +361,7 @@ const Cart: React.FC = () => {
                       <Text className="text-[13px] font-bold text-gray-800 mb-2">Đổi thêm quà tặng:</Text>
                       {rewards.length > 0 ? (
                         rewards.map((r) => (
-                          <Box 
+                          <Box
                             key={r.id}
                             className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50 mb-3"
                           >
@@ -451,9 +449,9 @@ const Cart: React.FC = () => {
           onClick={() => navigate("/checkout")}
           className="bg-[#8f0012] h-14 px-8 rounded-2xl flex items-center space-x-2 shadow-lg active:scale-95 transition-transform"
         >
-          <span style={{}} >
+          <span style={{ display: 'flex', alignItems: 'center' }} >
             <span className="text-[16px] font-bold text-white">Thanh toán</span>
-            <span className="material-symbols-outlined text-white text-[20px]">chevron_right</span>
+
           </span>
         </Button>
       </Box>

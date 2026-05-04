@@ -1,5 +1,6 @@
 import { useToasterContext } from "@shared/components/ToasterContext";
-import { logout } from "@shared/services/authService";
+import { logout as logoutService } from "@shared/services/authService";
+import { logout as logoutAction } from "@shared/store/slices/authSlice";
 import { userProps } from "@shared/types/user";
 import { getThumbnailUrl } from "@shared/utils/Hooks";
 import { useUserLabel } from "@shared/utils/useUserLabel";
@@ -201,10 +202,17 @@ const UserLoggedIn: React.FC<{ data: userProps }> = ({ data }) => {
 
             {/* Logout Button */}
             <button
-              onClick={() => {
+              onClick={async () => {
                 setIsLoading(true);
-                logout();
+                try {
+                  await logoutService();
+                } catch (error) {
+                  console.error("Logout error:", error);
+                }
+                dispatch(logoutAction());
                 setMenuOpen(false);
+                setIsLoading(false);
+                navigate("/");
               }}
               disabled={isLoading}
               className={`${getLinkClassName("danger")} ${

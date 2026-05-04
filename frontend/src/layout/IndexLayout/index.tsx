@@ -11,7 +11,6 @@ import {
 import { useDispatch } from "react-redux";
 import { Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@shared/hooks/useAuth";
-import { useZaloAuth } from "@shared/hooks/useZaloAuth";
 import Footer from "./Footer";
 import { setNavigationBarTitle } from "zmp-sdk/apis";
 
@@ -45,7 +44,6 @@ const IndexLayout = () => {
   const dispatch = useDispatch();
   const { pathname } = useLocation();
   useAuth(null);
-  useZaloAuth();
 
   const isMessagesRoute = useMemo(
     () => pathname.startsWith("/messages"),
