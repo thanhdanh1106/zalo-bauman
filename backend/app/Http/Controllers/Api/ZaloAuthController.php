@@ -20,87 +20,74 @@ class ZaloAuthController extends Controller
      */
     public function login(Request $request)
     {
-        $request->validate([
-            'zalo_token' => 'required|string',
-        ]);
+        try {
+            $zaloToken = $request->input('zalo_token');
+            $userInfo = $request->input('userInfo', []);
+            
+            if (!$zaloToken) {
+                return response()->json(['error' => true, 'message' => 'Thiếu Zalo Token'], 400);
+            }
 
-        $zaloToken = $request->zalo_token;
-        $userInfo = $request->input('userInfo', []);
+            Log::info('Zalo Login Step 1: Token received');
 
-        // 1. Verify token with Zalo API
-        $zaloId = null;
-        $name = null;
-        $avatar = null;
-
-        // Support mock tokens for development environments
-        if (app()->environment('local') && str_starts_with($zaloToken, 'mock_')) {
-            $zaloId = "zalo_" . substr(md5($zaloToken), 0, 16);
-            $name = $userInfo['name'] ?? "Zalo Mock User " . substr($zaloId, -4);
-            $avatar = $userInfo['avatar'] ?? null;
-        } else {
+            // 1. Get User ID from Zalo Graph API
+            $zaloId = null;
+            $name = $userInfo['name'] ?? 'Zalo User';
+            
             try {
-                // Call Zalo Graph API to get user profile
-                Log::info('Attempting Zalo authentication with token: ' . substr($zaloToken, 0, 15) . '...');
-                
-                $response = Http::get('https://graph.zalo.me/v2.0/me', [
+                $response = Http::timeout(10)->get('https://graph.zalo.me/v2.0/me', [
                     'access_token' => $zaloToken,
                     'fields' => 'id,name,picture'
                 ]);
-
+                
                 if ($response->successful()) {
                     $zaloData = $response->json();
-                    Log::info('Zalo API Response:', $zaloData);
-                    
-                    if (isset($zaloData['error'])) {
-                        Log::error('Zalo API returned error: ' . json_encode($zaloData));
-                        return response()->json([
-                            'error' => true,
-                            'message' => 'Lỗi từ Zalo (Code ' . ($zaloData['error'] ?? '') . '): ' . ($zaloData['message'] ?? 'Không xác định')
-                        ], 401);
-                    }
-
                     $zaloId = $zaloData['id'] ?? null;
-                    $name = $zaloData['name'] ?? null;
-                    $avatar = $zaloData['picture']['data']['url'] ?? ($userInfo['avatar'] ?? null);
-                } else {
-                    Log::error('Zalo API Request Failed. Status: ' . $response->status() . ' Body: ' . $response->body());
-                    return response()->json([
-                        'error' => true,
-                        'message' => 'Không thể kết nối tới Zalo để xác thực (HTTP ' . $response->status() . ').'
-                    ], 401);
+                    $name = $zaloData['name'] ?? $name;
                 }
             } catch (\Exception $e) {
-                Log::error('Zalo Auth Exception: ' . $e->getMessage());
-                return response()->json([
-                    'error' => true,
-                    'message' => 'Lỗi hệ thống khi xác thực Zalo: ' . $e->getMessage()
-                ], 500);
+                Log::warning('Zalo Graph API failed, falling back to userInfo');
             }
-        }
 
-        if (!$zaloId) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Không lấy được Zalo ID từ API.'
-            ], 401);
-        }
+            // Fallback to userInfo if Graph API fails
+            if (!$zaloId) {
+                $zaloId = $userInfo['id'] ?? null;
+            }
 
-        try {
+            if (!$zaloId) {
+                return response()->json(['error' => true, 'message' => 'Không thể xác định Zalo ID'], 401);
+            }
+
             // 2. Find or Create User
             $user = User::where('zalo_id', $zaloId)->first();
+            
+            if (!$user) {
+                $email = $zaloId . '@zalo.me';
+                $user = User::where('email', $email)->first();
+            }
 
             if (!$user) {
-                Log::info('Creating new user for Zalo ID: ' . $zaloId);
+                // Safe referral handling
+                $referredBy = $request->input('referred_by');
+                if (!is_numeric($referredBy)) {
+                    $referredBy = null;
+                }
+
                 $user = User::create([
                     'name' => $name,
-                    'email' => $zaloId . '@zalo.me', 
+                    'email' => $zaloId . '@zalo.me',
                     'password' => Hash::make(Str::random(24)),
                     'zalo_id' => $zaloId,
-                    'referred_by' => $request->input('referred_by'),
+                    'referred_by' => $referredBy,
                     'email_verified_at' => now(),
                 ]);
-                
-                // Create corresponding Customer
+                Log::info('New User created: ' . $user->id);
+            } else {
+                $user->update(['name' => $name]);
+            }
+
+            // 3. Sync with Customer table (optional/non-fatal)
+            try {
                 Customer::updateOrCreate(
                     ['email' => $user->email],
                     [
@@ -108,66 +95,31 @@ class ZaloAuthController extends Controller
                         'phone' => $request->input('phone', ''),
                     ]
                 );
-            } else {
-                Log::info('Existing user found: ' . $user->email);
-                // Update user info if changed
-                $user->update([
-                    'name' => $name,
-                ]);
-                
-                $customer = Customer::where('email', $user->email)->first();
-                if ($customer) {
-                    $customer->update(['name' => $name]);
-                } else {
-                    // Create customer if it doesn't exist for existing user
-                    Customer::create([
-                        'email' => $user->email,
-                        'name' => $user->name,
-                        'phone' => $request->input('phone', ''),
-                    ]);
-                }
+            } catch (\Exception $e) {
+                Log::warning('Customer sync failed: ' . $e->getMessage());
             }
 
-            // Add/Update information relation if exists
-            if (method_exists($user, 'information') || isset($user->information)) {
-                if ($user->information) {
-                    $user->information->update([
-                        'first_name' => $name,
-                        'last_name' => '',
-                        'phone' => $request->input('phone', $user->information->phone),
-                    ]);
-                }
-            }
-
-            // 3. Create Token
+            // 4. Create Token
             $token = $user->createToken('zalo-mini-app')->plainTextToken;
 
             return response()->json([
                 'error' => false,
                 'message' => 'Đăng nhập thành công',
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'zalo_id' => $user->zalo_id,
-                    'avatar' => $avatar,
-                    'information' => [
-                        'first_name' => $name,
-                        'phone' => $request->input('phone', (method_exists($user, 'information') ? $user->information?->phone : '') ?? ''),
-                    ]
-                ],
                 'li_at' => $token,
                 'credentials' => [
                     'access_token' => $token,
                     'token_type' => 'Bearer',
-                    'expires_in' => 2592000, // 30 days
-                ]
+                    'expires_in' => 2592000,
+                ],
+                'user' => $user
             ]);
-        } catch (\Exception $dbEx) {
-            Log::error('Database Error during Zalo Login: ' . $dbEx->getMessage());
+
+        } catch (\Exception $e) {
+            Log::error('FATAL ERROR IN ZALO LOGIN: ' . $e->getMessage());
             return response()->json([
-                'error' => true,
-                'message' => 'Lỗi lưu trữ dữ liệu người dùng: ' . $dbEx->getMessage()
+                'error' => true, 
+                'message' => 'Lỗi Server: ' . $e->getMessage(),
+                'trace' => app()->environment('local') ? $e->getTraceAsString() : null
             ], 500);
         }
     }

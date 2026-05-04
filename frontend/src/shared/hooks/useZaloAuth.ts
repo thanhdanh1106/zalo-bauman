@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAccessToken, getUserInfo } from "zmp-sdk/apis";
+import api from "zmp-sdk";
+const { login, getAccessToken, getUserInfo, authorize } = api;
 import { userLoginWithZalo } from "@shared/utils/Auth";
 import { loginSuccess } from "@shared/store/slices/authSlice";
 import { RootState } from "@shared/store";
@@ -27,6 +28,16 @@ export function useZaloAuth() {
       let userInfo = {};
 
       try {
+        // 0. Force Authorize
+        try {
+          await authorize({
+            scopes: ["scope.userInfo"]
+          });
+        } catch (e) {}
+
+        // 0.1 Force Login
+        await login({});
+        
         // 1. Try to get real Zalo User Information
         const userInfoResponse = await getUserInfo({
           autoRequestPermission: true
@@ -43,7 +54,7 @@ export function useZaloAuth() {
       // Nếu không có token (chạy trên trình duyệt máy tính hoặc lỗi SDK), giả lập một token để test API
       if (!accessToken || accessToken === "") {
         // Only use mock token in development
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
           accessToken = "mock_zalo_token_dev_stable_user"; 
           userInfo = {
             name: "Baumann Khách Vãng Lai",

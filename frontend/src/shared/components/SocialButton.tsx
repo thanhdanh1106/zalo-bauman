@@ -4,9 +4,11 @@ import { useState } from "react";
 import { SiZalo } from "react-icons/si";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { getAccessToken, getUserInfo } from "zmp-sdk/apis";
-import { useToasterContext } from "./ToasterContext";
 import { setCookie } from "@shared/utils/Hooks";
+import api from "zmp-sdk";
+import { useToasterContext } from "./ToasterContext";
+
+const { login, getAccessToken, getUserInfo, authorize } = api;
 
 const SocialButton = () => {
   const navigate = useNavigate();
@@ -14,40 +16,68 @@ const SocialButton = () => {
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
 
-  const handleZaloLogin = async () => {
+  const handleZaloLogin = () => {
     try {
       setIsLoading(true);
+      console.log("Bắt đầu đăng nhập Zalo...");
       
-      // 1. Get User Info from Zalo - request permission if not granted
-      const userInfoRes = await getUserInfo({
-        autoRequestPermission: true
-      });
-      const userInfo = userInfoRes.userInfo;
+      // 1. Yêu cầu cấp quyền (Authorize)
+      authorize({
+        scopes: ["scope.userInfo"],
+        success: () => {
+          console.log("Cấp quyền thành công, đang lấy thông tin...");
+          
+          // 2. Lấy thông tin người dùng
+          getUserInfo({
+            success: (res) => {
+              const userInfo = res.userInfo;
+              console.log("Lấy userInfo thành công:", userInfo.name);
 
-      // 2. Get Access Token from Zalo
-      let accessToken = "";
-      try {
-        accessToken = await getAccessToken({});
-      } catch (tokenError: any) {
-        console.error("Zalo SDK getAccessToken error:", tokenError);
-        // If -1401, it means session is invalid or not authorized
-        if (tokenError.code === -1401 || tokenError.code === -1402) {
-          // You might want to call login() here if you have code exchange set up
-          // For now, we'll try to continue with empty token and let backend handle it or show error
+              // 3. Lấy Access Token
+              getAccessToken({
+                success: (accessToken) => {
+                  console.log("Lấy Access Token thành công");
+                  performBackendLogin(accessToken, userInfo);
+                },
+                fail: (err) => {
+                  console.error("Lỗi getAccessToken:", err);
+                  // Fallback cho môi trường dev nếu cần
+                  if (window.location.hostname === "localhost" || window.location.hostname.includes("127.0.0.1")) {
+                     performBackendLogin("mock_token_" + Date.now(), userInfo);
+                  } else {
+                     showMessage("error", `Lỗi lấy Token (${err.code}): ${err.message}`);
+                     setIsLoading(false);
+                  }
+                }
+              });
+            },
+            fail: (err) => {
+              console.error("Lỗi getUserInfo:", err);
+              showMessage("error", `Lỗi lấy thông tin (${err.code}): ${err.message}`);
+              setIsLoading(false);
+            }
+          });
+        },
+        fail: (err) => {
+          console.error("Lỗi authorize:", err);
+          // Nếu không authorize được, vẫn thử lấy token xem sao
+          getAccessToken({
+            success: (accessToken) => performBackendLogin(accessToken, { name: "Người dùng Zalo", avatar: "" }),
+            fail: () => {
+              showMessage("error", `Lỗi xác thực (-1401): Vui lòng kiểm tra App ID trong app-config.json`);
+              setIsLoading(false);
+            }
+          });
         }
-      }
-      
-      // Fallback for test environment only in development
-      if (!accessToken && process.env.NODE_ENV === 'development') {
-        accessToken = "mock_access_token_" + Date.now();
-      }
+      });
+    } catch (error) {
+      console.error("Zalo Login Exception:", error);
+      setIsLoading(false);
+    }
+  };
 
-      if (!accessToken) {
-        showMessage("error", "Không thể lấy Access Token từ Zalo");
-        return;
-      }
-
-      // 3. Send to backend for authentication/registration
+  const performBackendLogin = async (accessToken: string, userInfo: any) => {
+    try {
       const searchParams = new URLSearchParams(window.location.search);
       const referralId = searchParams.get('ref') || localStorage.getItem('referred_by');
 
@@ -58,24 +88,19 @@ const SocialButton = () => {
       });
 
       if (response && !response.error) {
-        // Redux slice handles the cookie setting
         dispatch(loginSuccess(response));
-        
-        // Persist to localStorage for other utilities
         const token = response.li_at || response.credentials?.access_token;
         if (token) {
           localStorage.setItem("li_at", token);
         }
-
-        localStorage.removeItem('referred_by'); // Clear after successful login
+        localStorage.removeItem('referred_by');
         showMessage("success", "Đăng nhập Zalo thành công");
         navigate("/");
       } else {
         showMessage("error", response?.message || "Đăng nhập Zalo thất bại");
       }
     } catch (error) {
-      console.error("Zalo Login Error:", error);
-      showMessage("error", "Không thể kết nối với Zalo");
+      showMessage("error", "Lỗi kết nối máy chủ");
     } finally {
       setIsLoading(false);
     }
@@ -93,16 +118,6 @@ const SocialButton = () => {
         <SiZalo className="text-2xl" />
         <span>Đăng nhập bằng Zalo</span>
       </button>
-
-      {/* Divider if multiple social options are needed later */}
-      {/* <div className="relative my-4">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Hoặc</span>
-        </div>
-      </div> */}
     </div>
   );
 };
