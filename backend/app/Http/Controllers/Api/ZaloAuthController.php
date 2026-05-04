@@ -43,7 +43,7 @@ class ZaloAuthController extends Controller
                 if ($response->successful()) {
                     $zaloData = $response->json();
                     $zaloId = $zaloData['id'] ?? null;
-                    $name = $zaloData['name'] ?? $name;
+                    $name = !empty($zaloData['name']) ? $zaloData['name'] : $name;
                 }
             } catch (\Exception $e) {
                 Log::warning('Zalo Graph API failed, falling back to userInfo');

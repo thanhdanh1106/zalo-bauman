@@ -99,8 +99,10 @@ const SocialButton = () => {
       } else {
         showMessage("error", response?.message || "Đăng nhập Zalo thất bại");
       }
-    } catch (error) {
-      showMessage("error", "Lỗi kết nối máy chủ");
+    } catch (error: any) {
+      console.error("Zalo Backend Login Error:", error);
+      const backendMessage = error.response?.data?.message;
+      showMessage("error", backendMessage || "Lỗi kết nối máy chủ (500)");
     } finally {
       setIsLoading(false);
     }
