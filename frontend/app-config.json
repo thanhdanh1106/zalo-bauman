@@ -1,0 +1,16 @@
+{
+  "app": {
+    "title": "Nhân sâm Baumann Wisconsin",
+    "headerTitle": "Trang chủ",
+    "headerColor": "#B32025",
+    "textColor": "white",
+    "leftButton": "back",
+    "statusBar": "normal",
+    "actionBarHidden": false,
+    "hideAndroidBottomNavigationBar": false,
+    "hideIOSSafeAreaBottom": false
+  },
+  "listCSS": [],
+  "listSyncJS": [],
+  "listAsyncJS": []
+}

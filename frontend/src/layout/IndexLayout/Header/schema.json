@@ -1,0 +1,101 @@
+{
+  "title": "Header settings",
+  "fields": [
+    {
+      "name": "enable_top_header",
+      "label": "Enable top header",
+      "type": "boolean",
+      "category": "top header"
+    },
+    {
+      "name": "top_header_hotline",
+      "label": "Hotline",
+      "type": "text",
+      "category": "top header"
+    },
+    {
+      "name": "top_header_email",
+      "label": "Email",
+      "type": "text",
+      "category": "top header"
+    },
+    {
+      "name": "top_header_notify",
+      "label": "Top header notify",
+      "type": "textarea",
+      "category": "top header"
+    },
+    {
+        "name": "top_header_button",
+        "label": "Button title",
+        "type": "text",
+        "category": "top header"
+    },
+    {
+      "name": "top_header_button_label_color",
+      "label": "Label color",
+      "type": "color",
+      "size": 6,
+      "category": "top header"
+    },
+    {
+      "name": "top_header_button_background_color",
+      "label": "Background color",
+      "type": "color",
+      "size": 6,
+      "category": "top header"
+    },
+    {
+      "name": "header_logo",
+      "label": "Header logo",
+      "type": "thumbnail",
+      "category": "content"
+    },
+    {
+      "name": "header_logo_dark",
+      "label": "Header logo dark",
+      "type": "thumbnail",
+      "category": "content"
+    },
+    {
+      "name": "menu_item",
+      "label": "Menu Item",
+      "type": "repeater",
+      "category": "content",
+      "fields": [
+        {
+          "name": "title",
+          "label": "Title",
+          "type": "text",
+          "category": "content"
+        },
+        {
+          "name": "url",
+          "label": "Url",
+          "type": "text",
+          "category": "content"
+        },
+        {
+          "name": "sub_item",
+          "label": "Sub Item",
+          "type": "repeater",
+          "category": "content",
+          "fields": [
+            {
+              "name": "title",
+              "label": "Title",
+              "type": "text",
+              "category": "content"
+            },
+            {
+              "name": "url",
+              "label": "Url",
+              "type": "text",
+              "category": "content"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

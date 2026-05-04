@@ -1,0 +1,34 @@
+/* Brand Carousel Styles */
+.brand-carousel .swiper-pagination {
+  position: relative !important;
+  margin-top: 2rem;
+}
+
+.brand-carousel .swiper-pagination-bullet {
+  background: #cbb27c !important;
+  opacity: 0.5 !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin: 0 6px !important;
+  transition: all 0.3s ease !important;
+}
+
+.brand-carousel .swiper-pagination-bullet-active {
+  opacity: 1 !important;
+  transform: scale(1.2);
+}
+
+.brand-carousel .swiper-slide {
+  height: auto;
+}
+
+/* Navigation button hover effects */
+.brand-carousel .swiper-button-disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Autoplay pause on hover */
+.brand-carousel:hover .swiper-wrapper {
+  animation-play-state: paused;
+}

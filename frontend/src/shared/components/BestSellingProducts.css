@@ -1,0 +1,44 @@
+/* BestSellingProducts Custom Styles */
+.best-selling-swiper .swiper-pagination {
+  bottom: -50px !important;
+}
+
+.swiper-pagination-bullet-custom {
+  width: 12px;
+  height: 12px;
+  background: #d1d5db;
+  opacity: 1;
+  margin: 0 4px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active-custom {
+  background: #f59e0b !important;
+  transform: scale(1.2);
+}
+
+.best-selling-swiper .swiper-slide {
+  height: auto;
+}
+
+.best-selling-swiper .swiper-slide > div {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom navigation buttons hover effects */
+.swiper-button-prev-custom:hover,
+.swiper-button-next-custom:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Dark mode styles for pagination bullets */
+.dark .swiper-pagination-bullet-custom {
+  background: #6b7280;
+}
+
+.dark .swiper-pagination-bullet-active-custom {
+  background: #f59e0b !important;
+}

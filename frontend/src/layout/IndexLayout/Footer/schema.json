@@ -1,0 +1,183 @@
+{
+  "title": "Footer settings",
+  "fields": [
+    {
+      "name": "email_marketing_title",
+      "label": "Email marketing title",
+      "type": "textarea",
+      "category": "content"
+    },
+    {
+      "name": "footer_logo",
+      "label": "Footer logo",
+      "type": "thumbnail",
+      "category": "content"
+    },
+    {
+      "name": "footer_description",
+      "label": "Content",
+      "type": "textarea",
+      "category": "content"
+    },
+    {
+      "name": "address",
+      "label": "Address",
+      "type": "text",
+      "category": "content"
+    },
+    {
+      "name": "hotline",
+      "label": "Hotline",
+      "type": "text",
+      "category": "content"
+    },
+    {
+      "name": "email",
+      "label": "Email",
+      "type": "text",
+      "category": "content"
+    },
+    {
+      "name": "working_hour",
+      "label": "Working hour",
+      "type": "text",
+      "category": "content"
+    }, 
+    {
+      "name": "menu_1",
+      "label": "Menu 1",
+      "type": "group",
+      "category": "Menu 1",
+      "fields": [
+        {
+          "name": "title",
+          "label": "Title",
+          "type": "text",
+          "category": "content"
+        },
+        {
+          "name": "menu_item",
+          "label": "Menu Item",
+          "type": "repeater",
+          "category": "content",
+          "fields": [
+            {
+              "name": "title",
+              "label": "Title",
+              "type": "text",
+              "category": "content"
+            },
+            {
+              "name": "url",
+              "label": "Url",
+              "type": "text",
+              "category": "content"
+            }
+          ]
+        }
+      ]
+    },
+     {
+      "name": "menu_2",
+      "label": "Menu 2",
+      "type": "group",
+      "category": "Menu 2",
+      "fields": [
+        {
+          "name": "title",
+          "label": "Title",
+          "type": "text",
+          "category": "content"
+        },
+        {
+          "name": "menu_item",
+          "label": "Menu Item",
+          "type": "repeater",
+          "category": "content",
+          "fields": [
+            {
+              "name": "title",
+              "label": "Title",
+              "type": "text",
+              "category": "content"
+            },
+            {
+              "name": "url",
+              "label": "Url",
+              "type": "text",
+              "category": "content"
+            }
+          ]
+        }
+      ]
+    },
+     {
+      "name": "menu_3",
+      "label": "Menu 3",
+      "type": "group",
+      "category": "Menu 3",
+      "fields": [
+        {
+          "name": "title",
+          "label": "Title",
+          "type": "text",
+          "category": "content"
+        },
+        {
+          "name": "menu_item",
+          "label": "Menu Item",
+          "type": "repeater",
+          "category": "content",
+          "fields": [
+            {
+              "name": "title",
+              "label": "Title",
+              "type": "text",
+              "category": "content"
+            },
+            {
+              "name": "url",
+              "label": "Url",
+              "type": "text",
+              "category": "content"
+            }
+          ]
+        }
+      ]
+    },
+     {
+      "name": "menu_4",
+      "label": "Menu 4",
+      "type": "group",
+      "category": "Menu 4",
+      "fields": [
+        {
+          "name": "title",
+          "label": "Title",
+          "type": "text",
+          "category": "content"
+        },
+        {
+          "name": "menu_item",
+          "label": "Menu Item",
+          "type": "repeater",
+          "category": "content",
+          "fields": [
+            {
+              "name": "title",
+              "label": "Title",
+              "type": "text",
+              "category": "content"
+            },
+            {
+              "name": "url",
+              "label": "Url",
+              "type": "text",
+              "category": "content"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

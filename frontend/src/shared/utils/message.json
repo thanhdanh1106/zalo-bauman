@@ -1,0 +1,122 @@
+{
+  "input": {
+    "form_invalid": "Một hoặc nhiều trường không hợp lệ. Vui lòng kiểm tra lại thông tin bạn đã nhập."
+  },
+  "auth": {
+    "need_logged_in": "Vui lòng đăng nhập để tiếp tục.",
+    "login_successful": "Đăng nhập thành công.",
+    "login_failed": "Email hoặc mật khẩu không chính xác.",
+    "logout_successful": "Bạn đã đăng xuất.",
+    "register_successful": "Tài khoản của bạn đã được tạo thành công.",
+    "register_failed": "Đăng ký thất bại. Vui lòng thử lại sau.",
+    "unauthorized": "Bạn không có quyền thực hiện hành động này.",
+    "reset_email_sent": "Email đặt lại mật khẩu đã được gửi.",
+    "reset_email_failed": "Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại.",
+    "reset_successful": "Mật khẩu của bạn đã được đặt lại thành công.",
+    "reset_failed": "Không thể đặt lại mật khẩu. Vui lòng thử lại.",
+    "reset_token_invalid": "Mã đặt lại không hợp lệ hoặc đã hết hạn."
+  },
+  "boost": {
+    "not_logged_in": "Bạn phải đăng nhập để tăng cường bài đăng.",
+    "no_membership": "Bạn cần có gói thành viên đang hoạt động để sử dụng tính năng này.",
+    "boost_applied": "Tăng cường bài đăng thành công.",
+    "boost_failed": "Không thể tăng cường bài đăng. Vui lòng thử lại.",
+    "free_boost_used": "Một lượt tăng cường miễn phí đã được sử dụng cho bài đăng này.",
+    "no_free_boosts_left": "Bạn đã hết lượt tăng cường miễn phí trong tháng này.",
+    "already_boosted": "Bài đăng này đã được tăng cường rồi.",
+    "invalid_post": "Bài đăng không hợp lệ. Vui lòng thử lại.",
+    "invalid_boost_type": "Loại tăng cường không hợp lệ.",
+    "expired_membership": "Gói thành viên của bạn đã hết hạn. Vui lòng gia hạn để tiếp tục tăng cường bài đăng.",
+    "boost_preview_title": "Sử dụng lượt tăng miễn phí?",
+    "boost_preview_description": "Bạn còn {{count}} lượt tăng miễn phí. Bạn có muốn sử dụng một lượt cho bài đăng này không?",
+    "boost_duration": "Lượt tăng này sẽ hoạt động trong {{days}} ngày.",
+    "boost_start": "Thời gian bắt đầu: {{start}}",
+    "boost_end": "Thời gian kết thúc: {{end}}",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận"
+  },
+  "response": {
+    "create_successful": "Tạo thành công!",
+    "update_successful": "Cập nhật thành công!",
+    "delete_successful": "Xóa thành công!",
+    "create_failed": "Đã xảy ra lỗi khi tạo dữ liệu. Vui lòng thử lại sau.",
+    "update_failed": "Đã xảy ra lỗi khi cập nhật dữ liệu. Vui lòng thử lại sau.",
+    "delete_failed": "Đã xảy ra lỗi khi xóa dữ liệu. Vui lòng thử lại sau.",
+    "error": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+    "not_found": "Không tìm thấy mục yêu cầu.",
+    "no_permission": "Bạn không có quyền thực hiện hành động này."
+  },
+  "media": {
+    "create_successful": "Tải tệp lên thành công!",
+    "update_successful": "Cập nhật tệp thành công!",
+    "delete_successful": "Xóa tệp thành công!",
+    "create_failed": "Đã xảy ra lỗi khi tải tệp. Vui lòng thử lại.",
+    "update_failed": "Đã xảy ra lỗi khi cập nhật tệp. Vui lòng thử lại.",
+    "delete_failed": "Đã xảy ra lỗi khi xóa tệp. Vui lòng thử lại.",
+    "error": "Đã xảy ra lỗi với tệp. Vui lòng thử lại."
+  },
+  "listing": {
+    "post_successful": "Tin đăng của bạn đã được đăng thành công!",
+    "post_failed": "Không thể đăng tin. Vui lòng kiểm tra lại thông tin và thử lại.",
+    "update_successful": "Tin đăng của bạn đã được cập nhật.",
+    "delete_successful": "Tin đăng của bạn đã được xóa.",
+    "approval_pending": "Tin đăng của bạn đang được duyệt. Nó sẽ được xuất bản sau khi được phê duyệt.",
+    "sold_successful": "Phương tiện này đã được đánh dấu là đã bán.",
+    "mark_sold_failed": "Không thể đánh dấu phương tiện là đã bán. Vui lòng thử lại."
+  },
+  "user": {
+    "profile_updated": "Hồ sơ của bạn đã được cập nhật.",
+    "password_changed": "Mật khẩu đã được thay đổi.",
+    "password_change_failed": "Không thể thay đổi mật khẩu. Vui lòng thử lại.",
+    "upload_avatar_success": "Ảnh đại diện đã được tải lên thành công.",
+    "upload_avatar_failed": "Không thể tải ảnh đại diện. Vui lòng thử lại."
+  },
+  "validation": {
+    "required": "Trường này là bắt buộc.",
+    "email_invalid": "Vui lòng nhập địa chỉ email hợp lệ.",
+    "phone_invalid": "Vui lòng nhập số điện thoại hợp lệ.",
+    "password_mismatch": "Mật khẩu không khớp.",
+    "too_short": "Giá trị nhập vào quá ngắn.",
+    "too_long": "Giá trị nhập vào quá dài."
+  },
+  "service": {
+    "booking_successful": "Dịch vụ của bạn đã được đặt thành công.",
+    "booking_failed": "Không thể đặt dịch vụ. Vui lòng thử lại sau.",
+    "cancel_successful": "Đặt dịch vụ của bạn đã được hủy.",
+    "cancel_failed": "Không thể hủy đặt dịch vụ. Vui lòng thử lại.",
+    "update_successful": "Cập nhật thông tin dịch vụ thành công.",
+    "not_available": "Dịch vụ này hiện không khả dụng.",
+    "already_booked": "Bạn đã đặt dịch vụ này rồi.",
+    "invalid_time": "Thời gian được chọn không khả dụng. Vui lòng chọn khung giờ khác.",
+    "contact_support": "Để được hỗ trợ thêm, vui lòng liên hệ bộ phận hỗ trợ."
+  },
+  "review": {
+    "rating_score_invalid": "Vui lòng đánh giá tất cả các mục trước khi gửi.",
+    "submit_successful": "Cảm ơn bạn! Đánh giá của bạn đã được gửi.",
+    "submit_failed": "Không thể gửi đánh giá. Vui lòng thử lại.",
+    "delete_successful": "Đánh giá đã được xóa.",
+    "delete_failed": "Không thể xóa đánh giá. Vui lòng thử lại.",
+    "update_successful": "Đánh giá đã được cập nhật.",
+    "already_submitted": "Bạn đã gửi đánh giá cho bài đăng này rồi.",
+    "rating_required": "Vui lòng chọn điểm đánh giá.",
+    "comment_required": "Vui lòng nhập nhận xét.",
+    "report_successful": "Đánh giá đã được báo cáo. Cảm ơn phản hồi của bạn.",
+    "report_failed": "Không thể báo cáo đánh giá. Vui lòng thử lại."
+  },
+  "contact": {
+    "name_required": "Vui lòng nhập tên của bạn.",
+    "email_required": "Vui lòng nhập địa chỉ email của bạn.",
+    "email_invalid": "Vui lòng nhập địa chỉ email hợp lệ.",
+    "message_required": "Vui lòng nhập nội dung tin nhắn.",
+    "submit_successful": "Cảm ơn bạn! Tin nhắn của bạn đã được gửi. Chúng tôi sẽ sớm liên hệ lại.",
+    "submit_failed": "Không thể gửi tin nhắn. Vui lòng thử lại sau.",
+    "phone_invalid": "Vui lòng nhập số điện thoại hợp lệ.",
+    "consent_required": "Vui lòng đồng ý với chính sách bảo mật trước khi gửi.",
+    "too_many_requests": "Bạn đã gửi quá nhiều yêu cầu trong thời gian ngắn. Vui lòng chờ và thử lại.",
+    "subject_required": "Vui lòng nhập tiêu đề cho tin nhắn.",
+    "message_too_short": "Tin nhắn của bạn quá ngắn. Vui lòng cung cấp thêm chi tiết.",
+    "message_too_long": "Tin nhắn của bạn quá dài. Vui lòng rút ngắn lại.",
+    "attachment_invalid": "Tệp đính kèm không hợp lệ hoặc vượt quá dung lượng cho phép.",
+    "captcha_invalid": "Xác minh captcha không hợp lệ. Vui lòng thử lại."
+  }
+}

@@ -1,0 +1,1 @@
+export interface filterProps extends Record<string, any> {}
