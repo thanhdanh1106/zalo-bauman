@@ -1,6 +1,7 @@
 import PromoCodeForm from "@shared/components/PromoCodeForm";
 import { useToasterContext } from "@shared/components/ToasterContext";
 
+import { getAddresses } from "@shared/utils/Account";
 import { useCart } from "@shared/hooks/useCart";
 import { RootState } from "@shared/store";
 import {
@@ -65,6 +66,8 @@ const Checkout: React.FC = () => {
   const totalFromRedux = useSelector(selectCartTotal);
   const appliedPromotion = useSelector(selectAppliedPromotion);
   const appliedReward = useSelector(selectAppliedReward);
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const dispatch = useDispatch();
   
   const [vouchers, setVouchers] = useState<promotionProps[]>([]);
@@ -77,12 +80,13 @@ const Checkout: React.FC = () => {
   const [isRedeeming, setIsRedeeming] = useState<number | null>(null);
 
   const fetchData = async () => {
-    const [vouchersRes, promosRes, rewardsRes, pointsRes, redemptionsRes] = await Promise.all([
+    const [vouchersRes, promosRes, rewardsRes, pointsRes, redemptionsRes, addressesRes] = await Promise.all([
       findMyVouchers(),
       findManyPromotions(),
       findManyRewards({ per_page: 20 }),
       getUserPoints(),
-      getUserRedemptions()
+      getUserRedemptions(),
+      getAddresses()
     ]);
 
     if (vouchersRes && !vouchersRes.error) setVouchers(vouchersRes.data);
@@ -93,6 +97,20 @@ const Checkout: React.FC = () => {
     }
     if (redemptionsRes && !redemptionsRes.error) setRedemptions(redemptionsRes.data);
     if (pointsRes && !pointsRes.error) setUserPoints(pointsRes.data?.balance_int ?? 0);
+    if (addressesRes && !addressesRes.error) {
+      setSavedAddresses(addressesRes.data || []);
+      // Auto select default address
+      const defaultAddr = (addressesRes.data || []).find((a: any) => a.is_default);
+      if (defaultAddr) {
+        setSelectedAddressId(defaultAddr.id);
+        // Fill form fields
+        setValue("customer_name", defaultAddr.name || getUserFullName(user));
+        setValue("customer_phone", defaultAddr.phone || user?.information?.phone);
+        setValue("shipping_street", defaultAddr.street || defaultAddr.address);
+        setValue("shipping_city", defaultAddr.city || "");
+        setValue("shipping_district", defaultAddr.state || "");
+      }
+    }
   };
 
   useEffect(() => {
@@ -127,6 +145,7 @@ const Checkout: React.FC = () => {
     formState: { errors },
     trigger,
     watch,
+    setValue,
   } = useForm<CheckoutForm>({
     defaultValues: {
       customer_name: getUserFullName(user) || "",
@@ -143,6 +162,16 @@ const Checkout: React.FC = () => {
     },
     mode: "onChange",
   });
+
+  const handleSelectAddress = (addr: any) => {
+    setSelectedAddressId(addr.id);
+    setValue("customer_name", addr.name || getUserFullName(user));
+    setValue("customer_phone", addr.phone || user?.information?.phone);
+    setValue("shipping_street", addr.street || addr.address);
+    setValue("shipping_city", addr.city || "");
+    setValue("shipping_district", addr.state || "");
+    // Note: ward might be part of street or not available separately
+  };
 
   const paymentMethod = watch("payment_method");
 
@@ -286,66 +315,115 @@ const Checkout: React.FC = () => {
             <form onSubmit={handleFormSubmit(handleSubmitOrder)} className="space-y-4">
               {/* Step 1: Customer Information */}
               {currentStep === 1 && (
-                <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
-                  <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                    <FaUser className="mr-3 text-[#8f0012]" />
-                    Thông tin khách hàng
-                  </h2>
-
-                  <div className="space-y-5">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-600 mb-2">Họ và tên *</label>
-                      <Controller
-                        name="customer_name"
-                        control={control}
-                        rules={{ required: "Vui lòng nhập họ tên" }}
-                        render={({ field }) => (
-                          <input
-                            {...field}
-                            type="text"
-                            className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.customer_name ? "border-red-500" : ""}`}
-                            placeholder="Nhập họ và tên đầy đủ"
-                          />
-                        )}
-                      />
-                      {errors.customer_name && <p className="mt-1 text-xs text-red-500">{errors.customer_name.message}</p>}
+                <div className="space-y-6">
+                  {/* Saved Addresses Section */}
+                  {savedAddresses.length > 0 && (
+                    <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
+                      <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center uppercase tracking-wider">
+                        <FaMapMarkerAlt className="mr-3 text-[#8f0012]" />
+                        Địa chỉ đã lưu
+                      </h2>
+                      <div className="flex overflow-x-auto gap-4 pb-2 no-scrollbar">
+                        {savedAddresses.map((addr) => (
+                          <div
+                            key={addr.id}
+                            onClick={() => handleSelectAddress(addr)}
+                            className={`min-w-[240px] p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                              selectedAddressId === addr.id
+                                ? "border-[#8f0012] bg-[#8f0012]/5"
+                                : "border-gray-50 bg-gray-50"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-bold text-gray-800 text-sm truncate">{addr.name}</span>
+                              {addr.is_default && (
+                                <span className="bg-[#8f0012] text-white text-[9px] px-2 py-0.5 rounded-full uppercase">Mặc định</span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-gray-500 line-clamp-2 mb-2 h-8">{addr.street || addr.address}</p>
+                            <div className="flex items-center text-[11px] text-gray-400">
+                              <FaPhone className="mr-1 text-[10px]" />
+                              {addr.phone}
+                            </div>
+                          </div>
+                        ))}
+                        <div 
+                          onClick={() => {
+                            setSelectedAddressId(null);
+                            // Optionally reset form
+                          }}
+                          className={`min-w-[120px] flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer ${
+                            selectedAddressId === null ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-200"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-gray-400 mb-1">add_location_alt</span>
+                          <span className="text-[11px] font-bold text-gray-500 text-center leading-tight">Nhập địa chỉ mới</span>
+                        </div>
+                      </div>
                     </div>
+                  )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
+                    <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
+                      <FaUser className="mr-3 text-[#8f0012]" />
+                      Thông tin khách hàng
+                    </h2>
+
+                    <div className="space-y-5">
                       <div>
-                        <label className="block text-sm font-bold text-gray-600 mb-2">Email *</label>
+                        <label className="block text-sm font-bold text-gray-600 mb-2">Họ và tên *</label>
                         <Controller
-                          name="customer_email"
+                          name="customer_name"
                           control={control}
-                          rules={{ required: "Vui lòng nhập email" }}
+                          rules={{ required: "Vui lòng nhập họ tên" }}
                           render={({ field }) => (
                             <input
                               {...field}
-                              type="email"
-                              className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.customer_email ? "border-red-500" : ""}`}
-                              placeholder="example@email.com"
+                              type="text"
+                              className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.customer_name ? "border-red-500" : ""}`}
+                              placeholder="Nhập họ và tên đầy đủ"
                             />
                           )}
                         />
-                        {errors.customer_email && <p className="mt-1 text-xs text-red-500">{errors.customer_email.message}</p>}
+                        {errors.customer_name && <p className="mt-1 text-xs text-red-500">{errors.customer_name.message}</p>}
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-bold text-gray-600 mb-2">Số điện thoại *</label>
-                        <Controller
-                          name="customer_phone"
-                          control={control}
-                          rules={{ required: "Vui lòng nhập số điện thoại" }}
-                          render={({ field }) => (
-                            <input
-                              {...field}
-                              type="tel"
-                              className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.customer_phone ? "border-red-500" : ""}`}
-                              placeholder="0912345678"
-                            />
-                          )}
-                        />
-                        {errors.customer_phone && <p className="mt-1 text-xs text-red-500">{errors.customer_phone.message}</p>}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                          <label className="block text-sm font-bold text-gray-600 mb-2">Email *</label>
+                          <Controller
+                            name="customer_email"
+                            control={control}
+                            rules={{ required: "Vui lòng nhập email" }}
+                            render={({ field }) => (
+                              <input
+                                {...field}
+                                type="email"
+                                className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.customer_email ? "border-red-500" : ""}`}
+                                placeholder="example@email.com"
+                              />
+                            )}
+                          />
+                          {errors.customer_email && <p className="mt-1 text-xs text-red-500">{errors.customer_email.message}</p>}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-gray-600 mb-2">Số điện thoại *</label>
+                          <Controller
+                            name="customer_phone"
+                            control={control}
+                            rules={{ required: "Vui lòng nhập số điện thoại" }}
+                            render={({ field }) => (
+                              <input
+                                {...field}
+                                type="tel"
+                                className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.customer_phone ? "border-red-500" : ""}`}
+                                placeholder="0912345678"
+                              />
+                            )}
+                          />
+                          {errors.customer_phone && <p className="mt-1 text-xs text-red-500">{errors.customer_phone.message}</p>}
+                        </div>
                       </div>
                     </div>
                   </div>

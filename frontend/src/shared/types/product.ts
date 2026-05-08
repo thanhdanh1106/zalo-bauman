@@ -24,4 +24,14 @@ export interface productProps {
   user: userProps
   categories: postCategoryProps[]
   brand: postCategoryProps | null
+  // New gram fields
+  is_sold_by_gram: boolean
+  sales_unit: string | null
+  min_gram: number | null
+  gram_step: number | null
+  gram_options: Array<{ unit: string }> | null
+  // Physical dimensions
+  weight: number | null
+  dimensions: string | null
+  volume: number | null
 }

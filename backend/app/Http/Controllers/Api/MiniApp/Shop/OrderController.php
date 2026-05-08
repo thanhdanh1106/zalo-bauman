@@ -108,6 +108,7 @@ class OrderController extends Controller
                 'product_id' => $item['id'],
                 'qty' => $item['quantity'],
                 'unit_price' => $item['price'],
+                'selected_option' => $item['selected_option'] ?? null,
             ]);
         }
 
@@ -215,6 +216,7 @@ class OrderController extends Controller
                     'product_id' => $item->product_id,
                     'quantity' => $item->qty,
                     'price' => $item->unit_price,
+                    'selected_option' => $item->selected_option,
                     'product' => [
                         'id' => $item->product?->id,
                         'name' => $item->product?->name,

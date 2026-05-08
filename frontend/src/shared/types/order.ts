@@ -7,6 +7,7 @@ export interface orderItemProps {
   quantity: number
   price: string
   product?: productProps
+  selected_option?: string
 }
 
 export interface orderProps {

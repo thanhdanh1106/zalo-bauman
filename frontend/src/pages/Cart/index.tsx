@@ -147,7 +147,9 @@ const Cart: React.FC = () => {
               <Box className="flex-1 flex flex-col justify-between py-1">
                 <Box>
                   <Text className="text-[14px] font-bold text-gray-800 line-clamp-2 leading-snug">{item.title}</Text>
-                  <Text className="text-[11px] text-gray-400 mt-1">Phân loại: {item.variant || "Mặc định"}</Text>
+                  {item.selected_option && (
+                    <Text className="text-[11px] text-gray-400 mt-1">Phân loại: {item.selected_option}</Text>
+                  )}
                 </Box>
                 <Box className="flex items-center justify-between">
                   <Text className="text-[16px] font-bold text-[#8f0012]">{item.price.toLocaleString()}đ</Text>

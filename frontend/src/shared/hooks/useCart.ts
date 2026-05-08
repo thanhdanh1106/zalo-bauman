@@ -18,9 +18,9 @@ export const useCart = () => {
   const { showMessage } = useToasterContext();
   const { items, total, subtotal, discount, loading, error } = useSelector((state: RootState) => state.cart);
 
-  const addToCart = async (product: productProps, quantity: number = 1) => {
+  const addToCart = async (product: productProps, quantity: number = 1, selectedOption?: string) => {
     try {
-      dispatch(addItem({ ...product, quantity }));
+      dispatch(addItem({ ...product, quantity, selected_option: selectedOption }));
       
       const isLogged = !!localStorage.getItem('li_at');
       if (isLogged) {

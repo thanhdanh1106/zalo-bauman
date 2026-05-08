@@ -17,6 +17,14 @@ class OrderItem extends Model
      */
     protected $table = 'order_items';
 
+    protected $fillable = [
+        'order_id',
+        'product_id',
+        'qty',
+        'unit_price',
+        'selected_option',
+    ];
+
     /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo
     {

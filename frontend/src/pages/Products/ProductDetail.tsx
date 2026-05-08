@@ -23,13 +23,21 @@ const ProductDetail: React.FC = () => {
   const [relatedProducts, setRelatedProducts] = useState<productProps[]>([]);
   const { toggleWishlist, isInWishlist } = useWishlist();
 
+  const [selectedGram, setSelectedGram] = useState<string | null>(null);
+
   const fetchProduct = async () => {
     if (!slug) return;
     setIsLoading(true);
     try {
       const response = await findOneProductByName(slug);
         
-      if (!response.error) setProduct(response.data);
+      if (!response.error) {
+        setProduct(response.data);
+        // Set default gram option if available
+        if (response.data.is_sold_by_gram && response.data.gram_options && response.data.gram_options.length > 0) {
+          setSelectedGram(response.data.gram_options[0].unit);
+        }
+      }
       else setError(response.message);
     } catch (err) {
       setError("Không thể tải dữ liệu sản phẩm");
@@ -144,6 +152,36 @@ const ProductDetail: React.FC = () => {
           </div>
         </section>
 
+        {/* Gram Selection Section */}
+        {product.is_sold_by_gram && product.gram_options && product.gram_options.length > 0 && (
+          <section className="p-margin-main bg-white mb-2 shadow-sm">
+            <h2 className="font-serif font-bold text-lg text-on-surface mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary icon-fill">scale</span>
+              Chọn {product.sales_unit || 'trọng lượng'}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {product.gram_options.map((opt, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedGram(opt.unit)}
+                  className={`px-4 py-2 rounded-lg border-2 transition-all font-sans font-semibold text-sm ${
+                    selectedGram === opt.unit
+                      ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                      : 'border-gray-100 bg-gray-50 text-gray-500'
+                  }`}
+                >
+                  {opt.unit}
+                </button>
+              ))}
+            </div>
+            {product.min_gram && (
+              <p className="mt-3 text-xs text-gray-400 font-sans italic">
+                * Mua tối thiểu từ {product.min_gram} {product.sales_unit || 'gram'}
+              </p>
+            )}
+          </section>
+        )}
+
         {/* Details Section */}
         <section className="p-margin-main bg-white mb-2 shadow-sm">
           <h2 className="font-serif font-bold text-lg text-on-surface mb-4 flex items-center gap-2">
@@ -153,9 +191,33 @@ const ProductDetail: React.FC = () => {
           <div className="rich-text-content">
              <div dangerouslySetInnerHTML={{ __html: product.description }} />
              
+             {/* Physical dimensions */}
+             {(product.weight || product.dimensions || product.volume) && (
+               <div className="mt-4 pt-4 border-t border-gray-50 grid grid-cols-1 gap-2">
+                 {product.weight && (
+                   <div className="flex justify-between">
+                     <span className="font-semibold text-gray-500 text-sm">Khối lượng:</span>
+                     <span className="text-gray-800 text-sm">{product.weight} kg</span>
+                   </div>
+                 )}
+                 {product.dimensions && (
+                   <div className="flex justify-between">
+                     <span className="font-semibold text-gray-500 text-sm">Kích thước:</span>
+                     <span className="text-gray-800 text-sm">{product.dimensions}</span>
+                   </div>
+                 )}
+                 {product.volume && (
+                   <div className="flex justify-between">
+                     <span className="font-semibold text-gray-500 text-sm">Thể tích:</span>
+                     <span className="text-gray-800 text-sm">{product.volume} L</span>
+                   </div>
+                 )}
+               </div>
+             )}
+
              {/* Dynamic attributes if any */}
              {product.sku && (
-               <div className="pt-4 border-t border-gray-50 flex justify-between">
+               <div className="pt-4 border-t border-gray-50 flex justify-between mt-2">
                  <span className="font-semibold text-gray-500">Mã sản phẩm (SKU):</span>
                  <span className="text-gray-800">{product.sku}</span>
                </div>
@@ -195,7 +257,7 @@ const ProductDetail: React.FC = () => {
       {/* Sticky Footer Actions */}
       <div className="fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-lg border-t border-gray-100 p-4 pb-safe flex gap-3 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] max-w-[768px] mx-auto" style={{ left: '50%', transform: 'translateX(-50%)' }}>
         <button 
-          onClick={() => addToCart(product, 1)}
+          onClick={() => addToCart(product, 1, selectedGram || undefined)}
           className="flex-1 h-[52px] rounded-xl border border-primary text-primary bg-white font-serif font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform"
         >
           <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 0" }}>add_shopping_cart</span>
@@ -203,7 +265,7 @@ const ProductDetail: React.FC = () => {
         </button>
         <button 
           onClick={() => {
-            addToCart(product, 1);
+            addToCart(product, 1, selectedGram || undefined);
             navigate("/cart");
           }}
           className="flex-1 h-[52px] rounded-xl bg-primary text-white font-serif font-bold text-base flex items-center justify-center active:scale-95 transition-transform shadow-md hover:opacity-90"

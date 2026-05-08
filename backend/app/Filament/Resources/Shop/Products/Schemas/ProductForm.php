@@ -53,6 +53,31 @@ class ProductForm
 
                                 RichEditor::make('description')
                                     ->label('Mô tả sản phẩm')
+                                    ->toolbarButtons([
+                                        'paragraph',
+                                        'h1',
+                                        'h2',
+                                        'h3',
+                                        'h4',
+                                        'h5',
+                                        'h6',
+                                        'bold',
+                                        'italic',
+                                        'strike',
+                                        'underline',
+                                        'link',
+                                        'bulletList',
+                                        'orderedList',
+                                        'blockquote',
+                                        'codeBlock',
+                                        'table',
+                                        'undo',
+                                        'redo',
+                                        'alignStart',
+                                        'alignCenter',
+                                        'alignEnd',
+                                        'alignJustify',
+                                    ])
                                     ->columnSpan('full')
                                     ->extraInputAttributes(['style' => 'min-height: 500px;']),
                             ])

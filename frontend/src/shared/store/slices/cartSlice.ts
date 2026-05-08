@@ -4,6 +4,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface CartItem extends productProps {
   quantity: number;
+  selected_option?: string;
 }
 
 interface CartState {
@@ -133,7 +134,9 @@ const cartSlice = createSlice({
         return;
       }
 
-      const existingItem = state.items.find(item => item.id === newItem.id);
+      const existingItem = state.items.find(item => 
+        item.id === newItem.id && item.selected_option === newItem.selected_option
+      );
       
       if (existingItem) {
         // Check if adding quantity exceeds stock

@@ -332,6 +332,9 @@ const OrderSuccess: React.FC = () => {
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-bold text-gray-800 truncate">{item.product?.name}</h3>
+                    {item.selected_option && (
+                      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">Phân loại: {item.selected_option}</p>
+                    )}
                     <p className="text-xs text-gray-400 mt-1">
                       {item.quantity} x {formatCurrency(Number(item.price))}
                     </p>
