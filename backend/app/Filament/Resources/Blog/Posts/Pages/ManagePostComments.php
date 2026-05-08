@@ -114,4 +114,10 @@ class ManagePostComments extends ManageRelatedRecords
                     }),
             ]);
     }
+    
+    public function getMaxContentWidth(): string
+    {
+        return '8xl';
+    }
+
 }

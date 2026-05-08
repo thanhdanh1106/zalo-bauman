@@ -17,35 +17,51 @@ class CategoryForm
     {
         return $schema
             ->components([
-                TextInput::make('name')
-                    ->label('Tên danh mục')
-                    ->required()
-                    ->maxLength(255)
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(fn (string $operation, $state, Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null)
-                    ->columnSpanFull(),
+                \Filament\Schemas\Components\Group::make()
+                    ->schema([
+                        \Filament\Schemas\Components\Section::make('Thông tin danh mục')
+                            ->schema([
+                                TextInput::make('name')
+                                    ->label('Tên danh mục')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn (string $operation, $state, Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null)
+                                    ->columnSpanFull(),
 
-                TextInput::make('slug')
-                    ->label('Đường dẫn (Slug)')
-                    ->disabled()
-                    ->dehydrated()
-                    ->required()
-                    ->maxLength(255)
-                    ->unique(PostCategory::class, 'slug', ignoreRecord: true)
-                    ->columnSpanFull(),
+                                TextInput::make('slug')
+                                    ->label('Đường dẫn (Slug)')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->unique(PostCategory::class, 'slug', ignoreRecord: true)
+                                    ->columnSpanFull(),
 
-                RichEditor::make('description')
-                    ->label('Mô tả')
-                    ->columnSpan('full')
-                    ->extraInputAttributes(['style' => 'min-height: 400px;']),
+                                RichEditor::make('description')
+                                    ->label('Mô tả')
+                                    ->columnSpan('full')
+                                    ->extraInputAttributes(['style' => 'min-height: 400px;']),
+                            ])
+                            ->columns(2),
+                    ])
+                    ->columnSpan(['lg' => 3]),
 
-                CuratorPicker::make('image_id')
-                    ->label('Ảnh đại diện')
-                    ->relationship('image', 'id'),
+                \Filament\Schemas\Components\Group::make()
+                    ->schema([
+                        \Filament\Schemas\Components\Section::make('Trạng thái & Hình ảnh')
+                            ->schema([
+                                Toggle::make('is_visible')
+                                    ->label('Hiển thị')
+                                    ->default(true),
 
-                Toggle::make('is_visible')
-                    ->label('Hiển thị')
-                    ->default(true),
-            ]);
+                                CuratorPicker::make('image_id')
+                                    ->label('Ảnh đại diện')
+                                    ->relationship('image', 'id'),
+                            ]),
+                    ])
+                    ->columnSpan(['lg' => 1]),
+            ])
+            ->columns(4);
     }
 }

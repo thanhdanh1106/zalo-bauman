@@ -13,26 +13,42 @@ class AuthorForm
     {
         return $schema
             ->components([
-                TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
+                \Filament\Schemas\Components\Group::make()
+                    ->schema([
+                        \Filament\Schemas\Components\Section::make('Thông tin tác giả')
+                            ->schema([
+                                TextInput::make('name')
+                                    ->required()
+                                    ->maxLength(255),
 
-                TextInput::make('email')
-                    ->label('Email address')
-                    ->required()
-                    ->maxLength(255)
-                    ->email()
-                    ->unique(Author::class, 'email', ignoreRecord: true),
+                                TextInput::make('email')
+                                    ->label('Email address')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->email()
+                                    ->unique(Author::class, 'email', ignoreRecord: true),
 
-                RichEditor::make('bio')
-                    ->columnSpan('full'),
+                                RichEditor::make('bio')
+                                    ->columnSpan('full'),
+                            ])
+                            ->columns(2),
+                    ])
+                    ->columnSpan(['lg' => 3]),
 
-                TextInput::make('github_handle')
-                    ->label('GitHub handle')
-                    ->maxLength(255),
+                \Filament\Schemas\Components\Group::make()
+                    ->schema([
+                        \Filament\Schemas\Components\Section::make('Mạng xã hội')
+                            ->schema([
+                                TextInput::make('github_handle')
+                                    ->label('GitHub handle')
+                                    ->maxLength(255),
 
-                TextInput::make('twitter_handle')
-                    ->maxLength(255),
-            ]);
+                                TextInput::make('twitter_handle')
+                                    ->maxLength(255),
+                            ]),
+                    ])
+                    ->columnSpan(['lg' => 1]),
+            ])
+            ->columns(4);
     }
 }

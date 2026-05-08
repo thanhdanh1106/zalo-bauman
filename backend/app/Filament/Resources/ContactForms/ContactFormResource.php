@@ -34,37 +34,50 @@ class ContactFormResource extends Resource
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Thông tin liên hệ')
+                \Filament\Schemas\Components\Group::make()
                     ->schema([
-                        \Filament\Forms\Components\TextInput::make('first_name')
-                            ->label('Họ'),
-                        \Filament\Forms\Components\TextInput::make('last_name')
-                            ->label('Tên'),
-                        \Filament\Forms\Components\TextInput::make('email')
-                            ->label('Email')
-                            ->email(),
-                        \Filament\Forms\Components\TextInput::make('phone')
-                            ->label('Số điện thoại')
-                            ->tel(),
-                        \Filament\Forms\Components\TextInput::make('title')
-                            ->label('Tiêu đề')
-                            ->columnSpanFull(),
-                        \Filament\Forms\Components\Textarea::make('content')
-                            ->label('Nội dung')
-                            ->rows(5)
-                            ->columnSpanFull(),
-                        \Filament\Forms\Components\Select::make('status')
-                            ->label('Trạng thái')
-                            ->options([
-                                'new' => 'Mới',
-                                'read' => 'Đã đọc',
-                                'replied' => 'Đã trả lời',
-                                'closed' => 'Đã đóng',
+                        \Filament\Schemas\Components\Section::make('Thông tin liên hệ')
+                            ->schema([
+                                \Filament\Forms\Components\TextInput::make('first_name')
+                                    ->label('Họ'),
+                                \Filament\Forms\Components\TextInput::make('last_name')
+                                    ->label('Tên'),
+                                \Filament\Forms\Components\TextInput::make('email')
+                                    ->label('Email')
+                                    ->email(),
+                                \Filament\Forms\Components\TextInput::make('phone')
+                                    ->label('Số điện thoại')
+                                    ->tel(),
+                                \Filament\Forms\Components\TextInput::make('title')
+                                    ->label('Tiêu đề')
+                                    ->columnSpanFull(),
+                                \Filament\Forms\Components\Textarea::make('content')
+                                    ->label('Nội dung')
+                                    ->rows(5)
+                                    ->columnSpanFull(),
                             ])
-                            ->default('new'),
+                            ->columns(2),
                     ])
-                    ->columns(2),
-            ]);
+                    ->columnSpan(['lg' => 3]),
+
+                \Filament\Schemas\Components\Group::make()
+                    ->schema([
+                        \Filament\Schemas\Components\Section::make('Trạng thái')
+                            ->schema([
+                                \Filament\Forms\Components\Select::make('status')
+                                    ->label('Trạng thái')
+                                    ->options([
+                                        'new' => 'Mới',
+                                        'read' => 'Đã đọc',
+                                        'replied' => 'Đã trả lời',
+                                        'closed' => 'Đã đóng',
+                                    ])
+                                    ->default('new'),
+                            ]),
+                    ])
+                    ->columnSpan(['lg' => 1]),
+            ])
+            ->columns(4);
     }
 
     public static function table(Table $table): Table

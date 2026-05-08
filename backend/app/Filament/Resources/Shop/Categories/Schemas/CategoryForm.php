@@ -55,7 +55,7 @@ class CategoryForm
                             ->label('Ảnh đại diện')
                             ->relationship('image', 'id'),
                     ])
-                    ->columnSpan(['lg' => fn (?ProductCategory $record) => $record === null ? 3 : 2]),
+                    ->columnSpan(['lg' => 3]),
                 Section::make()
                     ->schema([
                         TextEntry::make('created_at')
@@ -68,6 +68,6 @@ class CategoryForm
                     ->columnSpan(['lg' => 1])
                     ->hidden(fn (?ProductCategory $record) => $record === null),
             ])
-            ->columns(3);
+            ->columns(4);
     }
 }

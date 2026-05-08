@@ -28,4 +28,10 @@ class EditPost extends EditRecord
             DeleteAction::make(),
         ];
     }
+    
+    public function getMaxContentWidth(): string
+    {
+        return '8xl';
+    }
+
 }

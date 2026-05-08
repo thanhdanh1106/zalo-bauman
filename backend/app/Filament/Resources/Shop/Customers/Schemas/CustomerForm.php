@@ -35,7 +35,7 @@ class CustomerForm
                             ->maxDate('today'),
                     ])
                     ->columns(2)
-                    ->columnSpan(['lg' => fn (?Customer $record) => $record === null ? 3 : 2]),
+                    ->columnSpan(['lg' => 3]),
 
                 Section::make()
                     ->schema([
@@ -49,6 +49,6 @@ class CustomerForm
                     ->columnSpan(['lg' => 1])
                     ->hidden(fn (?Customer $record) => $record === null),
             ])
-            ->columns(3);
+            ->columns(4);
     }
 }

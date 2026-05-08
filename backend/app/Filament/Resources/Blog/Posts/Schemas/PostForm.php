@@ -44,13 +44,12 @@ class PostForm
 
                                 RichEditor::make('content')
                                     ->label('Nội dung chi tiết')
-                                    ->required()
                                     ->columnSpan('full')
                                     ->extraInputAttributes(['style' => 'min-height: 700px;']),
                             ])
                             ->columns(2),
                     ])
-                    ->columnSpan(['lg' => 2]),
+                    ->columnSpan(['lg' => 3]),
 
                 \Filament\Schemas\Components\Group::make()
                     ->schema([
@@ -86,7 +85,7 @@ class PostForm
                                 CuratorPicker::make('image_id')
                                     ->label('Ảnh đại diện bài viết')
                                     ->relationship('image', 'id')
-                                    ->required(),
+                                    
                             ])
                             ->collapsible(),
 
@@ -98,6 +97,6 @@ class PostForm
                     ])
                     ->columnSpan(['lg' => 1]),
             ])
-            ->columns(3);
+            ->columns(4);
     }
 }

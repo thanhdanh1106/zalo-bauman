@@ -45,9 +45,10 @@ class BrandForm
                             ->label('Visibility')
                             ->default(true),
 
-                        RichEditor::make('description'),
+                        RichEditor::make('description')
+                            ->columnSpanFull(),
                     ])
-                    ->columnSpan(['lg' => fn (?Brand $record) => $record === null ? 3 : 2]),
+                    ->columnSpan(['lg' => 3]),
                 Section::make()
                     ->schema([
                         TextEntry::make('created_at')
@@ -60,6 +61,6 @@ class BrandForm
                     ->columnSpan(['lg' => 1])
                     ->hidden(fn (?Brand $record) => $record === null),
             ])
-            ->columns(3);
+            ->columns(4);
     }
 }

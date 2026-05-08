@@ -20,6 +20,11 @@ class CreateOrder extends CreateRecord
 
     protected static string $resource = OrderResource::class;
 
+    public function getMaxContentWidth(): string
+    {
+        return '8xl';
+    }
+
     /**
      * @return array<Step>
      */

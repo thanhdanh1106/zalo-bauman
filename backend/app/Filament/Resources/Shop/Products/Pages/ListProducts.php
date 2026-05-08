@@ -27,7 +27,10 @@ class ListProducts extends ListRecords
         ];
     }
 
-
+   public function getMaxContentWidth(): string
+        {
+            return '8xl'; // Hoặc '7xl', '6xl' tùy ý
+        }
     protected function getHeaderWidgets(): array
     {
         return ProductResource::getWidgets();

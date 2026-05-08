@@ -8,4 +8,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateCustomer extends CreateRecord
 {
     protected static string $resource = CustomerResource::class;
+
+    public function getMaxContentWidth(): string
+    {
+        return '8xl';
+    }
 }

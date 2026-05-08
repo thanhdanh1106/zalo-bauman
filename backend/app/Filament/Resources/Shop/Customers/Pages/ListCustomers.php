@@ -16,4 +16,9 @@ class ListCustomers extends ListRecords
             CreateAction::make(),
         ];
     }
+
+    public function getMaxContentWidth(): string
+    {
+        return '8xl';
+    }
 }

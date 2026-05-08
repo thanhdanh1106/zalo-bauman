@@ -35,62 +35,74 @@ class RewardResource extends Resource
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Thông tin phần thưởng')
+                \Filament\Schemas\Components\Group::make()
                     ->schema([
-                        \Filament\Forms\Components\TextInput::make('name')
-                            ->label('Tên phần thưởng')
-                            ->required()
-                            ->maxLength(255),
+                        \Filament\Schemas\Components\Section::make('Thông tin phần thưởng')
+                            ->schema([
+                                \Filament\Forms\Components\TextInput::make('name')
+                                    ->label('Tên phần thưởng')
+                                    ->required()
+                                    ->maxLength(255),
 
-                        \Filament\Forms\Components\Textarea::make('description')
-                            ->label('Mô tả')
-                            ->rows(3),
+                                \Filament\Forms\Components\Textarea::make('description')
+                                    ->label('Mô tả')
+                                    ->rows(3),
 
-                        \Filament\Forms\Components\TextInput::make('points_required')
-                            ->label('Điểm cần đổi')
-                            ->numeric()
-                            ->required()
-                            ->minValue(0),
+                                \Filament\Forms\Components\TextInput::make('points_required')
+                                    ->label('Điểm cần đổi')
+                                    ->numeric()
+                                    ->required()
+                                    ->minValue(0),
 
-                        \Filament\Forms\Components\Select::make('category')
-                            ->label('Loại phần thưởng')
-                            ->options([
-                                'voucher' => 'Voucher',
-                                'product' => 'Sản phẩm',
-                                'service' => 'Dịch vụ',
+                                \Filament\Forms\Components\Select::make('category')
+                                    ->label('Loại phần thưởng')
+                                    ->options([
+                                        'voucher' => 'Voucher',
+                                        'product' => 'Sản phẩm',
+                                        'service' => 'Dịch vụ',
+                                    ])
+                                    ->default('voucher')
+                                    ->required(),
+
+                                \Filament\Forms\Components\TextInput::make('badge')
+                                    ->label('Nhãn hiệu (Badge)')
+                                    ->maxLength(50)
+                                    ->helperText('VD: BÁN CHẠY, MỚI, HOT'),
+
+                                \Filament\Forms\Components\TextInput::make('stock')
+                                    ->label('Số lượng tồn')
+                                    ->numeric()
+                                    ->default(-1)
+                                    ->helperText('-1 = không giới hạn'),
                             ])
-                            ->default('voucher')
-                            ->required(),
-
-                        \Filament\Forms\Components\TextInput::make('badge')
-                            ->label('Nhãn hiệu (Badge)')
-                            ->maxLength(50)
-                            ->helperText('VD: BÁN CHẠY, MỚI, HOT'),
-
-                        \Filament\Forms\Components\TextInput::make('stock')
-                            ->label('Số lượng tồn')
-                            ->numeric()
-                            ->default(-1)
-                            ->helperText('-1 = không giới hạn'),
-
-                        \Filament\Forms\Components\Toggle::make('is_visible')
-                            ->label('Hiển thị')
-                            ->default(true),
-
-                        \Filament\Forms\Components\Toggle::make('out_of_stock')
-                            ->label('Hết hàng')
-                            ->default(false),
+                            ->columns(2),
                     ])
-                    ->columns(2),
+                    ->columnSpan(['lg' => 3]),
 
-                \Filament\Schemas\Components\Section::make('Hình ảnh')
+                \Filament\Schemas\Components\Group::make()
                     ->schema([
-                        \Awcodes\Curator\Components\Forms\CuratorPicker::make('image_id')
-                            ->label('Hình ảnh phần thưởng')
-                            ->relationship('image', 'id'),
+                        \Filament\Schemas\Components\Section::make('Trạng thái')
+                            ->schema([
+                                \Filament\Forms\Components\Toggle::make('is_visible')
+                                    ->label('Hiển thị')
+                                    ->default(true),
+
+                                \Filament\Forms\Components\Toggle::make('out_of_stock')
+                                    ->label('Hết hàng')
+                                    ->default(false),
+                            ]),
+
+                        \Filament\Schemas\Components\Section::make('Hình ảnh')
+                            ->schema([
+                                \Awcodes\Curator\Components\Forms\CuratorPicker::make('image_id')
+                                    ->label('Hình ảnh phần thưởng')
+                                    ->relationship('image', 'id'),
+                            ])
+                            ->collapsible(),
                     ])
-                    ->collapsible(),
-            ]);
+                    ->columnSpan(['lg' => 1]),
+            ])
+            ->columns(4);
     }
 
     public static function table(Table $table): Table

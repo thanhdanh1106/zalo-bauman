@@ -20,4 +20,9 @@ class ListMedia extends CuratorListMedia
                 ->exporter(MediaExporter::class),
         ], parent::getHeaderActions());
     }
+
+    public function getMaxContentWidth(): string
+    {
+        return '8xl';
+    }
 }

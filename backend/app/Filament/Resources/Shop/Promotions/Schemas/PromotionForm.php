@@ -54,7 +54,7 @@ class PromotionForm
                             ])
                             ->columns(2),
                     ])
-                    ->columnSpan(['lg' => 2]),
+                    ->columnSpan(['lg' => 3]),
 
                 \Filament\Schemas\Components\Group::make()
                     ->schema([
@@ -112,6 +112,6 @@ class PromotionForm
                     ])
                     ->columnSpan(['lg' => 1]),
             ])
-            ->columns(3);
+            ->columns(4);
     }
 }

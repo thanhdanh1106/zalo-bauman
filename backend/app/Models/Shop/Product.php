@@ -36,6 +36,8 @@ class Product extends Model implements HasMedia
         'backorder'        => 'boolean',
         'requires_shipping'=> 'boolean',
         'published_at'     => 'date',
+        'is_sold_by_gram'  => 'boolean',
+        'gram_options'     => 'array',
     ];
 
     /**

@@ -31,4 +31,9 @@ class EditOrder extends EditRecord
             ForceDeleteAction::make(),
         ];
     }
+
+    public function getMaxContentWidth(): string
+    {
+        return '8xl';
+    }
 }

@@ -50,7 +50,7 @@ class OrderForm
                                 static::getItemsRepeater(),
                             ]),
                     ])
-                    ->columnSpan(['lg' => fn (?Order $record) => $record === null ? 3 : 2]),
+                    ->columnSpan(['lg' => 3]),
 
                 Section::make()
                     ->schema([
@@ -65,7 +65,7 @@ class OrderForm
                     ->columnSpan(['lg' => 1])
                     ->hidden(fn (?Order $record) => $record === null),
             ])
-            ->columns(3);
+            ->columns(4);
     }
 
     /**

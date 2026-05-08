@@ -37,4 +37,9 @@ class ListOrders extends ListRecords
             'cancelled' => Tab::make()->query(fn ($query) => $query->where('status', 'cancelled')),
         ];
     }
+
+    public function getMaxContentWidth(): string
+    {
+        return '8xl';
+    }
 }

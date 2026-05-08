@@ -56,4 +56,10 @@ class ViewPost extends ViewRecord
             EditAction::make(),
         ];
     }
+    
+    public function getMaxContentWidth(): string
+    {
+        return '8xl';
+    }
+
 }

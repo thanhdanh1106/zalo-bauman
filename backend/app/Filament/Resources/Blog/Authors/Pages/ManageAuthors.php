@@ -20,4 +20,9 @@ class ManageAuthors extends ManageRecords
             CreateAction::make(),
         ];
     }
+
+    public function getMaxContentWidth(): string
+    {
+        return '8xl';
+    }
 }

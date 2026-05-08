@@ -16,4 +16,8 @@ class EditProduct extends EditRecord
             DeleteAction::make(),
         ];
     }
+            public function getMaxContentWidth(): string
+        {
+            return '8xl'; // Hoặc '7xl', '6xl' tùy ý
+        }
 }

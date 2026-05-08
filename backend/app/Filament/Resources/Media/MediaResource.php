@@ -11,6 +11,16 @@ use Waad\FilamentImportWizard\Actions\ImportAction;
 
 class MediaResource extends CuratorMediaResource
 {
+    public static function table(\Filament\Tables\Table $table): \Filament\Tables\Table
+    {
+        return parent::table($table)
+            ->contentGrid(fn ($livewire) => $livewire->layoutView === 'grid' ? [
+                'md' => 2,
+                'lg' => 3,
+                'xl' => 5,
+            ] : null);
+    }
+
     public static function getPages(): array
     {
         return [
