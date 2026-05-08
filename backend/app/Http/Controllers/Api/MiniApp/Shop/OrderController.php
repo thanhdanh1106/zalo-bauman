@@ -161,8 +161,14 @@ class OrderController extends Controller
             return response()->json(['error' => true, 'message' => 'Đơn hàng không tồn tại'], 404);
         }
 
-        if ($order->status !== 'new' && $order->status !== 'pending') {
-            return response()->json(['error' => true, 'message' => 'Đơn hàng này không thể hủy'], 400);
+        // Allow cancelling if status is new, pending or confirmed
+        $allowCancelStatuses = ['new', 'pending', 'confirmed'];
+        
+        if (!in_array($order->status, $allowCancelStatuses)) {
+            return response()->json([
+                'error' => true, 
+                'message' => 'Đơn hàng này đã vào công đoạn xử lý, không thể tự hủy. Vui lòng liên hệ hỗ trợ.'
+            ], 400);
         }
 
         $order->update(['status' => 'cancelled']);

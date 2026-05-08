@@ -1,176 +1,118 @@
 import React from "react";
 import {
   FaCheck,
-  FaEnvelope,
-  FaHeart,
   FaHome,
-  FaPhone,
   FaShoppingBag,
+  FaTruck,
+  FaTrophy,
 } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { formatCurrency } from "@shared/utils/Hooks";
 
 const ThankYou: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const orderData = location.state?.orderData;
+
+  const totalAmount = Number(orderData?.total_amount || 0);
+  const orderNumber = orderData?.number || orderData?.order_number || "---";
+  
+  // Calculate points (assuming 1 point per 10,000 VND)
+  const earnedPoints = Math.floor(totalAmount / 10000);
+
+  // Estimate delivery date (order date + 2-4 days)
+  const orderDate = orderData?.order_date ? new Date(orderData.order_date) : new Date();
+  const deliveryStart = new Date(orderDate);
+  deliveryStart.setDate(orderDate.getDate() + 2);
+  const deliveryEnd = new Date(orderDate);
+  deliveryEnd.setDate(orderDate.getDate() + 4);
+
+  const formatDateRange = (start: Date, end: Date) => {
+    const startStr = `${start.getDate()}`;
+    const endStr = `${end.getDate()} Th${end.getMonth() + 1}, ${end.getFullYear()}`;
+    return `${startStr} - ${endStr}`;
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Success Hero Section */}
-      <section className="bg-gradient-to-br from-[#181a1b] via-[#2a2d2e] to-[#181a1b] py-16 relative overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto">
-            {/* Success Icon */}
-            <div className="flex justify-center mb-6">
-              <div className="bg-green-500/30 p-6 md:p-8 rounded-full border border-green-400/30">
-                <FaCheck className="text-4xl md:text-5xl text-green-400" />
+    <div className="min-h-screen bg-[#fcf5f5] flex flex-col items-center py-10 px-6">
+      {/* Header Section */}
+      <div className="flex flex-col items-center mb-8">
+        <div className="w-24 h-24 bg-[#fce4e6] rounded-full flex items-center justify-center mb-6">
+          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
+            <FaCheck className="text-3xl text-[#8f0012]" />
+          </div>
+        </div>
+        <h1 className="text-2xl font-bold text-[#8f0012] mb-2 text-center">
+          Đặt hàng thành công!
+        </h1>
+        <p className="text-gray-500 text-sm text-center max-w-[280px]">
+          Cảm ơn bạn đã tin tưởng và lựa chọn sản phẩm của chúng tôi.
+        </p>
+      </div>
+
+      {/* Order Info Card */}
+      <div className="w-full max-w-md bg-white rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.04)] overflow-hidden mb-6 border-t-[3px] border-[#8f0012]">
+        <div className="p-8">
+          <h2 className="text-lg font-bold text-gray-800 mb-6">Thông tin đơn hàng</h2>
+          
+          <div className="space-y-5">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500">Mã đơn hàng</span>
+              <span className="px-3 py-1 bg-[#f0f2f5] text-gray-700 text-xs font-bold rounded-lg tracking-wider uppercase">
+                #{orderNumber}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500">Dự kiến</span>
+              <div className="flex items-center text-sm font-bold text-gray-800">
+                <FaTruck className="mr-2 text-[#8f0012]/60" />
+                {formatDateRange(deliveryStart, deliveryEnd)}
               </div>
             </div>
 
-            {/* Thank You Message */}
-            <h1 className="text-3xl md:text-5xl font-bold text-primary font-serif mb-4">
-              Cảm ơn bạn!
-            </h1>
-            <p className="text-lg md:text-xl text-primary mb-2">
-              Thanh toán thành công
-            </p>
-            <p className="text-base text-primary/80 mb-8">
-              Chúng tôi đã nhận được thanh toán của bạn và đang xử lý đơn hàng.
-            </p>
+            <div className="h-px bg-gray-100 w-full my-6"></div>
 
-            {/* Thank You Details */}
-            <div className="bg-[#1e2021] border border-[#cbb27c]/20 rounded-xl p-6 mb-8">
-              <div className="text-center space-y-4">
-                <div className="flex items-center justify-center space-x-2 text-primary font-serif">
-                  <FaHeart className="text-primary" />
-                  <span className="text-lg font-medium">
-                    Đơn hàng của bạn đã được xác nhận
-                  </span>
-                </div>
-                <p className="text-primary/80 text-sm">
-                  Chúng tôi sẽ gửi email xác nhận và thông tin theo dõi đơn hàng
-                  đến bạn sớm nhất.
-                </p>
-              </div>
-            </div>
-
-            {/* Next Steps */}
-            <div className="bg-surface border border-[#eee]/50 border border-[#cbb27c]/10 rounded-xl p-6 mb-8">
-              <h3 className="text-xl font-semibold text-primary font-serif mb-4">
-                Các bước tiếp theo
-              </h3>
-              <div className="space-y-3 text-left">
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-primary text-[#181a1b] rounded-full flex items-center justify-center text-sm font-bold mt-0.5">
-                    1
-                  </div>
-                  <div>
-                    <p className="text-primary font-serif font-medium">
-                      Xác nhận đơn hàng
-                    </p>
-                    <p className="text-primary/70 text-sm">
-                      Chúng tôi sẽ xác nhận đơn hàng và gửi email thông báo
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-primary text-[#181a1b] rounded-full flex items-center justify-center text-sm font-bold mt-0.5">
-                    2
-                  </div>
-                  <div>
-                    <p className="text-primary font-serif font-medium">Chuẩn bị hàng</p>
-                    <p className="text-primary/70 text-sm">
-                      Đội ngũ của chúng tôi sẽ chuẩn bị và đóng gói sản phẩm
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-primary text-[#181a1b] rounded-full flex items-center justify-center text-sm font-bold mt-0.5">
-                    3
-                  </div>
-                  <div>
-                    <p className="text-primary font-serif font-medium">Giao hàng</p>
-                    <p className="text-primary/70 text-sm">
-                      Sản phẩm sẽ được giao đến địa chỉ của bạn trong 1-3 ngày
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => navigate("/account/orders")}
-                className="flex items-center justify-center px-6 py-3 bg-primary text-[#181a1b] rounded-lg hover:bg-[#d4b995] transition-colors font-semibold"
-              >
-                <FaShoppingBag className="mr-2" />
-                Xem đơn hàng
-              </button>
-              <Link
-                to="/"
-                className="flex items-center justify-center px-6 py-3 border border-[#cbb27c]/30 text-primary font-serif rounded-lg hover:bg-surface border border-[#eee]/50 transition-colors font-medium"
-              >
-                <FaHome className="mr-2" />
-                Về trang chủ
-              </Link>
+            <div className="flex justify-between items-end">
+              <span className="text-sm text-gray-500 pb-1">Tổng thanh toán</span>
+              <span className="text-xl font-bold text-[#8f0012]">
+                {formatCurrency(totalAmount)}
+              </span>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Contact Support Section */}
-      <section className="py-12 bg-[#1e2021]">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-2xl font-bold text-primary font-serif mb-4">
-              Cần hỗ trợ?
-            </h3>
-            <p className="text-primary/80 mb-6">
-              Nếu bạn có bất kỳ câu hỏi nào về đơn hàng, đừng ngần ngại liên hệ
-              với chúng tôi.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href={`tel:${import.meta.env.VITE_COMPANY_PHONE || "0931207702"
-                  }`}
-                className="flex items-center justify-center px-6 py-3 bg-surface border border-[#eee] border border-[#cbb27c]/30 text-primary font-serif rounded-lg hover:bg-[#3a3d3e] transition-colors"
-              >
-                <FaPhone className="mr-2" />
-                {import.meta.env.VITE_COMPANY_PHONE || "0931207702"}
-              </a>
-              <a
-                href={`mailto:${import.meta.env.VITE_COMPANY_EMAIL || "contact@appbase.vn"
-                  }`}
-                className="flex items-center justify-center px-6 py-3 bg-surface border border-[#eee] border border-[#cbb27c]/30 text-primary font-serif rounded-lg hover:bg-[#3a3d3e] transition-colors"
-              >
-                <FaEnvelope className="mr-2" />
-                {import.meta.env.VITE_COMPANY_EMAIL || "contact@appbase.vn"}
-              </a>
-            </div>
-          </div>
+      {/* Points Reward Card */}
+      <div className="w-full max-w-md bg-gradient-to-r from-[#fbd77a] to-[#ffe59e] rounded-2xl p-6 flex items-center shadow-lg shadow-[#fbd77a]/20 mb-10">
+        <div className="w-12 h-12 bg-[#cbb27c]/20 rounded-full flex items-center justify-center mr-4 shrink-0 border border-[#cbb27c]/30">
+          <FaTrophy className="text-xl text-[#856404]" />
         </div>
-      </section>
+        <div className="flex-1">
+          <h4 className="text-sm font-bold text-[#856404]">
+            Tích lũy {earnedPoints} điểm 
+          </h4>
+        </div>
+        <button className="bg-[#6b520b] text-white text-[10px] font-bold px-4 py-2 rounded-full hover:bg-black transition-colors ml-2">
+          Tham gia
+        </button>
+      </div>
 
-      {/* Promotional Section - Continue Shopping */}
-      <section className="py-12 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h3 className="text-2xl font-bold text-primary font-serif mb-4">
-              Khám phá thêm sản phẩm
-            </h3>
-            <p className="text-primary/80 mb-6">
-              Tìm hiểu thêm những sản phẩm tuyệt vời khác từ{" "}
-              {import.meta.env.VITE_COMPANY_NAME || "ALPHA X"}
-            </p>
-            <Link
-              to="/products"
-              className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-[#cbb27c] to-[#d4b995] text-[#181a1b] rounded-lg hover:from-[#d4b995] hover:to-[#e5c9a6] transition-all duration-300 font-semibold"
-            >
-              <FaShoppingBag className="mr-2" />
-              Tiếp tục mua sắm
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Action Buttons */}
+      <div className="w-full max-w-md space-y-4">
+        <button
+          onClick={() => navigate(`/order-success/${orderNumber}`)}
+          className="w-full bg-[#8f0012] text-white py-4 rounded-xl font-bold text-sm shadow-lg shadow-[#8f0012]/20 active:scale-[0.98] transition-all"
+        >
+          Xem chi tiết đơn hàng
+        </button>
+        <button
+          onClick={() => navigate("/")}
+          className="w-full bg-transparent text-[#8f0012] py-4 rounded-xl font-bold text-sm border border-[#8f0012] active:scale-[0.98] transition-all"
+        >
+          Tiếp tục mua sắm
+        </button>
+      </div>
     </div>
   );
 };

@@ -30,7 +30,7 @@ export async function findOneOrder(id: number) {
 
 export async function cancelOrder(id: number) {
     return await instance
-        .get(`/orders/${id}/cancel`)
+        .post(`/orders/${id}/cancel`)
         .then((res) => res.data)
         .catch((err) => {
             return {

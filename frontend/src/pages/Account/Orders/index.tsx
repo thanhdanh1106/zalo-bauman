@@ -331,7 +331,7 @@ const AccountOrders: React.FC = () => {
                         {new Date(order.order_date).toLocaleDateString("vi-VN")}
                      </div>
                      <div className="flex gap-2">
-                        {order.status === 'new' && order.payment_status === 'pending' && (
+                        {['new', 'confirmed', 'pending'].includes(order.status) && (
                           <button 
                             onClick={(e) => handleCancelOrder(e, order.id, order.order_number)}
                             disabled={cancellingOrderId === order.id}

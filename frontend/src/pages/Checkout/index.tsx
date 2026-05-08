@@ -41,7 +41,7 @@ import {
 
 interface CheckoutForm {
   customer_name: string;
-  customer_email: string;
+  customer_email?: string;
   customer_phone: string;
   shipping_street: string;
   shipping_city: string;
@@ -69,7 +69,7 @@ const Checkout: React.FC = () => {
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const dispatch = useDispatch();
-  
+
   const [vouchers, setVouchers] = useState<promotionProps[]>([]);
   const [allPromotions, setAllPromotions] = useState<promotionProps[]>([]);
   const [rewards, setRewards] = useState<any[]>([]);
@@ -149,7 +149,6 @@ const Checkout: React.FC = () => {
   } = useForm<CheckoutForm>({
     defaultValues: {
       customer_name: getUserFullName(user) || "",
-      customer_email: user?.email || "",
       customer_phone: user?.information?.phone || "",
       shipping_street: user?.information?.address || "",
       shipping_city: user?.information?.city || "",
@@ -167,10 +166,10 @@ const Checkout: React.FC = () => {
     setSelectedAddressId(addr.id);
     setValue("customer_name", addr.name || getUserFullName(user));
     setValue("customer_phone", addr.phone || user?.information?.phone);
-    setValue("shipping_street", addr.street || addr.address);
+    setValue("shipping_street", addr.street || addr.address || "");
     setValue("shipping_city", addr.city || "");
-    setValue("shipping_district", addr.state || "");
-    // Note: ward might be part of street or not available separately
+    setValue("shipping_district", addr.district || addr.state || "");
+    setValue("shipping_ward", addr.ward || "");
   };
 
   const paymentMethod = watch("payment_method");
@@ -196,9 +195,9 @@ const Checkout: React.FC = () => {
   const validateStep = async (step: number): Promise<boolean> => {
     const fieldsToValidate: (keyof CheckoutForm)[] = [];
     if (step === 1) {
-      fieldsToValidate.push("customer_name", "customer_email", "customer_phone");
+      fieldsToValidate.push("customer_name", "customer_phone", "shipping_street");
     } else if (step === 2) {
-      fieldsToValidate.push("shipping_street", "shipping_city", "shipping_district", "shipping_ward");
+      fieldsToValidate.push("shipping_city", "shipping_district", "shipping_ward");
     }
     return await trigger(fieldsToValidate);
   };
@@ -219,7 +218,6 @@ const Checkout: React.FC = () => {
     try {
       const orderData = {
         customer_name: data.customer_name,
-        customer_email: data.customer_email,
         customer_phone: data.customer_phone,
         payment_method: data.payment_method,
         payment_status: "pending",
@@ -243,7 +241,7 @@ const Checkout: React.FC = () => {
       if (response && !response.error) {
         showMessage("success", "Đặt hàng thành công!");
         clearAllItems();
-        navigate(`/order-success/${response.data.number}`);
+        navigate(`/thank-you`, { state: { orderData: response.data } });
       } else {
         showMessage("error", "Lỗi đặt hàng, vui lòng thử lại.");
       }
@@ -291,10 +289,10 @@ const Checkout: React.FC = () => {
                       <div className="flex flex-col items-center relative z-10">
                         <div
                           className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 shadow-sm ${isCompleted
-                              ? "bg-green-500 border-green-500 text-white"
-                              : isActive
-                                ? "bg-white border-[#8f0012] text-[#8f0012] scale-110"
-                                : "bg-white border-gray-100 text-gray-300"
+                            ? "bg-green-500 border-green-500 text-white"
+                            : isActive
+                              ? "bg-white border-[#8f0012] text-[#8f0012] scale-110"
+                              : "bg-white border-gray-100 text-gray-300"
                             }`}
                         >
                           {isCompleted ? <FaCheck /> : <Icon />}
@@ -328,11 +326,10 @@ const Checkout: React.FC = () => {
                           <div
                             key={addr.id}
                             onClick={() => handleSelectAddress(addr)}
-                            className={`min-w-[240px] p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                              selectedAddressId === addr.id
+                            className={`min-w-[240px] p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedAddressId === addr.id
                                 ? "border-[#8f0012] bg-[#8f0012]/5"
                                 : "border-gray-50 bg-gray-50"
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center justify-between mb-2">
                               <span className="font-bold text-gray-800 text-sm truncate">{addr.name}</span>
@@ -347,14 +344,13 @@ const Checkout: React.FC = () => {
                             </div>
                           </div>
                         ))}
-                        <div 
+                        <div
                           onClick={() => {
                             setSelectedAddressId(null);
                             // Optionally reset form
                           }}
-                          className={`min-w-[120px] flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer ${
-                            selectedAddressId === null ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-200"
-                          }`}
+                          className={`min-w-[120px] flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer ${selectedAddressId === null ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-200"
+                            }`}
                         >
                           <span className="material-symbols-outlined text-gray-400 mb-1">add_location_alt</span>
                           <span className="text-[11px] font-bold text-gray-500 text-center leading-tight">Nhập địa chỉ mới</span>
@@ -388,25 +384,7 @@ const Checkout: React.FC = () => {
                         {errors.customer_name && <p className="mt-1 text-xs text-red-500">{errors.customer_name.message}</p>}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div>
-                          <label className="block text-sm font-bold text-gray-600 mb-2">Email *</label>
-                          <Controller
-                            name="customer_email"
-                            control={control}
-                            rules={{ required: "Vui lòng nhập email" }}
-                            render={({ field }) => (
-                              <input
-                                {...field}
-                                type="email"
-                                className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.customer_email ? "border-red-500" : ""}`}
-                                placeholder="example@email.com"
-                              />
-                            )}
-                          />
-                          {errors.customer_email && <p className="mt-1 text-xs text-red-500">{errors.customer_email.message}</p>}
-                        </div>
-
+                      <div className="grid grid-cols-1  gap-5">
                         <div>
                           <label className="block text-sm font-bold text-gray-600 mb-2">Số điện thoại *</label>
                           <Controller
@@ -425,6 +403,24 @@ const Checkout: React.FC = () => {
                           {errors.customer_phone && <p className="mt-1 text-xs text-red-500">{errors.customer_phone.message}</p>}
                         </div>
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-bold text-gray-600 mb-2">Địa chỉ *</label>
+                        <Controller
+                          name="shipping_street"
+                          control={control}
+                          rules={{ required: "Vui lòng nhập địa chỉ" }}
+                          render={({ field }) => (
+                            <input
+                              {...field}
+                              type="text"
+                              className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.shipping_street ? "border-red-500" : ""}`}
+                              placeholder="Số nhà, tên đường, phường/xã..."
+                            />
+                          )}
+                        />
+                        {errors.shipping_street && <p className="mt-1 text-xs text-red-500">{errors.shipping_street.message}</p>}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -439,23 +435,6 @@ const Checkout: React.FC = () => {
                   </h2>
 
                   <div className="space-y-5">
-                    <div>
-                      <label className="block text-sm font-bold text-gray-600 mb-2">Địa chỉ cụ thể *</label>
-                      <Controller
-                        name="shipping_street"
-                        control={control}
-                        rules={{ required: "Vui lòng nhập địa chỉ" }}
-                        render={({ field }) => (
-                          <input
-                            {...field}
-                            type="text"
-                            className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.shipping_street ? "border-red-500" : ""}`}
-                            placeholder="Số nhà, tên đường"
-                          />
-                        )}
-                      />
-                    </div>
-
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                       <div>
                         <label className="block text-sm font-bold text-gray-600 mb-2">Tỉnh/Thành phố *</label>
@@ -633,15 +612,15 @@ const Checkout: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Ưu đãi của bạn</h3>
-                <button 
-                  onClick={() => setShowVouchers(true)} 
+                <button
+                  onClick={() => setShowVouchers(true)}
                   className="text-[#8f0012] text-[12px] font-bold flex items-center"
                 >
                   {vouchers.length > 0 ? `Chọn mã (${vouchers.length})` : "Tất cả ưu đãi"}
                   <FaArrowRight className="ml-1 text-[10px]" />
                 </button>
               </div>
-              
+
               <PromoCodeForm className="mb-4" />
 
               <div className="bg-[#fdf8e9] p-3 rounded-xl border border-[#f5e6ba] flex items-start space-x-3 shadow-sm">
@@ -665,14 +644,14 @@ const Checkout: React.FC = () => {
               <Box className="px-0 pb-10">
                 {/* Tab Header */}
                 <Box className="flex border-b border-gray-100 mb-4 px-4">
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setActiveTab("vouchers")}
                     className={`flex-1 py-3 text-[14px] font-bold transition-all border-b-2 ${activeTab === "vouchers" ? "text-[#8f0012] border-[#8f0012]" : "text-gray-400 border-transparent"}`}
                   >
                     Voucher
                   </button>
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setActiveTab("rewards")}
                     className={`flex-1 py-3 text-[14px] font-bold transition-all border-b-2 ${activeTab === "rewards" ? "text-[#8f0012] border-[#8f0012]" : "text-gray-400 border-transparent"}`}
@@ -691,8 +670,8 @@ const Checkout: React.FC = () => {
                         {allPromotions.filter(v => v.is_visible).length > 0 ? allPromotions.filter(v => v.is_visible).map((v) => {
                           const isSelected = appliedPromotion?.id === v.id;
                           return (
-                            <Box 
-                              key={v.id} 
+                            <Box
+                              key={v.id}
                               onClick={() => {
                                 if (isSelected) {
                                   dispatch(removePromotion());
@@ -701,11 +680,10 @@ const Checkout: React.FC = () => {
                                 }
                                 setShowVouchers(false);
                               }}
-                              className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${
-                                isSelected 
-                                  ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm" 
+                              className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${isSelected
+                                  ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
                                   : "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer"
-                              }`}
+                                }`}
                             >
                               <Box className="flex items-center space-x-4">
                                 <Box className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-[#8f0012] text-white" : "bg-gray-50 text-[#8f0012]"}`}>
@@ -755,8 +733,8 @@ const Checkout: React.FC = () => {
                             const isSelected = isRewardSelected || isPromoSelected;
 
                             return (
-                              <Box 
-                                key={isVoucher ? `v-${v.id}` : `r-${v.id}-${idx}`} 
+                              <Box
+                                key={isVoucher ? `v-${v.id}` : `r-${v.id}-${idx}`}
                                 onClick={() => {
                                   if (isVoucher) {
                                     if (isPromoSelected) {
@@ -773,11 +751,10 @@ const Checkout: React.FC = () => {
                                   }
                                   setShowVouchers(false);
                                 }}
-                                className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${
-                                  isSelected 
-                                    ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm" 
+                                className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${isSelected
+                                    ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
                                     : isVoucher ? "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer" : "border-gray-50 bg-gray-50/30 opacity-80"
-                                }`}
+                                  }`}
                               >
                                 <Box className="flex items-center space-x-4">
                                   <Box className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-[#8f0012] text-white" : "bg-gray-50 text-[#8f0012]"}`}>
@@ -821,7 +798,7 @@ const Checkout: React.FC = () => {
                           <Text className="text-[13px] font-bold text-gray-800 mb-2">Đổi thêm quà tặng:</Text>
                           {rewards.length > 0 ? (
                             rewards.map((r) => (
-                              <Box 
+                              <Box
                                 key={r.id}
                                 className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50 mb-3"
                               >
