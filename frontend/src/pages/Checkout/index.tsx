@@ -195,9 +195,14 @@ const Checkout: React.FC = () => {
   const validateStep = async (step: number): Promise<boolean> => {
     const fieldsToValidate: (keyof CheckoutForm)[] = [];
     if (step === 1) {
-      fieldsToValidate.push("customer_name", "customer_phone", "shipping_street");
-    } else if (step === 2) {
-      fieldsToValidate.push("shipping_city", "shipping_district", "shipping_ward");
+      fieldsToValidate.push(
+        "customer_name", 
+        "customer_phone", 
+        "shipping_street", 
+        "shipping_city", 
+        "shipping_district", 
+        "shipping_ward"
+      );
     }
     return await trigger(fieldsToValidate);
   };
@@ -205,12 +210,12 @@ const Checkout: React.FC = () => {
   const handleNextStep = async () => {
     const isValid = await validateStep(currentStep);
     if (isValid) {
-      setCurrentStep((prev) => Math.min(prev + 1, 3));
+      setCurrentStep(2);
     }
   };
 
   const handlePrevStep = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    setCurrentStep(1);
   };
 
   const handleSubmitOrder = async (data: CheckoutForm) => {
@@ -254,9 +259,10 @@ const Checkout: React.FC = () => {
 
   const steps = [
     { id: 1, title: "Thông tin", icon: FaUser },
-    { id: 2, title: "Địa chỉ", icon: FaTruck },
-    { id: 3, title: "Thanh toán", icon: FaCreditCard },
+    { id: 2, title: "Xác minh", icon: FaCheck },
   ];
+
+  const formData = watch();
 
   return (
     <div className="min-h-screen bg-[#f6f3f2]">
@@ -278,7 +284,7 @@ const Checkout: React.FC = () => {
           <div className="col-span-12">
             {/* Progress Steps */}
             <div className="mt-6 mb-8 px-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-center space-x-12">
                 {steps.map((step, index) => {
                   const Icon = step.icon;
                   const isActive = currentStep === step.id;
@@ -302,7 +308,7 @@ const Checkout: React.FC = () => {
                         </span>
                       </div>
                       {index < steps.length - 1 && (
-                        <div className={`flex-1 h-0.5 mx-2 mt-[-18px] ${isCompleted ? "bg-green-500" : "bg-gray-200"}`} />
+                        <div className={`w-20 h-0.5 mt-[-18px] ${isCompleted ? "bg-green-500" : "bg-gray-200"}`} />
                       )}
                     </React.Fragment>
                   );
@@ -311,7 +317,7 @@ const Checkout: React.FC = () => {
             </div>
 
             <form onSubmit={handleFormSubmit(handleSubmitOrder)} className="space-y-4">
-              {/* Step 1: Customer Information */}
+              {/* Step 1: Input Information */}
               {currentStep === 1 && (
                 <div className="space-y-6">
                   {/* Saved Addresses Section */}
@@ -345,12 +351,8 @@ const Checkout: React.FC = () => {
                           </div>
                         ))}
                         <div
-                          onClick={() => {
-                            setSelectedAddressId(null);
-                            // Optionally reset form
-                          }}
-                          className={`min-w-[120px] flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer ${selectedAddressId === null ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-200"
-                            }`}
+                          onClick={() => setSelectedAddressId(null)}
+                          className={`min-w-[120px] flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer ${selectedAddressId === null ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-200"}`}
                         >
                           <span className="material-symbols-outlined text-gray-400 mb-1">add_location_alt</span>
                           <span className="text-[11px] font-bold text-gray-500 text-center leading-tight">Nhập địa chỉ mới</span>
@@ -362,7 +364,7 @@ const Checkout: React.FC = () => {
                   <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
                     <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
                       <FaUser className="mr-3 text-[#8f0012]" />
-                      Thông tin khách hàng
+                      Thông tin nhận hàng
                     </h2>
 
                     <div className="space-y-5">
@@ -384,28 +386,26 @@ const Checkout: React.FC = () => {
                         {errors.customer_name && <p className="mt-1 text-xs text-red-500">{errors.customer_name.message}</p>}
                       </div>
 
-                      <div className="grid grid-cols-1  gap-5">
-                        <div>
-                          <label className="block text-sm font-bold text-gray-600 mb-2">Số điện thoại *</label>
-                          <Controller
-                            name="customer_phone"
-                            control={control}
-                            rules={{ required: "Vui lòng nhập số điện thoại" }}
-                            render={({ field }) => (
-                              <input
-                                {...field}
-                                type="tel"
-                                className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.customer_phone ? "border-red-500" : ""}`}
-                                placeholder="0912345678"
-                              />
-                            )}
-                          />
-                          {errors.customer_phone && <p className="mt-1 text-xs text-red-500">{errors.customer_phone.message}</p>}
-                        </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-600 mb-2">Số điện thoại *</label>
+                        <Controller
+                          name="customer_phone"
+                          control={control}
+                          rules={{ required: "Vui lòng nhập số điện thoại" }}
+                          render={({ field }) => (
+                            <input
+                              {...field}
+                              type="tel"
+                              className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.customer_phone ? "border-red-500" : ""}`}
+                              placeholder="0912345678"
+                            />
+                          )}
+                        />
+                        {errors.customer_phone && <p className="mt-1 text-xs text-red-500">{errors.customer_phone.message}</p>}
                       </div>
 
                       <div>
-                        <label className="block text-sm font-bold text-gray-600 mb-2">Địa chỉ *</label>
+                        <label className="block text-sm font-bold text-gray-600 mb-2">Địa chỉ chi tiết *</label>
                         <Controller
                           name="shipping_street"
                           control={control}
@@ -415,144 +415,123 @@ const Checkout: React.FC = () => {
                               {...field}
                               type="text"
                               className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.shipping_street ? "border-red-500" : ""}`}
-                              placeholder="Số nhà, tên đường, phường/xã..."
+                              placeholder="Số nhà, tên đường..."
                             />
                           )}
                         />
                         {errors.shipping_street && <p className="mt-1 text-xs text-red-500">{errors.shipping_street.message}</p>}
                       </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Tỉnh/Thành phố *</label>
+                          <Controller
+                            name="shipping_city"
+                            control={control}
+                            rules={{ required: "Bắt buộc" }}
+                            render={({ field }) => (
+                              <input {...field} className="w-full px-4 py-2.5 bg-[#f6f3f2] rounded-xl text-sm outline-none" placeholder="Tỉnh/TP" />
+                            )}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Quận/Huyện *</label>
+                          <Controller
+                            name="shipping_district"
+                            control={control}
+                            rules={{ required: "Bắt buộc" }}
+                            render={({ field }) => (
+                              <input {...field} className="w-full px-4 py-2.5 bg-[#f6f3f2] rounded-xl text-sm outline-none" placeholder="Quận/Huyện" />
+                            )}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Phường/Xã *</label>
+                          <Controller
+                            name="shipping_ward"
+                            control={control}
+                            rules={{ required: "Bắt buộc" }}
+                            render={({ field }) => (
+                              <input {...field} className="w-full px-4 py-2.5 bg-[#f6f3f2] rounded-xl text-sm outline-none" placeholder="Phường/Xã" />
+                            )}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Step 2: Shipping Address */}
+              {/* Step 2: Verification / Review */}
               {currentStep === 2 && (
-                <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
-                  <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                    <FaMapMarkerAlt className="mr-3 text-[#8f0012]" />
-                    Địa chỉ giao hàng
-                  </h2>
+                <div className="space-y-6 animate-fade-in">
+                  <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
+                    <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
+                      <FaCheck className="mr-3 text-green-500" />
+                      Xác minh thông tin
+                    </h2>
 
-                  <div className="space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                      <div>
-                        <label className="block text-sm font-bold text-gray-600 mb-2">Tỉnh/Thành phố *</label>
-                        <Controller
-                          name="shipping_city"
-                          control={control}
-                          rules={{ required: "Vui lòng nhập tỉnh thành" }}
-                          render={({ field }) => (
-                            <input
-                              {...field}
-                              type="text"
-                              className="w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800"
-                              placeholder="Tỉnh/Thành phố"
-                            />
-                          )}
-                        />
+                    <div className="space-y-4">
+                      <div className="p-4 bg-gray-50 rounded-xl space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-400 font-medium">Người nhận:</span>
+                          <span className="text-xs font-bold text-gray-800">{formData.customer_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-400 font-medium">Số điện thoại:</span>
+                          <span className="text-xs font-bold text-gray-800">{formData.customer_phone}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs text-gray-400 font-medium">Thanh toán:</span>
+                          <span className="text-xs font-bold text-gray-800">Ship COD (Tiền mặt)</span>
+                        </div>
+                        <div className="flex flex-col pt-2 border-t border-gray-100">
+                          <span className="text-xs text-gray-400 font-medium mb-1">Địa chỉ nhận hàng:</span>
+                          <span className="text-xs font-bold text-gray-800 leading-relaxed">
+                            {formData.shipping_street}, {formData.shipping_ward}, {formData.shipping_district}, {formData.shipping_city}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-bold text-gray-600 mb-2">Quận/Huyện *</label>
-                        <Controller
-                          name="shipping_district"
-                          control={control}
-                          rules={{ required: "Vui lòng nhập quận huyện" }}
-                          render={({ field }) => (
-                            <input
-                              {...field}
-                              type="text"
-                              className="w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800"
-                              placeholder="Quận/Huyện"
-                            />
-                          )}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-bold text-gray-600 mb-2">Phường/Xã *</label>
-                        <Controller
-                          name="shipping_ward"
-                          control={control}
-                          rules={{ required: "Vui lòng nhập phường xã" }}
-                          render={({ field }) => (
-                            <input
-                              {...field}
-                              type="text"
-                              className="w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800"
-                              placeholder="Phường/Xã"
-                            />
-                          )}
-                        />
-                      </div>
-                    </div>
 
-                    <div>
-                      <label className="block text-sm font-bold text-gray-600 mb-2">Ghi chú (tùy chọn)</label>
-                      <Controller
-                        name="notes"
-                        control={control}
-                        render={({ field }) => (
-                          <textarea
-                            {...field}
-                            rows={3}
-                            className="w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800"
-                            placeholder="Ghi chú thêm cho đơn hàng..."
-                          />
+                      <div className="space-y-3">
+                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Sản phẩm của bạn</h3>
+                        {items.map((item) => (
+                          <div key={item.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                            <img src={getThumbnailUrl(item.product?.thumbnail)} className="w-10 h-10 rounded-lg object-cover" />
+                            <div className="flex-1">
+                              <p className="text-xs font-bold text-gray-800 truncate">{item.product?.name || item.title}</p>
+                              <p className="text-[10px] text-gray-400">SL: {item.quantity}</p>
+                            </div>
+                            <span className="text-xs font-bold text-[#8f0012]">{(item.price * item.quantity).toLocaleString()}đ</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pt-4 border-t border-gray-100 space-y-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-400">Tạm tính:</span>
+                          <span className="font-bold text-gray-800">{subtotal.toLocaleString()}đ</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-400">Phí vận chuyển:</span>
+                          <span className="font-bold text-gray-800">{shipping === 0 ? "Miễn phí" : `${shipping.toLocaleString()}đ`}</span>
+                        </div>
+                        {discount > 0 && (
+                          <div className="flex justify-between text-xs">
+                            <span className="text-[#8f0012]">Giảm giá:</span>
+                            <span className="font-bold text-[#8f0012]">-{discount.toLocaleString()}đ</span>
+                          </div>
                         )}
-                      />
+                        <div className="flex justify-between pt-2 border-t border-gray-100">
+                          <span className="text-sm font-bold text-gray-800">Tổng cộng:</span>
+                          <span className="text-lg font-bold text-[#8f0012]">{finalTotal.toLocaleString()}đ</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
 
-              {/* Step 3: Payment */}
-              {currentStep === 3 && (
-                <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
-                  <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                    <FaCreditCard className="mr-3 text-[#8f0012]" />
-                    Phương thức thanh toán
-                  </h2>
-
-                  <Controller
-                    name="payment_method"
-                    control={control}
-                    render={({ field }) => (
-                      <div className="space-y-4">
-                        <label className={`flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${field.value === "cod" ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-50 bg-gray-50"}`}>
-                          <input
-                            type="radio"
-                            name={field.name}
-                            value="cod"
-                            checked={field.value === "cod"}
-                            onChange={() => field.onChange("cod")}
-                            className="mr-3 accent-[#8f0012]"
-                          />
-                          <div className="flex-1">
-                            <div className="font-bold text-gray-800">Thanh toán khi nhận hàng (COD)</div>
-                            <div className="text-xs text-gray-400">Thanh toán bằng tiền mặt khi giao hàng</div>
-                          </div>
-                        </label>
-
-                        <label className={`flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${field.value === "banking" ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-50 bg-gray-50"}`}>
-                          <input
-                            type="radio"
-                            name={field.name}
-                            value="banking"
-                            checked={field.value === "banking"}
-                            onChange={() => field.onChange("banking")}
-                            className="mr-3 accent-[#8f0012]"
-                          />
-                          <div className="flex-1">
-                            <div className="font-bold text-gray-800">Chuyển khoản ngân hàng</div>
-                            <div className="text-xs text-gray-400">Chuyển khoản qua Internet Banking</div>
-                          </div>
-                        </label>
-                      </div>
-                    )}
-                  />
-
-                  <div className="mt-6">
-                    <Controller
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-white">
+                     <Controller
                       name="agreeToTerms"
                       control={control}
                       rules={{ required: true }}
@@ -565,7 +544,7 @@ const Checkout: React.FC = () => {
                             className="mt-1 mr-3 accent-[#8f0012]"
                           />
                           <span className="text-xs text-gray-500">
-                            Tôi đồng ý với <span className="text-[#8f0012] underline">điều khoản sử dụng</span> và <span className="text-[#8f0012] underline">chính sách bảo mật</span>
+                            Tôi xác nhận các thông tin trên là chính xác và đồng ý với <span className="text-[#8f0012] underline">điều khoản đặt hàng</span>.
                           </span>
                         </label>
                       )}
@@ -586,22 +565,22 @@ const Checkout: React.FC = () => {
                   Quay lại
                 </button>
 
-                {currentStep < 3 ? (
+                {currentStep === 1 ? (
                   <button
                     type="button"
                     onClick={handleNextStep}
                     className="flex-[2] flex items-center justify-center py-4 text-sm font-bold text-white bg-[#8f0012] rounded-2xl shadow-lg shadow-[#8f0012]/20 active:scale-95 transition-all"
                   >
-                    Tiếp tục
+                    Tiếp tục xác minh
                     <FaArrowRight className="ml-2" />
                   </button>
                 ) : (
                   <button
                     type="submit"
-                    disabled={isProcessing}
+                    disabled={isProcessing || !formData.agreeToTerms}
                     className="flex-[2] flex items-center justify-center py-4 text-sm font-bold text-white bg-[#8f0012] rounded-2xl shadow-lg shadow-[#8f0012]/20 active:scale-95 transition-all disabled:opacity-50"
                   >
-                    {isProcessing ? "Đang xử lý..." : "Hoàn tất đặt hàng"}
+                    {isProcessing ? "Đang tạo đơn..." : "Đặt mua ngay"}
                   </button>
                 )}
               </div>

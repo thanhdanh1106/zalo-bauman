@@ -80,7 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/number/{number}', [OrderController::class, 'show']);
-    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
+    Route::match(['get', 'post'], '/orders/{id}/cancel', [OrderController::class, 'cancel']);
 
     // Unified Address Management
     Route::get('/addresses', [AddressController::class, 'index']);

@@ -10,7 +10,6 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\TagsInput;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
@@ -142,39 +141,6 @@ class ProductForm
                             ])
                             ->columns(2),
 
-                        Section::make('Bán theo trọng lượng (Gram)')
-                            ->schema([
-                                Toggle::make('is_sold_by_gram')
-                                    ->label('Bán theo Gram')
-                                    ->helperText('Nếu bật, khách hàng có thể chọn mua theo gram.')
-                                    ->live(),
-
-                                TextInput::make('sales_unit')
-                                    ->label('Đơn vị bán')
-                                    ->placeholder('vd: gram, hộp, túi')
-                                    ->visible(fn ($get) => $get('is_sold_by_gram')),
-
-                                TextInput::make('min_gram')
-                                    ->label('Trọng lượng tối thiểu')
-                                    ->numeric()
-                                    ->suffix('g')
-                                    ->visible(fn ($get) => $get('is_sold_by_gram')),
-
-                                TextInput::make('gram_step')
-                                    ->label('Bước nhảy (Increment)')
-                                    ->numeric()
-                                    ->suffix('g')
-                                    ->visible(fn ($get) => $get('is_sold_by_gram')),
-
-                                TagsInput::make('gram_options')
-                                    ->label('Các tùy chọn Gram (nếu có)')
-                                    ->placeholder('Thêm tùy chọn vd: 100, 200, 500')
-                                    ->helperText('Nhấn Enter sau mỗi giá trị.')
-                                    ->visible(fn ($get) => $get('is_sold_by_gram'))
-                                    ->columnSpanFull(),
-                            ])
-                            ->columns(2)
-                            ->collapsible(),
 
                         Section::make('Vận chuyển')
                             ->schema([
@@ -187,59 +153,8 @@ class ProductForm
                             ->columns(2),
                        
 
-                        Section::make('Thông số vật lý')
-                            ->schema([
-                                TextInput::make('weight_value')
-                                    ->label('Trọng lượng')
-                                    ->numeric()
-                                    ->suffix(fn ($get) => $get('weight_unit') ?? 'kg'),
-                                TextInput::make('weight_unit')
-                                    ->label('Đơn vị trọng lượng')
-                                    ->default('kg'),
-
-                                TextInput::make('height_value')
-                                    ->label('Chiều cao')
-                                    ->numeric()
-                                    ->suffix(fn ($get) => $get('height_unit') ?? 'cm'),
-                                TextInput::make('height_unit')
-                                    ->label('Đơn vị chiều cao')
-                                    ->default('cm'),
-
-                                TextInput::make('width_value')
-                                    ->label('Chiều rộng')
-                                    ->numeric()
-                                    ->suffix(fn ($get) => $get('width_unit') ?? 'cm'),
-                                TextInput::make('width_unit')
-                                    ->label('Đơn vị chiều rộng')
-                                    ->default('cm'),
-
-                                TextInput::make('depth_value')
-                                    ->label('Chiều sâu')
-                                    ->numeric()
-                                    ->suffix(fn ($get) => $get('depth_unit') ?? 'cm'),
-                                TextInput::make('depth_unit')
-                                    ->label('Đơn vị chiều sâu')
-                                    ->default('cm'),
-
-                                TextInput::make('volume_value')
-                                    ->label('Thể tích')
-                                    ->numeric()
-                                    ->suffix(fn ($get) => $get('volume_unit') ?? 'l'),
-                                TextInput::make('volume_unit')
-                                    ->label('Đơn vị thể tích')
-                                    ->default('l'),
-                            ])
-                            ->columns(2)
-                            ->collapsible(),
-                            Section::make('Vận chuyển')
-                            ->schema([
-                                Checkbox::make('backorder')
-                                    ->label('Cho phép đổi trả hàng'),
-
-                                Checkbox::make('requires_shipping')
-                                    ->label('Yêu cầu vận chuyển'),
-                            ])
-                            ->columns(2),
+                       
+                            
                        
                              Section::make('SEO')
                             ->schema([

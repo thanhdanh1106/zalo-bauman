@@ -13,6 +13,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\BulkActionGroup;
 
 class AttributesRelationManager extends RelationManager
 {
@@ -89,7 +90,7 @@ class AttributesRelationManager extends RelationManager
                 DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
+                BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
             ]);

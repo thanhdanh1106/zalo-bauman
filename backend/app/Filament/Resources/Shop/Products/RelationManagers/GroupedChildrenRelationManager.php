@@ -11,6 +11,7 @@ use Filament\Tables\Table;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
+use Filament\Actions\BulkActionGroup;
 
 class GroupedChildrenRelationManager extends RelationManager
 {
@@ -66,7 +67,7 @@ class GroupedChildrenRelationManager extends RelationManager
                 DetachAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
+                BulkActionGroup::make([
                     DetachBulkAction::make(),
                 ]),
             ]);

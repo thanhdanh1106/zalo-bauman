@@ -90,12 +90,10 @@ const ThankYou: React.FC = () => {
         </div>
         <div className="flex-1">
           <h4 className="text-sm font-bold text-[#856404]">
-            Tích lũy {earnedPoints} điểm 
+            Tích lũy {earnedPoints} điểm thưởng
           </h4>
         </div>
-        <button className="bg-[#6b520b] text-white text-[10px] font-bold px-4 py-2 rounded-full hover:bg-black transition-colors ml-2">
-          Tham gia
-        </button>
+        
       </div>
 
       {/* Action Buttons */}
