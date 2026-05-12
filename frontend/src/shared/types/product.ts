@@ -19,6 +19,19 @@ export interface productProps {
   created_at: string
   rating?: number
   soldCount?: number;
+  affiliate_commission_rate?: number;
+  affiliate_reward_points?: number;
+  comments?: Array<{
+    id: number;
+    title?: string;
+    content: string;
+    rating: number;
+    created_at: string;
+    customer?: {
+      name: string;
+      avatar?: string;
+    };
+  }>;
   thumbnail: mediaProps
   gallery: mediaProps[]
   user: userProps
@@ -34,4 +47,19 @@ export interface productProps {
   weight: number | null
   dimensions: string | null
   volume: number | null
+  variants?: productVariantProps[]
+}
+
+export interface productVariantProps {
+  id: number
+  sku: string
+  price: number
+  old_price?: number
+  sale_price?: number
+  effective_price: number
+  qty: number
+  display_label: string
+  image?: string
+  weight_value?: number
+  weight_unit?: string
 }

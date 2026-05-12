@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\User;
 
 class Order extends Model
 {
@@ -37,6 +38,10 @@ class Order extends Model
         'notes',
         'promotion_id',
         'reward_id',
+        'payment_method',
+        'payment_status',
+        'affiliate_referrer_id',
+        'affiliate_points_awarded',
     ];
 
     protected $casts = [
@@ -66,5 +71,11 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function affiliateReferrer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'affiliate_referrer_id');
     }
 }

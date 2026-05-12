@@ -42,6 +42,18 @@ class CommentsRelationManager extends RelationManager
                     ->searchable()
                     ->required(),
 
+                Select::make('rating')
+                    ->label('Đánh giá (Sao)')
+                    ->options([
+                        5 => '5 Sao ⭐⭐⭐⭐⭐',
+                        4 => '4 Sao ⭐⭐⭐⭐',
+                        3 => '3 Sao ⭐⭐⭐',
+                        2 => '2 Sao ⭐⭐',
+                        1 => '1 Sao ⭐',
+                    ])
+                    ->default(5)
+                    ->required(),
+
                 Toggle::make('is_visible')
                     ->label('Public visibility')
                     ->default(true),
@@ -79,6 +91,11 @@ class CommentsRelationManager extends RelationManager
 
                 TextColumn::make('customer.name')
                     ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('rating')
+                    ->label('Đánh giá')
+                    ->formatStateUsing(fn ($state) => str_repeat('⭐', (int) $state))
                     ->sortable(),
 
                 IconColumn::make('is_visible')

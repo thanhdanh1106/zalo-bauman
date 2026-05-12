@@ -9,7 +9,7 @@ import { bannerProps } from "@shared/types/banner";
 import { scrollToTop } from "@shared/utils/scrollUtils";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Page, Swiper as ZMPSwiper } from "zmp-ui"; 
+import { Page, Swiper as ZMPSwiper } from "zmp-ui";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -24,6 +24,38 @@ const HomePage = () => {
   const [productsLoading, setProductsLoading] = useState(false);
   const [banners, setBanners] = useState<bannerProps[] | string[]>([]);
   const [bannersLoading, setBannersLoading] = useState(false);
+
+  // Search Modal States
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<productProps[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (!showSearchModal) return;
+      setIsSearching(true);
+      try {
+        const res = await findManyProducts(filterParams({ search: searchQuery, per_page: 20 }));
+        if (res && !res.error) {
+          setSearchResults(res.data || []);
+        }
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, showSearchModal]);
+
+  const handleOpenSearchModal = () => {
+    setShowSearchModal(true);
+    if (!searchQuery) {
+      setSearchResults([...bestSellers, ...newProducts].slice(0, 10));
+    }
+  };
 
   const handleFetchData = async () => {
     try {
@@ -67,24 +99,25 @@ const HomePage = () => {
     <Page className="bg-background text-on-background min-h-screen pb-[80px]">
       <main className="px-margin-main pt-stack-md flex flex-col gap-stack-lg">
         {/* Search Bar */}
-        <div className="relative w-full">
+        <div className="relative w-full" onClick={handleOpenSearchModal}>
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <span className="material-symbols-outlined text-on-surface-variant">search</span>
           </div>
-          <input 
-            className="w-full bg-surface-container-low text-on-surface font-sans text-sm rounded-full py-3 pl-12 pr-4 border border-surface-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm placeholder:text-on-surface-variant/70" 
-            placeholder="Tìm kiếm sản phẩm..." 
+          <input
+            readOnly
+            className="w-full bg-surface-container-low text-on-surface font-sans text-sm rounded-full py-3 pl-12 pr-4 border border-surface-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm placeholder:text-on-surface-variant/70 cursor-pointer"
+            placeholder="Tìm kiếm sản phẩm..."
             type="text"
           />
         </div>
 
         {/* Hero Banner */}
         <section className="relative w-full h-[200px] rounded-xl overflow-hidden shadow-md">
-          <Swiper 
+          <Swiper
             modules={[Autoplay, Pagination]}
-            autoplay={{ delay: 5000 }} 
-            pagination={{ clickable: true }}
-            loop={banners.length > 1} 
+            autoplay={{ delay: 5000 }}
+
+            loop={banners.length > 1}
             className="h-full"
           >
             {banners.length > 0 ? (
@@ -96,9 +129,16 @@ const HomePage = () => {
 
                 return (
                   <SwiperSlide key={index}>
-                    <div 
+                    <div
                       className="relative w-full h-full cursor-pointer"
-                      onClick={() => link && window.open(link, '_blank')}
+                      onClick={() => {
+                        if (!link) return;
+                        if (link.startsWith("http://") || link.startsWith("https://")) {
+                          window.location.href = link;
+                        } else {
+                          navigate(link);
+                        }
+                      }}
                     >
                       <img alt={title} className="w-full h-full object-cover" src={imageUrl} />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
@@ -113,9 +153,9 @@ const HomePage = () => {
             ) : (
               <SwiperSlide>
                 <div className="relative w-full h-full bg-neutral">
-                  <img 
-                    alt="Banner" 
-                    className="w-full h-full object-cover opacity-80" 
+                  <img
+                    alt="Banner"
+                    className="w-full h-full object-cover opacity-80"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwj8d4493O73jBbEJQuMCnRYYTJozqGT5MWlyEq_NPfVOKWBTGNTOnheYpQyy9NAiYzGqMgJcnFYcft5qcOkDkECK8pe6cTPg0iu9M_0R_7KAL6dOBgyAZmtYLd_RWGAqXoTCRe3SbutiyYN8S8-cSk8GwFDhWzaAdkJgKHcnNIeUFpM9Hx90FcoZmUuINEBYvPMkJC4NQymR51snLsZNbwOU-ZJd4yJm6g6CoWGKggVRjRRhjoskZCvuuEQwzwMdBOPeajAEN2qQ"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
@@ -137,15 +177,15 @@ const HomePage = () => {
           </div>
           <div className="flex overflow-x-auto no-scrollbar gap-stack-md pb-2">
             {categoriesLoading ? (
-               Array.from({ length: 4 }).map((_, i) => (
+              Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex flex-col items-center gap-2 min-w-[72px] animate-pulse">
                   <div className="w-14 h-14 rounded-full bg-surface-container-high"></div>
                   <div className="w-10 h-2 bg-surface-container-high rounded"></div>
                 </div>
               ))
             ) : productCategories.map((cat) => (
-              <button 
-                key={cat.id} 
+              <button
+                key={cat.id}
                 onClick={() => navigate(`/products?category_ids=${cat.id}`)}
                 className="flex flex-col items-center gap-2 min-w-[72px]"
               >
@@ -170,14 +210,14 @@ const HomePage = () => {
             className="pb-2"
           >
             {productsLoading ? (
-               Array.from({ length: 3 }).map((_, i) => (
+              Array.from({ length: 3 }).map((_, i) => (
                 <SwiperSlide key={i}>
                   <div className="bg-surface-container-low rounded-xl h-48 animate-pulse"></div>
                 </SwiperSlide>
               ))
             ) : bestSellers.map((prod) => (
               <SwiperSlide key={prod.id}>
-                <div 
+                <div
                   onClick={() => navigate(`/products/${prod.slug}`)}
                   className="bg-white rounded-xl overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.04)] border border-surface-variant flex flex-col px-0.5 pt-0.5 h-full"
                 >
@@ -211,13 +251,13 @@ const HomePage = () => {
             <button onClick={() => navigate("/products")} className="font-sans text-xs font-semibold text-primary">Xem tất cả</button>
           </div>
           <div className="grid grid-cols-2 gap-gutter-grid">
-             {productsLoading ? (
-               Array.from({ length: 4 }).map((_, i) => (
+            {productsLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="bg-surface-container-low rounded-xl h-60 animate-pulse"></div>
               ))
             ) : newProducts.map((prod) => (
-              <div 
-                key={prod.id} 
+              <div
+                key={prod.id}
                 onClick={() => navigate(`/products/${prod.slug}`)}
                 className="bg-white rounded-xl overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.04)] border border-surface-variant flex flex-col p-1"
               >
@@ -241,6 +281,87 @@ const HomePage = () => {
           </div>
         </section>
       </main>
+
+      {/* Stunning Live Search Modal */}
+      {showSearchModal && (
+        <div className="fixed inset-0 bg-white z-50 flex flex-col max-w-[768px] mx-auto animate-fade-in">
+          {/* Header Search Input */}
+          <div className="p-4 border-b border-gray-100 flex items-center gap-3 bg-white sticky top-0 z-10 shadow-sm">
+            <div className="relative flex-1">
+              <input
+                autoFocus
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm kiếm sản phẩm..."
+                className="w-full bg-gray-50 text-gray-800 text-sm rounded-xl py-2.5 pl-4 pr-10 outline-none border border-transparent focus:border-primary/30 focus:bg-white transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex items-center"
+                >
+                  <span className="material-symbols-outlined text-base">close</span>
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowSearchModal(false)}
+              className="px-2 py-1.5 font-sans font-bold text-xs text-gray-500 hover:text-primary transition-colors flex items-center gap-1 shrink-0"
+            >
+              <span className="material-symbols-outlined text-xl">cancel</span>
+            </button>
+          </div>
+
+          {/* Search Results Content */}
+          <div className="flex-1 overflow-y-auto p-4 bg-[#f8f9fa]">
+            {isSearching ? (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                <span className="material-symbols-outlined animate-spin text-3xl text-primary mb-2">refresh</span>
+                <span className="text-xs font-semibold">Đang tìm kiếm...</span>
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div>
+                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">
+                  {searchQuery ? `Kết quả tìm kiếm (${searchResults.length})` : "Sản phẩm gợi ý"}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {searchResults.map((prod) => (
+                    <div
+                      key={prod.id}
+                      onClick={() => {
+                        setShowSearchModal(false);
+                        navigate(`/products/${prod.slug}`);
+                      }}
+                      className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100/80 flex flex-col p-1.5 active:scale-[0.98] transition-transform cursor-pointer"
+                    >
+                      <div className="w-full aspect-square bg-gray-50 rounded-lg overflow-hidden relative">
+                        <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="p-2 flex flex-col grow justify-between">
+                        <h4 className="text-xs font-bold text-gray-800 line-clamp-2 mb-1 leading-snug">
+                          {prod.name}
+                        </h4>
+                        <span className="font-serif text-sm font-bold text-primary">
+                          {prod.price.toLocaleString()}đ
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 mb-3">
+                  <span className="material-symbols-outlined text-3xl">search_off</span>
+                </div>
+                <h4 className="text-sm font-bold text-gray-700 mb-1">Không tìm thấy sản phẩm</h4>
+                <p className="text-xs text-gray-400">Thử tìm kiếm với từ khóa khác xem sao nhé</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </Page>
   );
 };

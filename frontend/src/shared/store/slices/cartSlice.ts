@@ -5,6 +5,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 interface CartItem extends productProps {
   quantity: number;
   selected_option?: string;
+  cartItemId?: string;
 }
 
 interface CartState {
@@ -127,6 +128,8 @@ const cartSlice = createSlice({
   reducers: {
     addItem(state, action: PayloadAction<AddToCartPayload>) {
       const newItem = { ...action.payload, quantity: action.payload.quantity || 1 };
+      const cartItemId = newItem.selected_option ? `${newItem.id}|${newItem.selected_option}` : String(newItem.id);
+      (newItem as any).cartItemId = cartItemId;
       
       // Check if product has stock
       if (!newItem.stock || newItem.stock <= 0) {
@@ -149,6 +152,8 @@ const cartSlice = createSlice({
         // Update stock info in existing item
         existingItem.stock = newItem.stock;
         existingItem.price = newItem.price; // Update price in case it changed
+        if (newItem.thumbnail) existingItem.thumbnail = newItem.thumbnail;
+        if (newItem.title) existingItem.title = newItem.title;
       } else {
         // Check if initial quantity exceeds stock
         if (newItem.quantity > newItem.stock) {
@@ -165,8 +170,13 @@ const cartSlice = createSlice({
       saveCartToStorage(state);
     },
     
-    removeItem(state, action: PayloadAction<number>) {
-      state.items = state.items.filter(item => item.id !== action.payload);
+    removeItem(state, action: PayloadAction<any>) {
+      const payload = action.payload;
+      if (payload && typeof payload === 'object') {
+        state.items = state.items.filter(item => !(item.id === payload.id && item.selected_option === payload.selected_option));
+      } else {
+        state.items = state.items.filter(item => item.id !== payload);
+      }
       state.subtotal = calculateTotal(state.items);
       state.discount = calculateDiscount(state.subtotal, state.appliedPromotion);
       state.total = calculateFinalTotal(state.subtotal, state.discount);
@@ -174,17 +184,20 @@ const cartSlice = createSlice({
       saveCartToStorage(state);
     },
     
-    updateQuantity(state, action: PayloadAction<UpdateQuantityPayload>) {
-      const item = state.items.find(item => item.id === action.payload.id);
+    updateQuantity(state, action: PayloadAction<any>) {
+      const payload = action.payload;
+      const item = state.items.find(item => 
+        item.id === payload.id && (payload.selected_option ? item.selected_option === payload.selected_option : true)
+      );
       if (item) {
         // Validate quantity
-        if (action.payload.quantity <= 0) {
-          state.items = state.items.filter(i => i.id !== action.payload.id);
-        } else if (action.payload.quantity > item.stock) {
+        if (payload.quantity <= 0) {
+          state.items = state.items.filter(i => !(i.id === item.id && i.selected_option === item.selected_option));
+        } else if (payload.quantity > item.stock) {
           state.error = `Chỉ còn ${item.stock} sản phẩm trong kho`;
           return;
         } else {
-          item.quantity = action.payload.quantity;
+          item.quantity = payload.quantity;
           state.error = null;
         }
         state.subtotal = calculateTotal(state.items);
@@ -194,8 +207,11 @@ const cartSlice = createSlice({
       }
     },
     
-    increaseQuantity(state, action: PayloadAction<number>) {
-      const item = state.items.find(item => item.id === action.payload);
+    increaseQuantity(state, action: PayloadAction<any>) {
+      const payload = action.payload;
+      const item = typeof payload === 'object' 
+        ? state.items.find(item => item.id === payload.id && item.selected_option === payload.selected_option)
+        : state.items.find(item => item.id === payload);
       if (item) {
         if (item.quantity >= item.stock) {
           state.error = `Chỉ còn ${item.stock} sản phẩm trong kho`;
@@ -210,11 +226,14 @@ const cartSlice = createSlice({
       }
     },
     
-    decreaseQuantity(state, action: PayloadAction<number>) {
-      const item = state.items.find(item => item.id === action.payload);
+    decreaseQuantity(state, action: PayloadAction<any>) {
+      const payload = action.payload;
+      const item = typeof payload === 'object' 
+        ? state.items.find(item => item.id === payload.id && item.selected_option === payload.selected_option)
+        : state.items.find(item => item.id === payload);
       if (item) {
         if (item.quantity <= 1) {
-          state.items = state.items.filter(i => i.id !== action.payload);
+          state.items = state.items.filter(i => !(i.id === item.id && i.selected_option === item.selected_option));
         } else {
           item.quantity -= 1;
         }

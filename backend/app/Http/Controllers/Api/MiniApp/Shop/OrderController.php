@@ -76,6 +76,9 @@ class OrderController extends Controller
         $orderNotes = $request->notes ?? $request->desc;
         $items = $request->order_items ?? $request->item ?? [];
 
+        $paymentMethod = $request->payment_method ?? 'cod';
+        $referrerId = $request->ref ?? $request->referrer_id ?? $user->referred_by;
+
         $order = Order::create([
             'customer_id' => $customer->id,
             'number' => 'ORD-' . strtoupper(Str::random(8)),
@@ -87,6 +90,10 @@ class OrderController extends Controller
             'notes' => $orderNotes,
             'promotion_id' => $request->promotion_id,
             'reward_id' => $request->reward_id,
+            'payment_method' => $paymentMethod,
+            'payment_status' => 'pending',
+            'affiliate_referrer_id' => $referrerId ?: null,
+            'affiliate_points_awarded' => false,
         ]);
 
         if ($request->has('shipping_address')) {
@@ -112,31 +119,95 @@ class OrderController extends Controller
             ]);
         }
 
-        $membershipSettings = app(MembershipSettings::class);
-        $pointsToAward = floor(($order->total_price / 1000) * $membershipSettings->points_earning_rate);
-        
-        if ($pointsToAward > 0) {
-            $user->deposit($pointsToAward, [
-                'title' => 'Tích điểm từ đơn hàng ' . $order->number,
-                'order_id' => $order->id,
-            ]);
+        // Increment sold count for purchased items accurately
+        foreach ($order->orderItems as $item) {
+            if ($item->product) {
+                $item->product->increment('sold_count', $item->qty);
+            }
         }
 
-        if ($user->referred_by) {
-            $referrer = User::find($user->referred_by);
-            if ($referrer) {
-                $commissionPoints = floor(($pointsToAward * $membershipSettings->referral_commission_rate) / 100);
-                if ($commissionPoints > 0) {
-                    $referrer->deposit($commissionPoints, [
-                        'title' => 'Hoa hồng từ đơn hàng của ' . ($user->name ?? $user->email),
-                        'referral_id' => $user->id,
+        $membershipSettings = app(MembershipSettings::class);
+        $pointsToAward = floor(($order->total_price / 1000) * $membershipSettings->points_earning_rate);
+
+        return response()->json([
+            'error' => false, 
+            'data' => $this->transformOrder($order), 
+            'points_earned' => $pointsToAward,
+            'message' => 'Đơn hàng đã được ghi nhận. Điểm thưởng sẽ được cộng khi thanh toán thành công hoặc nhận hàng COD thành công.'
+        ]);
+    }
+
+    public function awardOrderPoints(Order $order)
+    {
+        if ($order->affiliate_points_awarded) {
+            return;
+        }
+
+        $order->load(['orderItems.product', 'customer']);
+        $user = User::where('email', optional($order->customer)->email)->first();
+
+        // 1. Award regular buyer points
+        if ($user) {
+            $membershipSettings = app(MembershipSettings::class);
+            $pointsToAward = floor(($order->total_price / 1000) * $membershipSettings->points_earning_rate);
+            if ($pointsToAward > 0) {
+                $user->deposit($pointsToAward, [
+                    'title' => 'Tích điểm từ đơn hàng ' . $order->number,
+                    'order_id' => $order->id,
+                ]);
+            }
+        }
+
+        // 2. Award affiliate referrer points
+        if ($order->affiliate_referrer_id) {
+            $referrer = User::find($order->affiliate_referrer_id);
+            if ($referrer && optional($user)->id !== $referrer->id) {
+                $affiliatePoints = 0;
+                foreach ($order->orderItems as $item) {
+                    $prod = $item->product;
+                    if ($prod) {
+                        $points = $prod->affiliate_reward_points ? ($prod->affiliate_reward_points * $item->qty) : 100;
+                        $affiliatePoints += $points;
+                    }
+                }
+                
+                if ($affiliatePoints > 0) {
+                    $referrer->deposit($affiliatePoints, [
+                        'title' => 'Thưởng giới thiệu tiếp thị liên kết từ đơn hàng ' . $order->number,
+                        'referral_id' => optional($user)->id,
                         'order_id' => $order->id,
                     ]);
                 }
             }
         }
 
-        return response()->json(['error' => false, 'data' => $this->transformOrder($order), 'points_earned' => $pointsToAward]);
+        $order->update(['affiliate_points_awarded' => true]);
+    }
+
+    public function confirmPayment($id)
+    {
+        $order = Order::find($id);
+        if (!$order) {
+            return response()->json(['error' => true, 'message' => 'Đơn hàng không tồn tại'], 404);
+        }
+
+        $order->update(['payment_status' => 'paid']);
+        $this->awardOrderPoints($order);
+
+        return response()->json(['error' => false, 'message' => 'Xác nhận thanh toán và cộng điểm thành công']);
+    }
+
+    public function markDelivered($id)
+    {
+        $order = Order::find($id);
+        if (!$order) {
+            return response()->json(['error' => true, 'message' => 'Đơn hàng không tồn tại'], 404);
+        }
+
+        $order->update(['status' => 'delivered']);
+        $this->awardOrderPoints($order);
+
+        return response()->json(['error' => false, 'message' => 'Cập nhật giao hàng COD thành công và cộng điểm thành công']);
     }
 
     public function show($number)
@@ -217,6 +288,20 @@ class OrderController extends Controller
             'order_date' => $order->created_at->toISOString(),
             'created_at' => $order->created_at->toISOString(),
             'order_items' => $order->orderItems->map(function ($item) {
+                $prod = $item->product;
+                $defaultImg = ($prod?->image?->medium_url ?: ($prod?->image?->url ?: $prod?->getFirstMediaUrl('product-images'))) ?: url("/images/product-placeholder.png");
+                $variantImg = $defaultImg;
+                
+                if ($item->selected_option && $prod) {
+                    $variant = $prod->variants()->get()->first(function($v) use ($item) {
+                        return $v->display_label === $item->selected_option || $v->sku === $item->selected_option;
+                    });
+                    $vUrl = $variant?->image?->medium_url ?: ($variant?->image?->url ?: $variant?->image_url);
+                    if ($vUrl) {
+                        $variantImg = filter_var($vUrl, FILTER_VALIDATE_URL) ? $vUrl : url($vUrl);
+                    }
+                }
+
                 return [
                     'id' => $item->id,
                     'product_id' => $item->product_id,
@@ -224,12 +309,12 @@ class OrderController extends Controller
                     'price' => $item->unit_price,
                     'selected_option' => $item->selected_option,
                     'product' => [
-                        'id' => $item->product?->id,
-                        'name' => $item->product?->name,
+                        'id' => $prod?->id,
+                        'name' => $item->selected_option ? ($prod?->name . ' (' . $item->selected_option . ')') : $prod?->name,
                         'thumbnail' => [
-                            'original_url' => ($item->product?->image?->medium_url ?: ($item->product?->image?->url ?: $item->product?->getFirstMediaUrl('product-images'))) ?: url("/images/product-placeholder.png"),
+                            'original_url' => $variantImg,
                         ],
-                        'sku' => $item->product?->sku,
+                        'sku' => $item->selected_option ? ($prod?->sku . '-' . Str::slug($item->selected_option)) : $prod?->sku,
                     ]
                 ];
             }),

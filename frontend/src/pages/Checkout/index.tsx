@@ -240,6 +240,7 @@ const Checkout: React.FC = () => {
         shipping_fee: shipping.toString(),
         promotion_id: appliedPromotion?.id,
         reward_id: appliedReward?.id,
+        ref: localStorage.getItem("affiliate_ref") || undefined,
       };
 
       const response = await createOrder(orderData);
@@ -459,6 +460,39 @@ const Checkout: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Payment Method Section */}
+                  <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
+                    <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center uppercase tracking-wider">
+                      <span className="material-symbols-outlined text-[#8f0012] mr-2">payments</span>
+                      Phương thức thanh toán
+                    </h2>
+                    <div className="space-y-3">
+                      {[
+                        { id: "cod", label: "Thanh toán khi nhận hàng (COD)", desc: "Nhận hàng rồi mới thanh toán tiền mặt" },
+                        { id: "banking", label: "Chuyển khoản ngân hàng", desc: "Thanh toán an toàn qua ứng dụng ngân hàng" },
+                        { id: "zalopay", label: "Ví ZaloPay", desc: "Thanh toán tiện lợi qua cổng ZaloPay" }
+                      ].map((method) => (
+                        <div
+                          key={method.id}
+                          onClick={() => setValue("payment_method", method.id, { shouldValidate: true })}
+                          className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                            paymentMethod === method.id ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-50 bg-gray-50/50 hover:bg-gray-50"
+                          }`}
+                        >
+                          <div>
+                            <span className="text-xs font-bold text-gray-800 block">{method.label}</span>
+                            <span className="text-[11px] text-gray-500 block mt-0.5">{method.desc}</span>
+                          </div>
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                            paymentMethod === method.id ? "border-[#8f0012] bg-[#8f0012]" : "border-gray-300 bg-white"
+                          }`}>
+                            {paymentMethod === method.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -483,7 +517,9 @@ const Checkout: React.FC = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-xs text-gray-400 font-medium">Thanh toán:</span>
-                          <span className="text-xs font-bold text-gray-800">Ship COD (Tiền mặt)</span>
+                          <span className="text-xs font-bold text-[#8f0012]">
+                            {paymentMethod === "banking" ? "Chuyển khoản ngân hàng" : paymentMethod === "zalopay" ? "Ví ZaloPay" : "Ship COD (Tiền mặt)"}
+                          </span>
                         </div>
                         <div className="flex flex-col pt-2 border-t border-gray-100">
                           <span className="text-xs text-gray-400 font-medium mb-1">Địa chỉ nhận hàng:</span>

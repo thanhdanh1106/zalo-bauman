@@ -25,7 +25,14 @@ export const useCart = () => {
       const isLogged = !!localStorage.getItem('li_at');
       if (isLogged) {
         const { addToCart: addToCartApi } = await import('@shared/utils/Cart');
-        await addToCartApi(product.id, quantity);
+        const optionsData = {
+          selected_option: selectedOption,
+          title: product.title,
+          price: product.price,
+          image: product.thumbnail?.original_url || (product as any).image,
+          sku: (product as any).sku
+        };
+        await addToCartApi(product.id, quantity, selectedOption, optionsData);
       }
 
       setTimeout(() => {
@@ -42,14 +49,14 @@ export const useCart = () => {
     }
   };
 
-  const removeFromCart = async (productId: number) => {
-    const item = items.find(item => item.id === productId);
-    dispatch(removeItem(productId));
+  const removeFromCart = async (productId: number, selectedOption?: string) => {
+    const item = items.find(item => item.id === productId && (selectedOption ? item.selected_option === selectedOption : true));
+    dispatch(removeItem({ id: productId, selected_option: selectedOption } as any));
 
     const isLogged = !!localStorage.getItem('li_at');
     if (isLogged) {
       const { removeFromCart: removeFromCartApi } = await import('@shared/utils/Cart');
-      await removeFromCartApi(productId);
+      await removeFromCartApi(productId, selectedOption);
     }
 
     if (item) {
@@ -57,13 +64,13 @@ export const useCart = () => {
     }
   };
 
-  const updateItemQuantity = async (productId: number, quantity: number) => {
-    dispatch(updateQuantity({ id: productId, quantity }));
+  const updateItemQuantity = async (productId: number, quantity: number, selectedOption?: string) => {
+    dispatch(updateQuantity({ id: productId, quantity, selected_option: selectedOption } as any));
 
     const isLogged = !!localStorage.getItem('li_at');
     if (isLogged) {
       const { updateCart: updateCartApi } = await import('@shared/utils/Cart');
-      await updateCartApi(productId, quantity);
+      await updateCartApi(productId, quantity, selectedOption);
     }
     
     // Check for errors after update

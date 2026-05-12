@@ -89,3 +89,15 @@ export async function deleteProducts(ids: number[]) {
             return null;
         });
 }
+
+export async function createProductReview(productId: number, data: { title?: string; content: string; rating: number }) {
+    return await instance
+        .post(`/products/${productId}/comments`, data)
+        .then((res) => res.data)
+        .catch((err) => {
+            return {
+                error: true,
+                message: err.response?.data?.message || "Không thể gửi đánh giá"
+            };
+        });
+}

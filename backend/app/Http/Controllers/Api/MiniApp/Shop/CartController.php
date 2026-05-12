@@ -25,15 +25,28 @@ class CartController extends Controller
             }
             $finalImage = $imageUrl ?: url("/images/product-placeholder.png");
 
+            $options = $item->options ?? [];
+            $selectedOption = $options['selected_option'] ?? null;
+            $customTitle = $options['title'] ?? null;
+            $customPrice = $options['price'] ?? null;
+            $customImage = $options['image'] ?? null;
+            $customSku = $options['sku'] ?? null;
+
+            $displayTitle = $customTitle ?: $prod->name;
+            $displayPrice = $customPrice !== null ? (int)$customPrice : (int)$prod->price;
+            $displayImage = $customImage ?: $finalImage;
+
             return [
                 'id' => $prod->id,
-                'name' => $prod->name,
-                'title' => $prod->name,
-                'price' => (int)$prod->price,
-                'image' => $finalImage,
-                'thumbnail' => ["original_url" => $finalImage],
+                'name' => $displayTitle,
+                'title' => $displayTitle,
+                'price' => $displayPrice,
+                'image' => $displayImage,
+                'thumbnail' => ["original_url" => $displayImage],
                 'quantity' => $item->quantity,
-                'sku' => $prod->sku,
+                'sku' => $customSku ?: $prod->sku,
+                'selected_option' => $selectedOption,
+                'cartItemId' => $selectedOption ? "{$prod->id}|{$selectedOption}" : (string)$prod->id,
             ];
         })->filter()->values();
 
@@ -45,18 +58,31 @@ class CartController extends Controller
         $user = $request->user();
         $productId = $request->product_id;
         $quantity = $request->quantity ?? 1;
+        $selectedOption = $request->selected_option;
+        $options = $request->options ?? [];
+        if ($selectedOption) {
+            $options['selected_option'] = $selectedOption;
+        }
 
-        $item = CartItem::where('user_id', $user->id)
-            ->where('product_id', $productId)
-            ->first();
+        $query = CartItem::where('user_id', $user->id)->where('product_id', $productId);
+        if ($selectedOption) {
+            $query->where('options->selected_option', $selectedOption);
+        } else {
+            $query->whereNull('options->selected_option');
+        }
+        $item = $query->first();
 
         if ($item) {
             $item->increment('quantity', $quantity);
+            if (!empty($options)) {
+                $item->update(['options' => array_merge($item->options ?? [], $options)]);
+            }
         } else {
             CartItem::create([
                 'user_id' => $user->id,
                 'product_id' => $productId,
                 'quantity' => $quantity,
+                'options' => !empty($options) ? $options : null,
             ]);
         }
 
@@ -68,10 +94,15 @@ class CartController extends Controller
         $user = $request->user();
         $productId = $request->product_id;
         $quantity = $request->quantity;
+        $selectedOption = $request->selected_option;
 
-        $item = CartItem::where('user_id', $user->id)
-            ->where('product_id', $productId)
-            ->first();
+        $query = CartItem::where('user_id', $user->id)->where('product_id', $productId);
+        if ($selectedOption) {
+            $query->where('options->selected_option', $selectedOption);
+        } else {
+            $query->whereNull('options->selected_option');
+        }
+        $item = $query->first();
 
         if ($item) {
             if ($quantity <= 0) {
@@ -88,10 +119,15 @@ class CartController extends Controller
     {
         $user = $request->user();
         $productId = $request->product_id;
+        $selectedOption = $request->selected_option;
 
-        CartItem::where('user_id', $user->id)
-            ->where('product_id', $productId)
-            ->delete();
+        $query = CartItem::where('user_id', $user->id)->where('product_id', $productId);
+        if ($selectedOption) {
+            $query->where('options->selected_option', $selectedOption);
+        } else {
+            $query->whereNull('options->selected_option');
+        }
+        $query->delete();
 
         return $this->index($request);
     }
@@ -102,10 +138,30 @@ class CartController extends Controller
         $items = $request->items ?? [];
 
         foreach ($items as $item) {
-            CartItem::updateOrCreate(
-                ['user_id' => $user->id, 'product_id' => $item['id']],
-                ['quantity' => $item['quantity']]
-            );
+            $selectedOption = $item['selected_option'] ?? null;
+            $options = $item['options'] ?? null;
+            
+            $query = CartItem::where('user_id', $user->id)->where('product_id', $item['id']);
+            if ($selectedOption) {
+                $query->where('options->selected_option', $selectedOption);
+            } else {
+                $query->whereNull('options->selected_option');
+            }
+            $existing = $query->first();
+
+            if ($existing) {
+                $existing->update([
+                    'quantity' => $item['quantity'],
+                    'options' => $options ?: $existing->options,
+                ]);
+            } else {
+                CartItem::create([
+                    'user_id' => $user->id,
+                    'product_id' => $item['id'],
+                    'quantity' => $item['quantity'],
+                    'options' => $options,
+                ]);
+            }
         }
 
         return $this->index($request);

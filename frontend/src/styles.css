@@ -45,7 +45,61 @@
     font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
 }
-.rich-text-content { line-height: 1.8; color: #374151; font-size: 0.9375rem; } .rich-text-content p { margin-bottom: 1.25rem; } .rich-text-content h1, .rich-text-content h2, .rich-text-content h3 { margin-top: 1.5rem; margin-bottom: 0.75rem; color: #1a1d20; line-height: 1.3; font-weight: 700; } .rich-text-content h2 { font-size: 1.25rem; } .rich-text-content h3 { font-size: 1.125rem; } .rich-text-content img { border-radius: 0.75rem; margin: 1.5rem 0; width: 100%; height: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.05); } .rich-text-content ul, .rich-text-content ol { margin-bottom: 1.25rem; padding-left: 1.25rem; } .rich-text-content ul { list-style-type: disc; } .rich-text-content ol { list-style-type: decimal; } .rich-text-content li { margin-bottom: 0.5rem; } .rich-text-content strong { color: #111827; font-weight: 700; } .rich-text-content blockquote { border-left: 4px solid #cbb27c; padding-left: 1rem; font-style: italic; color: #4b5563; margin: 1.5rem 0; }
+.rich-text-content {
+  line-height: 1.8;
+  color: #374151;
+  font-size: 0.9375rem;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.rich-text-content p {
+  margin-bottom: 1.25rem;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.rich-text-content h1, .rich-text-content h2, .rich-text-content h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #1a1d20;
+  line-height: 1.3;
+  font-weight: 700;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.rich-text-content h2 { font-size: 1.25rem; }
+.rich-text-content h3 { font-size: 1.125rem; }
+.rich-text-content img {
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.rich-text-content ul, .rich-text-content ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.25rem;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.rich-text-content ul { list-style-type: disc; }
+.rich-text-content ol { list-style-type: decimal; }
+.rich-text-content li { margin-bottom: 0.5rem; }
+.rich-text-content strong { color: #111827; font-weight: 700; }
+.rich-text-content blockquote {
+  border-left: 4px solid #cbb27c;
+  padding-left: 1rem;
+  font-style: italic;
+  color: #4b5563;
+  margin: 1.5rem 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.rich-text-content a {
+  color: #cbb27c;
+  text-decoration: underline;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
 
 .text-sm {
   font-size: 0.875rem;

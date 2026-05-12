@@ -302,11 +302,18 @@ const AccountOrders: React.FC = () => {
                       <div key={idx} className="flex gap-4">
                         <img 
                           src={getThumbnailUrl(item.product?.thumbnail)} 
-                          className="w-16 h-16 rounded-2xl object-cover bg-[#f6f3f2] flex-shrink-0"
+                          className="w-16 h-16 rounded-2xl object-cover bg-[#f6f3f2] shrink-0"
                           alt="Product"
                         />
                         <div className="flex-1 min-w-0 py-1">
-                           <h4 className="text-sm font-bold text-gray-800 truncate">{item.product?.name}</h4>
+                           <h4 className="text-sm font-bold text-gray-800 truncate">
+                             {item.product?.name || item.title}
+                           </h4>
+                           {item.selected_option && !item.product?.name?.includes(item.selected_option) && (
+                             <span className="inline-block px-2 py-0.5 bg-primary/5 text-primary text-[10px] font-bold rounded mt-1">
+                               Phân loại: {item.selected_option}
+                             </span>
+                           )}
                            <p className="text-xs text-gray-400 mt-1">{item.quantity} sản phẩm</p>
                            <div className="flex items-center justify-between mt-2">
                               <span className="text-sm font-bold text-[#8f0012]">{formatCurrency(Number(order.total_amount))}</span>

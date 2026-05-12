@@ -30,7 +30,18 @@ const DataSync: React.FC = () => {
                 
                 // 1. Sync Cart
                 if (cartItems.length > 0) {
-                    const itemsToSync = cartItems.map(item => ({ id: item.id, quantity: item.quantity }));
+                    const itemsToSync = cartItems.map(item => ({
+                        id: item.id,
+                        quantity: item.quantity,
+                        selected_option: item.selected_option,
+                        options: item.selected_option ? {
+                            selected_option: item.selected_option,
+                            title: item.title,
+                            price: item.price,
+                            image: item.thumbnail?.original_url || (item as any).image,
+                            sku: (item as any).sku
+                        } : null
+                    }));
                     const syncResponse = await syncCartApi(itemsToSync);
                     if (!syncResponse.error) {
                         dispatch(setCartItems(syncResponse.data));

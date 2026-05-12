@@ -187,12 +187,19 @@ const OrderSuccess: React.FC = () => {
           <div className="space-y-6">
             {orderData.order_items.map((item) => (
               <div key={item.id} className="flex gap-4 items-center">
-                <img src={getThumbnailUrl(item.product?.thumbnail)} className="w-16 h-16 object-cover rounded-xl bg-gray-50" />
-                <div className="flex-1">
-                  <h4 className="text-sm font-bold text-gray-800 leading-tight mb-1">{item.product?.name}</h4>
+                <img src={getThumbnailUrl(item.product?.thumbnail)} className="w-16 h-16 object-cover rounded-xl bg-gray-50 shrink-0" />
+                <div className="flex-1 overflow-hidden">
+                  <h4 className="text-sm font-bold text-gray-800 leading-tight mb-1">
+                    {item.product?.name || item.title}
+                  </h4>
+                  {item.selected_option && !item.product?.name?.includes(item.selected_option) && (
+                    <span className="inline-block px-2 py-0.5 bg-primary/5 text-primary text-[10px] font-bold rounded mb-1">
+                      Phân loại: {item.selected_option}
+                    </span>
+                  )}
                   <p className="text-xs text-gray-400">Số lượng: {item.quantity}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <p className="text-sm font-bold text-gray-800">{formatCurrency(item.price)}</p>
                 </div>
               </div>
@@ -236,7 +243,10 @@ const OrderSuccess: React.FC = () => {
       </div>
 
       {/* Sticky Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-50">
+      <div 
+        className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 px-6 py-4 pb-safe flex flex-col gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-50 max-w-[768px] mx-auto"
+        style={{ left: '50%', transform: 'translateX(-50%)' }}
+      >
         <div className="flex justify-between items-center">
            <div className="flex flex-col">
               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Tổng thanh toán</span>

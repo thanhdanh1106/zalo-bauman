@@ -136,7 +136,7 @@ const Cart: React.FC = () => {
         {/* Product Items */}
         <Box className="space-y-3">
           {items.map((item) => (
-            <Box key={item.id} className="bg-white rounded-2xl p-3 flex space-x-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white">
+            <Box key={(item as any).cartItemId || item.id} className="bg-white rounded-2xl p-3 flex space-x-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white">
               <Box className="w-24 h-24 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0">
                 <img
                   src={getThumbnailUrl(item.thumbnail)}
@@ -155,14 +155,14 @@ const Cart: React.FC = () => {
                   <Text className="text-[16px] font-bold text-[#8f0012]">{item.price.toLocaleString()}đ</Text>
                   <Box className="flex items-center bg-[#f6f3f2] rounded-full p-0.5">
                     <button
-                      onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
+                      onClick={() => updateItemQuantity(item.id, item.quantity - 1, item.selected_option)}
                       className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-200"
                     >
                       <span className="material-symbols-outlined text-[18px]">remove</span>
                     </button>
                     <Text className="px-3 font-bold text-[14px]">{item.quantity}</Text>
                     <button
-                      onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
+                      onClick={() => updateItemQuantity(item.id, item.quantity + 1, item.selected_option)}
                       className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm"
                     >
                       <span className="material-symbols-outlined text-[18px]">add</span>
@@ -442,7 +442,10 @@ const Cart: React.FC = () => {
       </main>
 
       {/* Bottom Action Bar */}
-      <Box className="fixed  bottom-0 left-0 right-0 bg-white p-4 pb-8 border-t border-gray-100 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.05)] z-50">
+      <Box 
+        className="fixed bottom-0 left-0 w-full bg-white p-4 pb-safe flex items-center justify-between border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] z-50 max-w-[768px] mx-auto"
+        style={{ left: '50%', transform: 'translateX(-50%)' }}
+      >
         <Box>
           <Text className="text-[12px] text-gray-400">Tổng tiền thanh toán</Text>
           <Text className="text-[22px] font-bold text-[#8f0012]">{finalTotal.toLocaleString()}đ</Text>
@@ -453,7 +456,6 @@ const Cart: React.FC = () => {
         >
           <span style={{ display: 'flex', alignItems: 'center' }} >
             <span className="text-[16px] font-bold text-white">Thanh toán</span>
-
           </span>
         </Button>
       </Box>

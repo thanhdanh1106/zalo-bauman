@@ -188,6 +188,44 @@ class ProductForm
                                     ->default(false),
                             ]),
 
+                        Section::make('Tiếp thị liên kết (Affiliate)')
+                            ->schema([
+                                TextInput::make('affiliate_commission_rate')
+                                    ->label('Tỉ lệ hoa hồng')
+                                    ->numeric()
+                                    ->suffix('%')
+                                    ->default(10.00)
+                                    ->helperText('Hoa hồng chia sẻ cho người tiếp thị.'),
+
+                                TextInput::make('affiliate_reward_points')
+                                    ->label('Điểm thưởng giới thiệu')
+                                    ->numeric()
+                                    ->default(100)
+                                    ->helperText('Điểm thưởng cộng cho người chia sẻ link khi đơn thành công.'),
+                            ])
+                            ->collapsible(),
+
+                        Section::make('Thống kê & Đánh giá')
+                            ->schema([
+                                TextInput::make('rating')
+                                    ->label('Đánh giá (Sao)')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(5)
+                                    ->default(5.00),
+
+                                TextInput::make('sold_count')
+                                    ->label('Lượt bán')
+                                    ->numeric()
+                                    ->default(0),
+
+                                TextInput::make('views')
+                                    ->label('Lượt xem')
+                                    ->numeric()
+                                    ->default(0),
+                            ])
+                            ->collapsible(),
+
                         Section::make('Hình ảnh')
                             ->schema([
                                 CuratorPicker::make('image_id')
