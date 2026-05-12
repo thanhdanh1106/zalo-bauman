@@ -48,7 +48,7 @@ interface CheckoutForm {
   shipping_district: string;
   shipping_ward: string;
   shipping_postal_code?: string;
-  payment_method: "cod" | "banking";
+  payment_method: "cod" | "banking" | "zalopay";
   notes?: string;
   agreeToTerms: boolean;
 }
@@ -78,8 +78,27 @@ const Checkout: React.FC = () => {
   const [showVouchers, setShowVouchers] = useState(false);
   const [activeTab, setActiveTab] = useState<"vouchers" | "rewards">("vouchers");
   const [isRedeeming, setIsRedeeming] = useState<number | null>(null);
+  const [paymentConfig, setPaymentConfig] = useState<any>({
+    default_shipping_fee: 30000,
+    free_shipping_threshold: 500000,
+    bank_name: "Vietcombank",
+    bank_account_number: "1029384756",
+    bank_account_name: "CÔNG TY TNHH NHÂN SÂM BAUMANN",
+    enable_cod: true,
+    cod_description: "Thanh toán tiền mặt khi nhận hàng tại nhà.",
+    zalopay_app_id: "2553",
+  });
 
   const fetchData = async () => {
+    try {
+      const pConfRes = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/settings/payment`).then(r => r.json()).catch(() => null);
+      if (pConfRes && !pConfRes.error && pConfRes.data) {
+        setPaymentConfig((prev: any) => ({ ...prev, ...pConfRes.data }));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     const [vouchersRes, promosRes, rewardsRes, pointsRes, redemptionsRes, addressesRes] = await Promise.all([
       findMyVouchers(),
       findManyPromotions(),
@@ -136,7 +155,7 @@ const Checkout: React.FC = () => {
     }
   };
 
-  const shipping = subtotal >= 500000 ? 0 : 30000;
+  const shipping = subtotal >= (paymentConfig.free_shipping_threshold ?? 500000) ? 0 : (paymentConfig.default_shipping_fee ?? 30000);
   const finalTotal = totalFromRedux + shipping;
 
   const {
@@ -196,11 +215,11 @@ const Checkout: React.FC = () => {
     const fieldsToValidate: (keyof CheckoutForm)[] = [];
     if (step === 1) {
       fieldsToValidate.push(
-        "customer_name", 
-        "customer_phone", 
-        "shipping_street", 
-        "shipping_city", 
-        "shipping_district", 
+        "customer_name",
+        "customer_phone",
+        "shipping_street",
+        "shipping_city",
+        "shipping_district",
         "shipping_ward"
       );
     }
@@ -219,6 +238,12 @@ const Checkout: React.FC = () => {
   };
 
   const handleSubmitOrder = async (data: CheckoutForm) => {
+    if (!user) {
+      showMessage("warning", "Vui lòng đăng nhập tài khoản để đặt hàng!");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     setIsProcessing(true);
     try {
       const orderData = {
@@ -280,9 +305,29 @@ const Checkout: React.FC = () => {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 pb-32">
+      <div className="container mx-auto px-4 pb-[180px]">
         <div className="grid grid-cols-12 gap-6">
           <div className="col-span-12">
+            {/* Login Prompt Banner if Unauthenticated */}
+            {!user && (
+              <div className="mt-4 p-4 bg-[#fff8e1] rounded-2xl border border-[#ffe082] flex items-center justify-between shadow-sm animate-fade-in">
+                <div className="flex items-center space-x-3">
+                  <span className="material-symbols-outlined text-[#f57f17] text-2xl shrink-0">lock_person</span>
+                  <div>
+                    <p className="text-xs font-bold text-[#b71c1c]">Bạn chưa đăng nhập tài khoản</p>
+                    <p className="text-[11px] text-gray-600 mt-0.5">Đăng nhập để nhận điểm thưởng và tự động điền thông tin.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/login")}
+                  className="bg-[#8f0012] text-white text-xs font-bold px-3 py-2 rounded-xl shrink-0 shadow active:scale-95 transition-all"
+                >
+                  Đăng nhập
+                </button>
+              </div>
+            )}
+
             {/* Progress Steps */}
             <div className="mt-6 mb-8 px-4">
               <div className="flex items-center justify-center space-x-12">
@@ -334,8 +379,8 @@ const Checkout: React.FC = () => {
                             key={addr.id}
                             onClick={() => handleSelectAddress(addr)}
                             className={`min-w-[240px] p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedAddressId === addr.id
-                                ? "border-[#8f0012] bg-[#8f0012]/5"
-                                : "border-gray-50 bg-gray-50"
+                              ? "border-[#8f0012] bg-[#8f0012]/5"
+                              : "border-gray-50 bg-gray-50"
                               }`}
                           >
                             <div className="flex items-center justify-between mb-2">
@@ -469,26 +514,43 @@ const Checkout: React.FC = () => {
                     </h2>
                     <div className="space-y-3">
                       {[
-                        { id: "cod", label: "Thanh toán khi nhận hàng (COD)", desc: "Nhận hàng rồi mới thanh toán tiền mặt" },
-                        { id: "banking", label: "Chuyển khoản ngân hàng", desc: "Thanh toán an toàn qua ứng dụng ngân hàng" },
-                        { id: "zalopay", label: "Ví ZaloPay", desc: "Thanh toán tiện lợi qua cổng ZaloPay" }
-                      ].map((method) => (
-                        <div
-                          key={method.id}
-                          onClick={() => setValue("payment_method", method.id, { shouldValidate: true })}
-                          className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${
-                            paymentMethod === method.id ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-50 bg-gray-50/50 hover:bg-gray-50"
-                          }`}
-                        >
-                          <div>
-                            <span className="text-xs font-bold text-gray-800 block">{method.label}</span>
-                            <span className="text-[11px] text-gray-500 block mt-0.5">{method.desc}</span>
+                        { id: "cod", label: "Thanh toán khi nhận hàng (COD)", desc: paymentConfig.cod_description || "Nhận hàng rồi mới thanh toán tiền mặt", visible: paymentConfig.enable_cod ?? true },
+                        { id: "banking", label: "Chuyển khoản ngân hàng", desc: "Thanh toán an toàn qua ứng dụng ngân hàng", visible: true },
+                        { id: "zalopay", label: "Ví ZaloPay", desc: "Thanh toán tiện lợi qua cổng thanh toán tự động", visible: true }
+                      ].filter(m => m.visible).map((method) => (
+                        <div key={method.id} className="space-y-2">
+                          <div
+                            onClick={() => setValue("payment_method", method.id as any, { shouldValidate: true })}
+                            className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${paymentMethod === method.id ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-50 bg-gray-50/50 hover:bg-gray-50"
+                              }`}
+                          >
+                            <div>
+                              <span className="text-xs font-bold text-gray-800 block">{method.label}</span>
+                              <span className="text-[11px] text-gray-500 block mt-0.5">{method.desc}</span>
+                            </div>
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === method.id ? "border-[#8f0012] bg-[#8f0012]" : "border-gray-300 bg-white"
+                              }`}>
+                              {paymentMethod === method.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                            </div>
                           </div>
-                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                            paymentMethod === method.id ? "border-[#8f0012] bg-[#8f0012]" : "border-gray-300 bg-white"
-                          }`}>
-                            {paymentMethod === method.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                          </div>
+
+                          {/* Dynamic Gateway Credentials / Info Box when Selected */}
+                          {paymentMethod === method.id && method.id === "banking" && (
+                            <div className="p-3 bg-[#f6f3f2] rounded-xl border border-gray-200 text-xs space-y-1 text-gray-700 animate-fade-in">
+                              <div className="font-bold text-[#8f0012] mb-1">Thông tin tài khoản chuyển khoản:</div>
+                              <div>• <span className="font-semibold">Ngân hàng:</span> {paymentConfig.bank_name || "Vietcombank"}</div>
+                              <div>• <span className="font-semibold">Số tài khoản:</span> <span className="font-mono font-bold text-sm select-all">{paymentConfig.bank_account_number || "1029384756"}</span></div>
+                              <div>• <span className="font-semibold">Chủ tài khoản:</span> {paymentConfig.bank_account_name || "CÔNG TY TNHH NHÂN SÂM BAUMANN"}</div>
+                              <div className="text-[10px] text-gray-500 italic mt-1">Hệ thống sẽ cung cấp mã QR chuyển khoản chính xác tại bước Đặt hàng thành công.</div>
+                            </div>
+                          )}
+
+                          {paymentMethod === method.id && method.id === "zalopay" && (
+                            <div className="p-3 bg-[#e8f5e9] rounded-xl border border-green-200 text-xs text-green-800 animate-fade-in">
+                              <span className="font-bold block mb-0.5">Thanh toán qua Ví ZaloPay</span>
+                              Hệ thống sẽ tự động gạch nợ đơn hàng sau khi hoàn tất thanh toán qua App ZaloPay.
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -533,12 +595,12 @@ const Checkout: React.FC = () => {
                         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Sản phẩm của bạn</h3>
                         {items.map((item) => (
                           <div key={item.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                            <img src={getThumbnailUrl(item.product?.thumbnail)} className="w-10 h-10 rounded-lg object-cover" />
-                            <div className="flex-1">
+                            <img src={getThumbnailUrl(item.product?.thumbnail)} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                            <div className="flex-1 min-w-0">
                               <p className="text-xs font-bold text-gray-800 truncate">{item.product?.name || item.title}</p>
                               <p className="text-[10px] text-gray-400">SL: {item.quantity}</p>
                             </div>
-                            <span className="text-xs font-bold text-[#8f0012]">{(item.price * item.quantity).toLocaleString()}đ</span>
+                            <span className="text-xs font-bold text-[#8f0012] shrink-0">{(item.price * item.quantity).toLocaleString()}đ</span>
                           </div>
                         ))}
                       </div>
@@ -567,7 +629,7 @@ const Checkout: React.FC = () => {
                   </div>
 
                   <div className="bg-white rounded-2xl p-6 shadow-sm border border-white">
-                     <Controller
+                    <Controller
                       name="agreeToTerms"
                       control={control}
                       rules={{ required: true }}
@@ -638,13 +700,7 @@ const Checkout: React.FC = () => {
 
               <PromoCodeForm className="mb-4" />
 
-              <div className="bg-[#fdf8e9] p-3 rounded-xl border border-[#f5e6ba] flex items-start space-x-3 shadow-sm">
-                <span className="material-symbols-outlined text-[#735c00] text-[20px] mt-0.5 icon-fill">stars</span>
-                <div>
-                  <p className="text-[#735c00] font-bold text-[13px]">Ưu đãi Hội Viên</p>
-                  <p className="text-[#5a403e] text-[11px] leading-relaxed">Bạn đang được giảm 5% cho đơn hàng đầu tiên của thành viên mới.</p>
-                </div>
-              </div>
+
             </div>
 
             <Sheet
@@ -696,8 +752,8 @@ const Checkout: React.FC = () => {
                                 setShowVouchers(false);
                               }}
                               className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${isSelected
-                                  ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
-                                  : "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer"
+                                ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
+                                : "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer"
                                 }`}
                             >
                               <Box className="flex items-center space-x-4">
@@ -767,8 +823,8 @@ const Checkout: React.FC = () => {
                                   setShowVouchers(false);
                                 }}
                                 className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${isSelected
-                                    ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
-                                    : isVoucher ? "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer" : "border-gray-50 bg-gray-50/30 opacity-80"
+                                  ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
+                                  : isVoucher ? "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer" : "border-gray-50 bg-gray-50/30 opacity-80"
                                   }`}
                               >
                                 <Box className="flex items-center space-x-4">

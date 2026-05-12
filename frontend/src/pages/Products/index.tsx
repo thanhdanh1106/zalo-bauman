@@ -77,12 +77,32 @@ const Products: React.FC = () => {
         preparedFilters.category_ids = preparedFilters.category_ids.join(",");
       }
 
+      let sort = "id";
+      let order = "desc";
+      if (filters.sort_by === "popular") {
+        sort = "views";
+        order = "desc";
+      } else if (filters.sort_by === "newest") {
+        sort = "created_at";
+        order = "desc";
+      } else if (filters.sort_by === "price-asc") {
+        sort = "price";
+        order = "asc";
+      } else if (filters.sort_by === "price-desc") {
+        sort = "price";
+        order = "desc";
+      }
+
       const apiParams = filterParams({
         ...preparedFilters,
+        sort,
+        order,
         page,
         limit,
         status: "published",
       });
+      delete apiParams.sort_by;
+      delete apiParams.sort_direction;
 
       const response = await findManyProducts(apiParams);
 

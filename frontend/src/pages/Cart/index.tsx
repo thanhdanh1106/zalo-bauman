@@ -49,9 +49,22 @@ const Cart: React.FC = () => {
   const [showVouchers, setShowVouchers] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"vouchers" | "rewards">("vouchers");
   const [isRedeeming, setIsRedeeming] = React.useState<number | null>(null);
+  const [paymentConfig, setPaymentConfig] = React.useState<any>({
+    default_shipping_fee: 30000,
+    free_shipping_threshold: 500000,
+  });
   const { showMessage } = useToasterContext();
 
   const fetchData = async () => {
+    try {
+      const pConfRes = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/settings/payment`).then(r => r.json()).catch(() => null);
+      if (pConfRes && !pConfRes.error && pConfRes.data) {
+        setPaymentConfig((prev: any) => ({ ...prev, ...pConfRes.data }));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     const [vouchersRes, promosRes, rewardsRes, pointsRes, redemptionsRes] = await Promise.all([
       findMyVouchers(),
       findManyPromotions(),
@@ -93,7 +106,7 @@ const Cart: React.FC = () => {
     }
   };
 
-  const shippingFee = 30000;
+  const shippingFee = subtotal >= (paymentConfig.free_shipping_threshold ?? 500000) ? 0 : (paymentConfig.default_shipping_fee ?? 30000);
   const finalTotal = total + shippingFee;
 
   if (loading) {
@@ -189,13 +202,7 @@ const Cart: React.FC = () => {
 
           <PromoCodeForm />
 
-          <Box className="bg-[#fdf8e9] p-3 rounded-xl border border-[#f5e6ba] flex items-start space-x-3 shadow-sm">
-            <span className="material-symbols-outlined text-[#735c00] text-[20px] mt-0.5 icon-fill">stars</span>
-            <Box>
-              <Text className="text-[#735c00] font-bold text-[13px]">Ưu đãi Hội Viên</Text>
-              <Text className="text-[#5a403e] text-[11px] leading-relaxed">Bạn đang được giảm 5% cho đơn hàng đầu tiên của thành viên mới.</Text>
-            </Box>
-          </Box>
+
         </Box>
 
         {/* Voucher Selection Sheet */}
@@ -442,7 +449,7 @@ const Cart: React.FC = () => {
       </main>
 
       {/* Bottom Action Bar */}
-      <Box 
+      <Box
         className="fixed bottom-0 left-0 w-full bg-white p-4 pb-safe flex items-center justify-between border-t border-gray-100 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] z-50 max-w-[768px] mx-auto"
         style={{ left: '50%', transform: 'translateX(-50%)' }}
       >

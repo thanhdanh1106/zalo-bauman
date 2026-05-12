@@ -259,7 +259,7 @@ const ProductDetail: React.FC = () => {
                 <span className="font-bold text-gray-900 text-sm block leading-tight">
                   Tiếp thị liên kết
                 </span>
-                <span className="text-green-800 text-[11px] font-medium text-[10px] block mt-0.5">
+                <span className="text-green-800 text-[11px] font-medium text-[7px] block mt-0.5">
                   Nhận điểm thưởng để đổi phần quà voucher hấp dẫn
                 </span>
               </div>

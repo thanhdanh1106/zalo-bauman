@@ -36,7 +36,7 @@ const HomePage = () => {
       if (!showSearchModal) return;
       setIsSearching(true);
       try {
-        const res = await findManyProducts(filterParams({ search: searchQuery, per_page: 20 }));
+        const res = await findManyProducts(filterParams({ search: searchQuery || undefined, per_page: 50 }));
         if (res && !res.error) {
           setSearchResults(res.data || []);
         }
@@ -52,9 +52,6 @@ const HomePage = () => {
 
   const handleOpenSearchModal = () => {
     setShowSearchModal(true);
-    if (!searchQuery) {
-      setSearchResults([...bestSellers, ...newProducts].slice(0, 10));
-    }
   };
 
   const handleFetchData = async () => {
@@ -284,7 +281,7 @@ const HomePage = () => {
 
       {/* Stunning Live Search Modal */}
       {showSearchModal && (
-        <div className="fixed inset-0 bg-white z-50 flex flex-col max-w-[768px] mx-auto animate-fade-in">
+        <div className="fixed inset-0 bg-white z-[9999] flex flex-col max-w-[768px] mx-auto animate-fade-in">
           {/* Header Search Input */}
           <div className="p-4 border-b border-gray-100 flex items-center gap-3 bg-white sticky top-0 z-10 shadow-sm">
             <div className="relative flex-1">

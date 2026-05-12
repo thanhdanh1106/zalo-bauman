@@ -42,7 +42,7 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
   const discount = product.price_old ? Math.round(((product.price_old - product.price) / product.price_old) * 100) : 0;
 
   return (
-    <Link 
+    <Link
       to={`/products/${product.slug}`}
       className="bg-white rounded-xl p-3 shadow-[0_4px_15px_rgba(0,0,0,0.03)] relative flex flex-col border border-[#EEEEEE] group active:scale-[0.98] transition-all"
     >
@@ -60,21 +60,12 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
 
       {/* Image Area */}
       <div className="aspect-square bg-surface-container-low rounded-lg mb-3 relative overflow-hidden">
-        <img 
-          alt={product.title} 
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-          src={productImage} 
+        <img
+          alt={product.title}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          src={productImage}
         />
-        <button
-          onClick={handleCopyLink}
-          className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white/90 text-primary shadow-md flex items-center justify-center hover:bg-white transition-colors"
-          aria-label="Copy product link"
-          title="Copy link"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
-            content_copy
-          </span>
-        </button>
+
       </div>
 
       {/* Product Content */}
@@ -82,7 +73,7 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
         <h3 className="font-sans font-semibold text-[13px] text-on-surface line-clamp-2 mb-1 leading-tight group-hover:text-primary transition-colors">
           {product.title}
         </h3>
-        
+
         {/* Mocking Weight/Subtitle if not available */}
         <p className="font-sans text-[10px] text-on-surface-variant mb-2">
           {product.category?.name || "Baumann Ginseng Premium"}
@@ -99,8 +90,8 @@ const ProductCardGrid: React.FC<ProductCardGridProps> = ({
               </p>
             )}
           </div>
-          
-          <button 
+
+          <button
             onClick={handleAddToCart}
             className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center shrink-0 shadow-md active:scale-90 transition-transform"
           >

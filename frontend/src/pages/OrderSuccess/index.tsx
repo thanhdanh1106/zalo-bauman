@@ -11,14 +11,12 @@ import { cancelOrder, findOneOrderByCode } from "@shared/utils/Orders";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   FaCheck,
-  FaCreditCard,
   FaMapMarkerAlt,
   FaTruck,
-  FaLock,
-  FaChevronLeft,
-  FaEllipsisH,
-  FaRegMoneyBillAlt,
   FaUniversity,
+  FaRegMoneyBillAlt,
+  FaHome,
+  FaTimesCircle,
 } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import { CheckoutSDK, EventName, events } from "zmp-sdk/apis";
@@ -33,6 +31,23 @@ const OrderSuccess: React.FC = () => {
   const [loadingZaloPayment, setLoadingZaloPayment] = useState(false);
   const [cancellingOrder, setCancellingOrder] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string>("cod");
+
+  const [paymentConfig, setPaymentConfig] = useState<any>({
+    bank_name: "Vietcombank",
+    bank_account_number: "1029384756",
+    bank_account_name: "CÔNG TY TNHH NHÂN SÂM BAUMANN",
+  });
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL || ""}/api/settings/payment`)
+      .then(r => r.json())
+      .then(res => {
+        if (res && !res.error && res.data) {
+          setPaymentConfig((prev: any) => ({ ...prev, ...res.data }));
+        }
+      })
+      .catch(e => console.error(e));
+  }, []);
 
   const handleZaloPayment = async () => {
     try {
@@ -78,12 +93,11 @@ const OrderSuccess: React.FC = () => {
     try {
       setCancellingOrder(true);
       const response = await cancelOrder(orderData.id);
-      if (response.error) {
-        showMessage("error", "Không thể hủy đơn hàng lúc này.");
-      } else {
+      if (response && !response.error) {
         showMessage("success", "Đã hủy đơn hàng thành công.");
-        const refresh = await findOneOrderByCode(orderData.order_number);
-        if (!refresh.error) setOrderData(refresh.data);
+        setOrderData(prev => prev ? { ...prev, status: "cancelled" } : null);
+      } else {
+        showMessage("error", response?.message || "Không thể hủy đơn hàng lúc này.");
       }
     } catch (error) {
       showMessage("error", "Có lỗi xảy ra khi hủy đơn hàng.");
@@ -116,7 +130,7 @@ const OrderSuccess: React.FC = () => {
         if (response.error) setError(response.message);
         else {
           setOrderData(response.data);
-          setSelectedMethod(response.data.payment_method);
+          setSelectedMethod(response.data.payment_method || "cod");
         }
       } catch (err) {
         setError("Lỗi tải dữ liệu.");
@@ -128,103 +142,132 @@ const OrderSuccess: React.FC = () => {
   }, [order_code]);
 
   if (loading) return <PageLoading height={300} />;
-  if (error || !orderData) return <div className="p-10 text-center">{error || "Không tìm thấy đơn hàng"}</div>;
+  if (error || !orderData) return <div className="p-10 text-center text-gray-500 font-medium">{error || "Không tìm thấy đơn hàng"}</div>;
 
   const shippingAddress = typeof orderData.shipping_address === "string" ? JSON.parse(orderData.shipping_address) : orderData.shipping_address;
   const subtotal = Number(orderData.subtotal);
   const total = Number(orderData.total_amount);
 
-  return (
-    <div className="min-h-screen bg-[#f8f9fa] pb-40">
-      {/* Header Navigation */}
-      <div className="bg-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-gray-100">
-        <button onClick={() => navigate(-1)} className="p-2"><FaChevronLeft className="text-gray-600" /></button>
-        <h1 className="text-lg font-bold text-gray-800">Thanh toán</h1>
-        <button className="p-2"><FaEllipsisH className="text-gray-600" /></button>
-      </div>
+  // Status rendering metadata
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "cancelled":
+        return { label: "Đã hủy", bg: "bg-gray-100 text-gray-600 border-gray-200" };
+      case "delivered":
+        return { label: "Đã giao hàng", bg: "bg-green-100 text-green-700 border-green-200" };
+      case "shipped":
+        return { label: "Đang vận chuyển", bg: "bg-blue-100 text-blue-700 border-blue-200" };
+      default:
+        return { label: "Chờ xử lý", bg: "bg-amber-100 text-amber-700 border-amber-200" };
+    }
+  };
 
-      <div className="p-4 space-y-4">
+  const statusMeta = getStatusDisplay(orderData.status);
+
+  return (
+    <div className="min-h-screen bg-[#f8f9fa] pb-40 animate-fade-in">
+      {/* Không dùng custom duplicate header tại đây vì IndexLayout đã bao gồm header chính */}
+
+      <div className="p-4 space-y-4 pt-6">
+        {/* Order Status Ribbon */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50 flex items-center justify-between">
+          <div>
+            <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Trạng thái đơn hàng</span>
+            <span className="text-sm font-bold text-gray-800">#{orderData.order_number}</span>
+          </div>
+          <span className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${statusMeta.bg}`}>
+            {statusMeta.label}
+          </span>
+        </div>
+
         {/* Shipping Address */}
         <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center text-[#8f0012] font-bold">
-              <FaMapMarkerAlt className="mr-2" />
-              <span>Địa chỉ nhận hàng</span>
-            </div>
-            <button className="text-sm text-[#8f0012] font-bold">Thay đổi</button>
+          <div className="flex items-center text-[#8f0012] font-bold mb-3 text-sm">
+            <FaMapMarkerAlt className="mr-2" />
+            <span>Địa chỉ nhận hàng</span>
           </div>
           <div className="space-y-1">
-            <div className="font-bold text-gray-800 text-base">
+            <div className="font-bold text-gray-800 text-sm">
               {orderData.customer_name} | {orderData.customer_phone}
             </div>
-            <div className="text-sm text-gray-500 leading-relaxed">
-              {shippingAddress?.street || shippingAddress?.address_line_1}, {shippingAddress?.ward ? `${shippingAddress.ward}, ` : ""}{shippingAddress?.city}
+            <div className="text-xs text-gray-500 leading-relaxed">
+              {shippingAddress?.street || shippingAddress?.address_line_1 || ""}, {shippingAddress?.ward ? `${shippingAddress.ward}, ` : ""}{shippingAddress?.city || ""}
             </div>
           </div>
         </div>
 
-        {/* Payment Methods - Fixed to COD */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-bold text-gray-500 ml-1">Phương thức thanh toán</h3>
-          
-          <div className="bg-white rounded-2xl p-4 flex items-center border-2 border-[#8f0012] transition-all">
-            <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mr-4">
-               <FaRegMoneyBillAlt className="text-orange-500 text-xl" />
+        {/* Dynamic Payment Method Render */}
+        <div className="space-y-2">
+          <h3 className="text-xs font-bold text-gray-400 ml-1 uppercase tracking-wider">Phương thức thanh toán</h3>
+          <div className="bg-white rounded-2xl p-4 flex items-center border border-gray-100 shadow-sm">
+            <div className="w-10 h-10 bg-[#8f0012]/5 rounded-xl flex items-center justify-center mr-3 shrink-0">
+              {selectedMethod === "banking" ? (
+                <FaUniversity className="text-[#8f0012] text-lg" />
+              ) : selectedMethod === "zalopay" ? (
+                <span className="font-bold text-[#8f0012] text-xs">Zalo</span>
+              ) : (
+                <FaRegMoneyBillAlt className="text-[#8f0012] text-lg" />
+              )}
             </div>
-            <div className="flex-1">
-              <span className="font-bold text-gray-800 text-sm">Thanh toán khi nhận hàng (COD)</span>
-              <p className="text-[10px] text-gray-400 mt-0.5">Thanh toán bằng tiền mặt khi nhận hàng</p>
-            </div>
-            <div className="w-5 h-5 rounded-full border-2 border-[#8f0012] flex items-center justify-center">
-              <div className="w-3 h-3 bg-[#8f0012] rounded-full"></div>
+            <div className="flex-1 min-w-0">
+              <span className="font-bold text-gray-800 text-xs block truncate">
+                {selectedMethod === "banking" ? "Chuyển khoản ngân hàng" : selectedMethod === "zalopay" ? "Ví ZaloPay" : "Thanh toán khi nhận hàng (COD)"}
+              </span>
+              <span className="text-[10px] text-gray-400 block mt-0.5">
+                {orderData.payment_status === "paid" ? "Đã thanh toán" : "Chờ thanh toán / Thu hộ"}
+              </span>
             </div>
           </div>
+
+          {selectedMethod === "banking" && orderData.status !== "cancelled" && orderData.payment_status !== "paid" && (
+            <div className="bg-[#fffdfd] p-3 rounded-xl border border-[#8f0012]/10 text-xs space-y-1 text-gray-700 animate-fade-in">
+              <div className="font-bold text-[#8f0012] mb-1">Thông tin chuyển khoản:</div>
+              <div>• Ngân hàng: <strong className="text-gray-900">{paymentConfig.bank_name}</strong></div>
+              <div>• Số tài khoản: <strong className="text-[#8f0012] select-all font-mono font-bold">{paymentConfig.bank_account_number}</strong></div>
+              <div>• Chủ tài khoản: <strong className="text-gray-900">{paymentConfig.bank_account_name}</strong></div>
+              <div>• Nội dung: <strong className="text-gray-900 select-all font-mono font-bold">Thanh toan DH {orderData.order_number}</strong></div>
+            </div>
+          )}
         </div>
 
         {/* Order Items */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h3 className="text-sm font-bold text-gray-800 mb-4">Chi tiết đơn hàng</h3>
-          <div className="space-y-6">
+        <div className="bg-white rounded-2xl p-5 shadow-sm space-y-4">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Chi tiết sản phẩm</h3>
+          <div className="space-y-4">
             {orderData.order_items.map((item) => (
-              <div key={item.id} className="flex gap-4 items-center">
-                <img src={getThumbnailUrl(item.product?.thumbnail)} className="w-16 h-16 object-cover rounded-xl bg-gray-50 shrink-0" />
-                <div className="flex-1 overflow-hidden">
-                  <h4 className="text-sm font-bold text-gray-800 leading-tight mb-1">
+              <div key={item.id} className="flex gap-3 items-center">
+                <img src={getThumbnailUrl(item.product?.thumbnail)} className="w-12 h-12 object-cover rounded-xl bg-gray-50 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-xs font-bold text-gray-800 truncate mb-0.5">
                     {item.product?.name || item.title}
                   </h4>
                   {item.selected_option && !item.product?.name?.includes(item.selected_option) && (
-                    <span className="inline-block px-2 py-0.5 bg-primary/5 text-primary text-[10px] font-bold rounded mb-1">
-                      Phân loại: {item.selected_option}
+                    <span className="inline-block px-1.5 py-0.5 bg-primary/5 text-primary text-[9px] font-bold rounded mb-1">
+                      {item.selected_option}
                     </span>
                   )}
-                  <p className="text-xs text-gray-400">Số lượng: {item.quantity}</p>
+                  <p className="text-[10px] text-gray-400">Số lượng: {item.quantity}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-sm font-bold text-gray-800">{formatCurrency(item.price)}</p>
+                  <p className="text-xs font-bold text-[#8f0012]">{formatCurrency(item.price * item.quantity)}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-8 pt-6 border-t border-gray-100 space-y-3">
-             <div className="flex justify-between text-sm">
-                <span className="text-gray-400 font-medium">Tạm tính</span>
+          <div className="pt-4 border-t border-gray-50 space-y-2">
+             <div className="flex justify-between text-xs">
+                <span className="text-gray-400">Tạm tính</span>
                 <span className="font-bold text-gray-800">{formatCurrency(subtotal)}</span>
              </div>
-             <div className="flex justify-between text-sm">
-                <span className="text-gray-400 font-medium">Phí vận chuyển</span>
-                <span className="text-gray-800 font-medium">Miễn phí</span>
+             <div className="flex justify-between text-xs">
+                <span className="text-gray-400">Phí vận chuyển</span>
+                <span className="font-bold text-gray-800">{orderData.shipping_fee === 0 ? "Miễn phí" : formatCurrency(orderData.shipping_fee)}</span>
              </div>
-             {selectedMethod === "vnpay_qr" && (
-               <div className="flex justify-between text-sm">
-                  <span className="text-[#8f0012] font-medium">Giảm giá (Ưu đãi ZaloPay)</span>
-                  <span className="text-[#8f0012] font-bold">-{formatCurrency(total * 0.1)}</span>
-               </div>
-             )}
-             <div className="flex justify-between pt-4 border-t border-gray-100 items-end">
-                <span className="text-sm text-gray-500 font-medium">Tổng thanh toán</span>
-                <span className="text-2xl font-bold text-[#8f0012]">
-                  {formatCurrency(selectedMethod === "vnpay_qr" ? total * 0.9 : total)}
+             <div className="flex justify-between pt-2 border-t border-gray-50 items-end">
+                <span className="text-xs text-gray-500 font-bold">Tổng thanh toán</span>
+                <span className="text-base font-bold text-[#8f0012]">
+                  {formatCurrency(total)}
                 </span>
              </div>
           </div>
@@ -235,9 +278,10 @@ const OrderSuccess: React.FC = () => {
            <button 
              onClick={handleCancelOrder}
              disabled={cancellingOrder}
-             className="w-full py-4 text-sm font-bold text-red-500 bg-red-50 rounded-2xl active:bg-red-100 transition-colors"
+             className="w-full py-3.5 text-xs font-bold text-red-500 bg-red-50 rounded-xl active:bg-red-100 transition-colors flex items-center justify-center gap-2 border border-red-100"
            >
-             {cancellingOrder ? "Đang xử lý..." : "Hủy đơn hàng này"}
+             <FaTimesCircle />
+             {cancellingOrder ? "Đang xử lý hủy đơn..." : "Hủy đơn hàng này"}
            </button>
         )}
       </div>
@@ -247,26 +291,23 @@ const OrderSuccess: React.FC = () => {
         className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 px-6 py-4 pb-safe flex flex-col gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-50 max-w-[768px] mx-auto"
         style={{ left: '50%', transform: 'translateX(-50%)' }}
       >
-        <div className="flex justify-between items-center">
-           <div className="flex flex-col">
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Tổng thanh toán</span>
-              <span className="text-xl font-bold text-[#8f0012]">{formatCurrency(selectedMethod === "vnpay_qr" ? total * 0.9 : total)}</span>
-           </div>
-           <span className="text-[10px] text-gray-300 italic">Giá đã bao gồm VAT</span>
-        </div>
-        <button 
-          onClick={() => navigate("/thank-you", { state: { orderData } })}
-          disabled={orderData.status === "cancelled"}
-          className={`w-full py-4 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${orderData.status === "cancelled" ? "bg-gray-400" : "bg-[#8f0012] shadow-lg shadow-[#8f0012]/20"}`}
-        >
-          {orderData.status === "cancelled" ? (
-             "Đơn hàng đã hủy"
-          ) : (
-             <>
-               Xác nhận đơn hàng <FaCheck className="ml-2 text-xs" />
-             </>
-          )}
-        </button>
+        {selectedMethod === "zalopay" && orderData.payment_status !== "paid" && orderData.status !== "cancelled" ? (
+          <button 
+            onClick={handleZaloPayment}
+            disabled={loadingZaloPayment}
+            className="w-full py-3.5 rounded-xl font-bold text-white bg-[#0088ff] flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-[0.98] transition-all text-xs"
+          >
+            {loadingZaloPayment ? "Đang kết nối cổng ZaloPay..." : "Thanh toán qua Ví ZaloPay ngay"}
+          </button>
+        ) : (
+          <button 
+            onClick={() => navigate("/")}
+            className="w-full py-3.5 rounded-xl font-bold text-white bg-[#8f0012] flex items-center justify-center gap-2 shadow-lg shadow-[#8f0012]/20 active:scale-[0.98] transition-all text-xs"
+          >
+            <FaHome className="text-sm" />
+            Tiếp tục mua sắm
+          </button>
+        )}
       </div>
     </div>
   );
