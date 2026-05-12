@@ -3,6 +3,7 @@ import { promotionProps } from '@shared/types/promotion';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface CartItem extends productProps {
+  product: any;
   quantity: number;
   selected_option?: string;
   cartItemId?: string;
@@ -80,14 +81,14 @@ const calculateTotal = (items: CartItem[]): number => {
 
 const calculateDiscount = (subtotal: number, promotion: promotionProps | null): number => {
   if (!promotion) return 0;
-  
+
   // Check if promotion is still valid
   const now = new Date();
   const startDate = new Date(promotion.start_date);
   const endDate = new Date(promotion.end_date);
-  
+
   if (now < startDate || now > endDate) return 0;
-  
+
   // Calculate discount amount
   return Math.floor((subtotal * promotion.discount) / 100);
 };
@@ -112,7 +113,7 @@ export const calculateCartSummary = (items: CartItem[], promotion: promotionProp
   const discount = calculateDiscount(subtotal, promotion);
   const total = calculateFinalTotal(subtotal, discount);
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-  
+
   return {
     subtotal,
     discount,
@@ -130,17 +131,17 @@ const cartSlice = createSlice({
       const newItem = { ...action.payload, quantity: action.payload.quantity || 1 };
       const cartItemId = newItem.selected_option ? `${newItem.id}|${newItem.selected_option}` : String(newItem.id);
       (newItem as any).cartItemId = cartItemId;
-      
+
       // Check if product has stock
       if (!newItem.stock || newItem.stock <= 0) {
         state.error = 'Sản phẩm hiện đang hết hàng';
         return;
       }
 
-      const existingItem = state.items.find(item => 
+      const existingItem = state.items.find(item =>
         item.id === newItem.id && item.selected_option === newItem.selected_option
       );
-      
+
       if (existingItem) {
         // Check if adding quantity exceeds stock
         const newQuantity = existingItem.quantity + newItem.quantity;
@@ -162,14 +163,14 @@ const cartSlice = createSlice({
         }
         state.items.push(newItem as CartItem);
       }
-      
+
       state.subtotal = calculateTotal(state.items);
       state.discount = calculateDiscount(state.subtotal, state.appliedPromotion);
       state.total = calculateFinalTotal(state.subtotal, state.discount);
       state.error = null; // Clear any previous errors
       saveCartToStorage(state);
     },
-    
+
     removeItem(state, action: PayloadAction<any>) {
       const payload = action.payload;
       if (payload && typeof payload === 'object') {
@@ -183,10 +184,10 @@ const cartSlice = createSlice({
       state.error = null;
       saveCartToStorage(state);
     },
-    
+
     updateQuantity(state, action: PayloadAction<any>) {
       const payload = action.payload;
-      const item = state.items.find(item => 
+      const item = state.items.find(item =>
         item.id === payload.id && (payload.selected_option ? item.selected_option === payload.selected_option : true)
       );
       if (item) {
@@ -206,10 +207,10 @@ const cartSlice = createSlice({
         saveCartToStorage(state);
       }
     },
-    
+
     increaseQuantity(state, action: PayloadAction<any>) {
       const payload = action.payload;
-      const item = typeof payload === 'object' 
+      const item = typeof payload === 'object'
         ? state.items.find(item => item.id === payload.id && item.selected_option === payload.selected_option)
         : state.items.find(item => item.id === payload);
       if (item) {
@@ -225,10 +226,10 @@ const cartSlice = createSlice({
         saveCartToStorage(state);
       }
     },
-    
+
     decreaseQuantity(state, action: PayloadAction<any>) {
       const payload = action.payload;
-      const item = typeof payload === 'object' 
+      const item = typeof payload === 'object'
         ? state.items.find(item => item.id === payload.id && item.selected_option === payload.selected_option)
         : state.items.find(item => item.id === payload);
       if (item) {
@@ -244,7 +245,7 @@ const cartSlice = createSlice({
         saveCartToStorage(state);
       }
     },
-    
+
     clearCart(state) {
       state.items = [];
       state.subtotal = 0;
@@ -256,26 +257,26 @@ const cartSlice = createSlice({
       state.promotionError = null;
       saveCartToStorage(state);
     },
-    
+
     // Promotion actions
     applyPromotion(state, action: PayloadAction<promotionProps>) {
       const promotion = action.payload;
-      
+
       // Validate promotion dates
       const now = new Date();
       const startDate = new Date(promotion.start_date);
       const endDate = new Date(promotion.end_date);
-      
+
       if (now < startDate) {
         state.promotionError = 'Mã giảm giá chưa có hiệu lực';
         return;
       }
-      
+
       if (now > endDate) {
         state.promotionError = 'Mã giảm giá đã hết hạn';
         return;
       }
-      
+
       state.appliedPromotion = promotion;
       state.appliedReward = null; // Mutually exclusive
       state.discount = calculateDiscount(state.subtotal, promotion);
@@ -283,7 +284,7 @@ const cartSlice = createSlice({
       state.promotionError = null;
       saveCartToStorage(state);
     },
-    
+
     applyReward(state, action: PayloadAction<any>) {
       state.appliedReward = action.payload;
       state.appliedPromotion = null; // Mutually exclusive
@@ -292,12 +293,12 @@ const cartSlice = createSlice({
       state.promotionError = null;
       saveCartToStorage(state);
     },
-    
+
     removeReward(state) {
       state.appliedReward = null;
       saveCartToStorage(state);
     },
-    
+
     removePromotion(state) {
       state.appliedPromotion = null;
       state.discount = 0;
@@ -305,15 +306,15 @@ const cartSlice = createSlice({
       state.promotionError = null;
       saveCartToStorage(state);
     },
-    
+
     setPromotionError(state, action: PayloadAction<string | null>) {
       state.promotionError = action.payload;
     },
-    
+
     clearPromotionError(state) {
       state.promotionError = null;
     },
-    
+
     syncCartWithStock(state, action: PayloadAction<productProps[]>) {
       // Update cart items with latest product information
       action.payload.forEach(product => {
@@ -325,7 +326,7 @@ const cartSlice = createSlice({
           item.stock = product.stock;
           item.thumbnail = product.thumbnail;
           item.status = product.status;
-          
+
           // Check if product is still available
           if (product.status !== 'published' || !product.stock || product.stock === 0) {
             // Remove item if product is not available or out of stock
@@ -336,22 +337,22 @@ const cartSlice = createSlice({
           }
         }
       });
-      
+
       // Remove items that are no longer in the product list (deleted products)
       const productIds = action.payload.map(p => p.id);
       state.items = state.items.filter(item => productIds.includes(item.id));
-      
+
       state.total = calculateTotal(state.items);
     },
-    
+
     setLoading(state, action: PayloadAction<boolean>) {
       state.loading = action.payload;
     },
-    
+
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
     },
-    
+
     clearError(state) {
       state.error = null;
     },
@@ -388,10 +389,10 @@ const cartSlice = createSlice({
     validateCartItems(state) {
       // Remove items with invalid data
       state.items = state.items.filter(item => {
-        return item.stock > 0 && 
-               item.status === 'published' && 
-               item.quantity > 0 && 
-               item.price > 0;
+        return item.stock > 0 &&
+          item.status === 'published' &&
+          item.quantity > 0 &&
+          item.price > 0;
       });
       state.subtotal = calculateTotal(state.items);
       state.discount = calculateDiscount(state.subtotal, state.appliedPromotion);
@@ -426,16 +427,16 @@ export const selectCartError = (state: { cart: CartState }) => state.cart.error;
 export const selectPromotionError = (state: { cart: CartState }) => state.cart.promotionError;
 export const selectCartLoading = (state: { cart: CartState }) => state.cart.loading;
 
-export const { 
-  addItem, 
-  removeItem, 
-  updateQuantity, 
-  increaseQuantity, 
-  decreaseQuantity, 
-  clearCart, 
-  syncCartWithStock, 
-  setLoading, 
-  setError, 
+export const {
+  addItem,
+  removeItem,
+  updateQuantity,
+  increaseQuantity,
+  decreaseQuantity,
+  clearCart,
+  syncCartWithStock,
+  setLoading,
+  setError,
   clearError,
   updateItemPrice,
   updateItemStock,

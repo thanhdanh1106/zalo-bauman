@@ -17,6 +17,9 @@ import {
 } from "@shared/store/slices/cartSlice";
 import { getThumbnailUrl, getUserFullName } from "@shared/utils/Hooks";
 import { createOrder } from "@shared/utils/Orders";
+import { apiClient } from "@shared/services/authService";
+import { createZaloOrder, transformCartToZaloOrder, ZALO_PAYMENT_METHODS } from "@shared/services/zaloPayment";
+import { Payment } from "zmp-sdk/apis";
 import { findManyPromotions, findMyVouchers } from "@shared/utils/Promotions";
 import { findManyRewards, getUserPoints, redeemReward, getUserRedemptions } from "@shared/utils/Rewards";
 import { promotionProps } from "@shared/types/promotion";
@@ -272,17 +275,62 @@ const Checkout: React.FC = () => {
       };
 
       const response = await createOrder(orderData);
-      if (response && !response.error) {
-        showMessage("success", "Đặt hàng thành công!");
-        clearAllItems();
-        const orderDataWithPoints = {
-          ...response.data,
-          points_earned: response.points_earned,
-        };
-        navigate(`/thank-you`, { state: { orderData: orderDataWithPoints, pointsEarned: response.points_earned } });
-      } else {
+      if (!response || response.error) {
         showMessage("error", "Lỗi đặt hàng, vui lòng thử lại.");
+        return;
       }
+
+      const createdOrder = response.data;
+
+      // ── ZaloPay flow ──────────────────────────────────────────────
+      if (data.payment_method === "zalopay") {
+        try {
+          const zaloData = transformCartToZaloOrder(
+            items,
+            finalTotal,
+            `Thanh toan don hang #${createdOrder.order_number}`,
+            { order_number: createdOrder.order_number, order_id: createdOrder.id }
+          );
+
+          await new Promise<void>((resolve, reject) => {
+            Payment.createOrder({
+              ...zaloData,
+              amount: Math.round(finalTotal),
+              item: zaloData.item,
+              desc: zaloData.desc,
+              extradata: JSON.stringify(zaloData.extradata || {}),
+              method: JSON.stringify({ id: ZALO_PAYMENT_METHODS.BANK, isCustom: false }),
+              success: async (_data: any) => {
+                // Mark order as paid on backend
+                try {
+                  await apiClient.post(`/orders/${createdOrder.id}/confirm-payment`);
+                } catch (e) {
+                  console.error("confirmPayment error", e);
+                }
+                clearAllItems();
+                resolve();
+                navigate(`/payment-success?orderId=${createdOrder.order_number}`);
+              },
+              fail: (err: any) => {
+                reject(new Error(err?.message || "ZaloPay thất bại"));
+              },
+              mac: ""
+            });
+          });
+        } catch (zaloErr: any) {
+          showMessage("error", zaloErr?.message || "Thanh toán ZaloPay thất bại. Vui lòng thử lại.");
+        }
+        return;
+      }
+
+      // ── COD / Banking flow ────────────────────────────────────────
+      showMessage("success", "Đặt hàng thành công!");
+      clearAllItems();
+      const orderDataWithPoints = {
+        ...createdOrder,
+        points_earned: response.points_earned,
+      };
+      navigate(`/thank-you`, { state: { orderData: orderDataWithPoints, pointsEarned: response.points_earned } });
     } catch (error) {
       showMessage("error", "Đã có lỗi xảy ra.");
     } finally {
@@ -675,9 +723,15 @@ const Checkout: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isProcessing || !formData.agreeToTerms}
-                    className="flex-[2] flex items-center justify-center py-4 text-sm font-bold text-white bg-[#8f0012] rounded-2xl shadow-lg shadow-[#8f0012]/20 active:scale-95 transition-all disabled:opacity-50"
+                    className={`flex-[2] flex items-center justify-center py-4 text-sm font-bold text-white rounded-2xl shadow-lg active:scale-95 transition-all disabled:opacity-50 ${paymentMethod === "zalopay"
+                      ? "bg-[#0088ff] shadow-blue-500/20"
+                      : "bg-[#8f0012] shadow-[#8f0012]/20"
+                      }`}
                   >
-                    {isProcessing ? "Đang tạo đơn..." : "Đặt mua ngay"}
+                    {isProcessing
+                      ? (paymentMethod === "zalopay" ? "Đang kết nối ZaloPay..." : "Đang tạo đơn...")
+                      : (paymentMethod === "zalopay" ? "Thanh toán ZaloPay" : "Đặt hàng")
+                    }
                   </button>
                 )}
               </div>

@@ -54,6 +54,7 @@ Route::get('/promotions', [PromotionController::class, 'index']);
 Route::get('/promotions/name/{slug}', [PromotionController::class, 'showBySlug']);
 Route::post('/promotions/apply/{code}', [PromotionController::class, 'apply']);
 Route::get('/orders/number/{number}', [OrderController::class, 'show']);
+Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 
 // Settings Routes
 Route::get('/settings', [SettingController::class, 'general']);
