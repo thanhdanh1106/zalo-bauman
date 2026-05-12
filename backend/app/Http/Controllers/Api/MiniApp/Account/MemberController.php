@@ -20,7 +20,7 @@ class MemberController extends Controller
             ->paginate($request->query('per_page', 20));
 
         $data = collect($rewards->items())->map(function ($reward) {
-            $imageUrl = $reward->image?->url;
+            $imageUrl = $reward->image?->medium_url ?: $reward->image?->url;
             if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 $imageUrl = url($imageUrl);
             }
@@ -157,7 +157,7 @@ class MemberController extends Controller
             ->get();
 
         $data = $redemptions->map(function ($r) {
-            $imageUrl = $r->reward->image?->url;
+            $imageUrl = $r->reward->image?->medium_url ?: $r->reward->image?->url;
             if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 $imageUrl = url($imageUrl);
             }

@@ -27,7 +27,7 @@ class ProductTransformer extends JsonResource
             'type' => $this->type,
             'woo_type' => $this->woo_type,
             'published_at' => $this->published_at,
-            'image_url' => $this->image?->url,
+            'image_url' => $this->image?->medium_url ?: $this->image?->url,
             'brand' => $this->brand?->name,
             'categories' => $this->productCategories->pluck('name'),
             'is_sold_by_gram' => $this->is_sold_by_gram,

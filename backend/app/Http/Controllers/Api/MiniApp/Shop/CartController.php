@@ -19,7 +19,7 @@ class CartController extends Controller
             $prod = $item->product;
             if (!$prod) return null;
 
-            $imageUrl = $prod->image?->url ?: $prod->getFirstMediaUrl('product-images');
+            $imageUrl = $prod->image?->medium_url ?: ($prod->image?->url ?: $prod->getFirstMediaUrl('product-images'));
             if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 $imageUrl = url($imageUrl);
             }

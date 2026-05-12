@@ -227,7 +227,7 @@ class OrderController extends Controller
                         'id' => $item->product?->id,
                         'name' => $item->product?->name,
                         'thumbnail' => [
-                            'original_url' => ($item->product?->image?->url ?: $item->product?->getFirstMediaUrl('product-images')) ?: url("/images/product-placeholder.png"),
+                            'original_url' => ($item->product?->image?->medium_url ?: ($item->product?->image?->url ?: $item->product?->getFirstMediaUrl('product-images'))) ?: url("/images/product-placeholder.png"),
                         ],
                         'sku' => $item->product?->sku,
                     ]

@@ -10,7 +10,7 @@ class PromotionTransformer extends JsonResource
     {
         $imageUrl = null;
         if ($this->image) {
-            $imageUrl = $this->image->url;
+            $imageUrl = $this->image->medium_url ?: $this->image->url;
             if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 $imageUrl = url($imageUrl);
             }

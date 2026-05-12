@@ -10,7 +10,7 @@ class BannerTransformer extends JsonResource
     {
         $imageUrl = null;
         if ($this->image) {
-            $imageUrl = \Illuminate\Support\Facades\Storage::disk($this->image->disk)->url($this->image->path);
+            $imageUrl = $this->image->large_url ?: $this->image->url;
             if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 $imageUrl = url($imageUrl);
             }

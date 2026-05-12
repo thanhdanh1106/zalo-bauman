@@ -58,7 +58,7 @@ class PostController extends Controller
             ->paginate($request->query('per_page', 12));
 
         $data = collect($categories->items())->map(function($cat) {
-            $imageUrl = $cat->image?->url;
+            $imageUrl = $cat->image?->medium_url ?: $cat->image?->url;
             
             if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 $imageUrl = url($imageUrl);

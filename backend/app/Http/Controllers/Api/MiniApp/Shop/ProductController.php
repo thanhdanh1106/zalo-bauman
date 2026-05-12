@@ -90,7 +90,7 @@ class ProductController extends Controller
             ->paginate($request->query('per_page', 12));
 
         $data = collect($categories->items())->map(function($cat) {
-            $imageUrl = $cat->image?->url ?: $cat->getFirstMediaUrl('category-images');
+            $imageUrl = $cat->image?->medium_url ?: ($cat->image?->url ?: $cat->getFirstMediaUrl('category-images'));
             
             if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 $imageUrl = url($imageUrl);
@@ -142,7 +142,7 @@ class ProductController extends Controller
 
     private function transformProduct($prod)
     {
-        $imageUrl = $prod->image?->url ?: $prod->getFirstMediaUrl('product-images');
+        $imageUrl = $prod->image?->medium_url ?: ($prod->image?->url ?: $prod->getFirstMediaUrl('product-images'));
         
         if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
             $imageUrl = url($imageUrl);
@@ -162,9 +162,13 @@ class ProductController extends Controller
         // Curator Gallery
         if ($prod->images) {
             foreach ($prod->images as $img) {
-                if (!in_array($img->url, $galleryUrls)) {
-                    $gallery[] = ['original_url' => $img->url];
-                    $galleryUrls[] = $img->url;
+                $imgUrl = $img->medium_url ?: $img->url;
+                if ($imgUrl && !filter_var($imgUrl, FILTER_VALIDATE_URL)) {
+                    $imgUrl = url($imgUrl);
+                }
+                if (!in_array($imgUrl, $galleryUrls)) {
+                    $gallery[] = ['original_url' => $imgUrl];
+                    $galleryUrls[] = $imgUrl;
                 }
             }
         }

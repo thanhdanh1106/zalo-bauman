@@ -17,7 +17,7 @@ class PostTransformer extends JsonResource
         // Get image URL from Curator relationship or Spatie Media Library
         $imageUrl = null;
         if ($this->image) {
-            $imageUrl = $this->image->url;
+            $imageUrl = $this->image->medium_url ?: $this->image->url;
             // Ensure absolute URL if it's a relative path
             if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 $imageUrl = url($imageUrl);

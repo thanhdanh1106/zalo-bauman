@@ -78,7 +78,7 @@ class SettingController extends Controller
         if (isset($data['logo_id']) && $data['logo_id']) {
             $media = \Awcodes\Curator\Models\Media::find($data['logo_id']);
             if ($media) {
-                $url = \Illuminate\Support\Facades\Storage::disk($media->disk)->url($media->path);
+                $url = $media->medium_url ?: $media->url;
                 $data['logo_url'] = !filter_var($url, FILTER_VALIDATE_URL) ? url($url) : $url;
             }
         }
@@ -86,7 +86,7 @@ class SettingController extends Controller
         if (isset($data['favicon_id']) && $data['favicon_id']) {
             $media = \Awcodes\Curator\Models\Media::find($data['favicon_id']);
             if ($media) {
-                $url = \Illuminate\Support\Facades\Storage::disk($media->disk)->url($media->path);
+                $url = $media->medium_url ?: $media->url;
                 $data['favicon_url'] = !filter_var($url, FILTER_VALIDATE_URL) ? url($url) : $url;
             }
         }
