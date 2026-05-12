@@ -112,6 +112,9 @@ class SettingController extends Controller
                     'enable_cod' => $settings->enable_cod ?? true,
                     'cod_description' => $settings->cod_description ?? 'Thanh toán tiền mặt khi nhận hàng tại nhà.',
                     'zalopay_app_id' => $settings->zalopay_app_id ?? '2553',
+                    'vietqr_enabled' => $settings->vietqr_enabled ?? false,
+                    'vietqr_bank_bin' => $settings->vietqr_bank_bin ?? null,
+                    'vietqr_template' => $settings->vietqr_template ?? 'compact2',
                 ],
             ]);
         } catch (\Throwable $e) {

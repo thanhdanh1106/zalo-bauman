@@ -18,6 +18,7 @@ const ThankYou: React.FC = () => {
   const location = useLocation();
   const { showMessage } = useToasterContext();
   const orderData = location.state?.orderData;
+  const pointsEarned = Number(location.state?.pointsEarned ?? location.state?.points_earned ?? orderData?.points_earned ?? 0);
 
   const totalAmount = Number(orderData?.total_amount || 0);
   const orderNumber = orderData?.number || orderData?.order_number || "---";
@@ -29,6 +30,9 @@ const ThankYou: React.FC = () => {
     bank_account_number: "1029384756",
     bank_account_name: "CÔNG TY TNHH NHÂN SÂM BAUMANN",
     zalopay_app_id: "2553",
+    vietqr_enabled: false,
+    vietqr_bank_bin: "",
+    vietqr_template: "compact2",
   });
   const [isCallingZaloPay, setIsCallingZaloPay] = useState(false);
 
@@ -37,7 +41,11 @@ const ThankYou: React.FC = () => {
       .then(r => r.json())
       .then(res => {
         if (res && !res.error && res.data) {
-          setPaymentConfig((prev: any) => ({ ...prev, ...res.data }));
+          setPaymentConfig((prev: any) => ({
+            ...prev,
+            ...res.data,
+            vietqr_enabled: Boolean(res.data.vietqr_enabled),
+          }));
         }
       })
       .catch(e => console.error(e));
@@ -71,8 +79,22 @@ const ThankYou: React.FC = () => {
     }
   };
 
-  // Calculate points (assuming 1 point per 10,000 VND)
-  const earnedPoints = Math.floor(totalAmount / 10000);
+  const earnedPoints = Number.isFinite(pointsEarned) ? pointsEarned : 0;
+
+  const getVietQrUrl = () => {
+    if (!paymentConfig.vietqr_enabled) return "";
+    if (!paymentConfig.vietqr_bank_bin || !paymentConfig.bank_account_number) return "";
+
+    const amount = Math.round(totalAmount);
+    const addInfo = `Thanh toan DH ${orderNumber}`;
+    const params = new URLSearchParams({
+      amount: amount.toString(),
+      addInfo,
+      accountName: paymentConfig.bank_account_name || "",
+    });
+
+    return `https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin}-${paymentConfig.bank_account_number}-${paymentConfig.vietqr_template || "compact2"}.png?${params.toString()}`;
+  };
 
   // Estimate delivery date (order date + 2-4 days)
   const orderDate = orderData?.order_date ? new Date(orderData.order_date) : new Date();
@@ -146,7 +168,7 @@ const ThankYou: React.FC = () => {
 
       {/* Dynamic Gateway/Banking Instruction Area */}
       {paymentMethod === "banking" && (
-        <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-6 space-y-3 animate-fade-in">
+        <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-6 space-y-4 animate-fade-in">
           <div className="flex items-center text-[#8f0012] font-bold text-sm">
             <FaUniversity className="mr-2 text-lg" />
             Thông tin Chuyển khoản Ngân hàng
@@ -163,6 +185,21 @@ const ThankYou: React.FC = () => {
           <p className="text-[10px] text-gray-400 italic text-center mt-2">
             (Nhấp vào số tài khoản hoặc nội dung để sao chép nhanh)
           </p>
+          {paymentConfig.vietqr_enabled && paymentConfig.vietqr_bank_bin && (
+            <div className="pt-2">
+              <div className="text-xs font-semibold text-[#8f0012] text-center mb-3">
+                Quét mã VietQR để thanh toán
+              </div>
+              <div className="bg-white border border-[#8f0012]/10 rounded-xl p-3 flex items-center justify-center">
+                <img
+                  src={getVietQrUrl()}
+                  alt="VietQR"
+                  className="w-48 h-48 object-contain"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -186,7 +223,7 @@ const ThankYou: React.FC = () => {
       )}
 
       {/* Points Reward Card */}
-      <div className="w-full max-w-md bg-gradient-to-r from-[#fbd77a] to-[#ffe59e] rounded-2xl p-6 flex items-center shadow-lg shadow-[#fbd77a]/20 mb-10">
+      <div className="w-full max-w-md bg-gradient-to-r from-[#fbd77a] to-[#ffe59e] rounded-xl p-6 flex items-center shadow-lg shadow-[#fbd77a]/20 mb-10">
         <div className="w-12 h-12 bg-[#cbb27c]/20 rounded-full flex items-center justify-center mr-4 shrink-0 border border-[#cbb27c]/30">
           <FaTrophy className="text-xl text-[#856404]" />
         </div>

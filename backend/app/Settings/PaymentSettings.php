@@ -15,6 +15,11 @@ class PaymentSettings extends Settings
     public string $bank_account_number;
     public string $bank_account_name;
 
+    // VietQR
+    public bool $vietqr_enabled = false;
+    public ?string $vietqr_bank_bin = null;
+    public ?string $vietqr_template = 'compact2';
+
     // ZaloPay Gateway
     public string $zalopay_app_id;
     public string $zalopay_key1;

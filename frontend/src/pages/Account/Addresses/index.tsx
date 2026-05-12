@@ -10,6 +10,8 @@ interface AddressData {
   name: string;
   phone: string;
   address: string;
+  city: string;
+  state: string;
   type: "home" | "office" | "other";
   isDefault: boolean;
 }
@@ -18,6 +20,8 @@ interface AddressFormData {
   name: string;
   phone: string;
   address: string;
+  city: string;
+  state: string;
   type: "home" | "office" | "other";
   isDefault: boolean;
 }
@@ -44,6 +48,8 @@ const AccountAddresses: React.FC = () => {
     name: "",
     phone: "",
     address: "",
+    city: "",
+    state: "",
     type: "home",
     isDefault: false,
   });
@@ -57,6 +63,8 @@ const AccountAddresses: React.FC = () => {
         name: addr.name || "",
         phone: addr.phone || "",
         address: addr.street || addr.address || "",
+        city: addr.city || "",
+        state: addr.state || "",
         type: addr.type || "home",
         isDefault: !!addr.is_default,
       }));
@@ -76,6 +84,8 @@ const AccountAddresses: React.FC = () => {
         name: address.name,
         phone: address.phone,
         address: address.address,
+        city: address.city,
+        state: address.state,
         type: address.type,
         isDefault: address.isDefault,
       });
@@ -85,6 +95,8 @@ const AccountAddresses: React.FC = () => {
         name: user?.name || "",
         phone: user?.information?.phone || "",
         address: "",
+        city: user?.information?.city || "",
+        state: user?.information?.district || user?.information?.state || "",
         type: "home",
         isDefault: addresses.length === 0,
       });
@@ -95,7 +107,7 @@ const AccountAddresses: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingAddress(null);
-    setFormData({ name: "", phone: "", address: "", type: "home", isDefault: false });
+    setFormData({ name: "", phone: "", address: "", city: "", state: "", type: "home", isDefault: false });
   };
 
   const handleSave = async () => {
@@ -105,8 +117,18 @@ const AccountAddresses: React.FC = () => {
     }
 
     try {
+      const payload = {
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        street: formData.address,
+        city: formData.city,
+        state: formData.state,
+        type: formData.type,
+        isDefault: formData.isDefault,
+      };
       if (editingAddress) {
-        const response = await updateAddress(editingAddress.id, formData);
+        const response = await updateAddress(editingAddress.id, payload);
         if (response && !response.error) {
           showMessage("success", "Cập nhật địa chỉ thành công");
           fetchAddresses();
@@ -115,7 +137,7 @@ const AccountAddresses: React.FC = () => {
           showMessage("error", response.message || "Không thể cập nhật địa chỉ");
         }
       } else {
-        const response = await createAddress(formData);
+        const response = await createAddress(payload);
         if (response && !response.error) {
           showMessage("success", "Thêm địa chỉ mới thành công");
           fetchAddresses();
@@ -220,7 +242,7 @@ const AccountAddresses: React.FC = () => {
 
                   {/* Address text */}
                   <p className="text-[13px] text-[#5a403e] leading-relaxed mt-2">
-                    {address.address}
+                    {[address.address, address.state, address.city].filter(Boolean).join(", ")}
                   </p>
                 </div>
               </div>
@@ -378,8 +400,35 @@ const AccountAddresses: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   rows={3}
                   className="w-full px-4 py-3 bg-[#f6f3f2] border border-gray-200 rounded-xl text-[14px] text-[#1c1b1b] focus:border-[#8f0012] focus:outline-none focus:ring-1 focus:ring-[#8f0012]/20 transition-all resize-none"
-                  placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
+                  placeholder="Số nhà, tên đường (Chi tiết trước xát nhập)"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[12px] font-semibold text-[#5a403e] uppercase tracking-wider mb-2">
+                    Tỉnh/Thành phố
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="w-full px-4 py-3 bg-[#f6f3f2] border border-gray-200 rounded-xl text-[14px] text-[#1c1b1b] focus:border-[#8f0012] focus:outline-none focus:ring-1 focus:ring-[#8f0012]/20 transition-all"
+                    placeholder="Nhập tỉnh/thành phố"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-semibold text-[#5a403e] uppercase tracking-wider mb-2">
+                    Xã/Phường
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.state}
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    className="w-full px-4 py-3 bg-[#f6f3f2] border border-gray-200 rounded-xl text-[14px] text-[#1c1b1b] focus:border-[#8f0012] focus:outline-none focus:ring-1 focus:ring-[#8f0012]/20 transition-all"
+                    placeholder="Nhập xã/phường"
+                  />
+                </div>
               </div>
 
               {/* Default checkbox */}

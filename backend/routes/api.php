@@ -44,7 +44,6 @@ Route::get('/post-categories', [PostController::class, 'categories']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/products/name/{slug}', [ProductController::class, 'showBySlug']);
-Route::post('/products/{id}/comments', [ProductController::class, 'storeComment']);
 Route::get('/stations', [OrderController::class, 'stations']);
 Route::get('/posts', [PostController::class, 'index']);
 Route::get('/posts/{id}', [PostController::class, 'show']);
@@ -55,7 +54,6 @@ Route::get('/promotions', [PromotionController::class, 'index']);
 Route::get('/promotions/name/{slug}', [PromotionController::class, 'showBySlug']);
 Route::post('/promotions/apply/{code}', [PromotionController::class, 'apply']);
 Route::get('/orders/number/{number}', [OrderController::class, 'show']);
-Route::match(['get', 'post'], '/orders/{id}/cancel', [OrderController::class, 'cancel']);
 
 // Settings Routes
 Route::get('/settings', [SettingController::class, 'general']);
@@ -85,6 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::post('/orders/{id}/confirm-payment', [OrderController::class, 'confirmPayment']);
     Route::post('/orders/{id}/mark-delivered', [OrderController::class, 'markDelivered']);
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 
     // Unified Address Management
     Route::get('/addresses', [AddressController::class, 'index']);

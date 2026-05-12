@@ -36,6 +36,9 @@ const OrderSuccess: React.FC = () => {
     bank_name: "Vietcombank",
     bank_account_number: "1029384756",
     bank_account_name: "CÔNG TY TNHH NHÂN SÂM BAUMANN",
+    vietqr_enabled: false,
+    vietqr_bank_bin: "",
+    vietqr_template: "compact2",
   });
 
   useEffect(() => {
@@ -145,6 +148,26 @@ const OrderSuccess: React.FC = () => {
   if (error || !orderData) return <div className="p-10 text-center text-gray-500 font-medium">{error || "Không tìm thấy đơn hàng"}</div>;
 
   const shippingAddress = typeof orderData.shipping_address === "string" ? JSON.parse(orderData.shipping_address) : orderData.shipping_address;
+  const shippingAddressDisplay = [
+    shippingAddress?.street,
+    shippingAddress?.state,
+    shippingAddress?.city,
+  ].filter(Boolean).join(", ");
+
+  const getVietQrUrl = () => {
+    if (!paymentConfig.vietqr_enabled) return "";
+    if (!paymentConfig.vietqr_bank_bin || !paymentConfig.bank_account_number) return "";
+
+    const amount = Math.round(Number(orderData.total_amount || 0));
+    const addInfo = `Thanh toan DH ${orderData.order_number}`;
+    const params = new URLSearchParams({
+      amount: amount.toString(),
+      addInfo,
+      accountName: paymentConfig.bank_account_name || "",
+    });
+
+    return `https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin}-${paymentConfig.bank_account_number}-${paymentConfig.vietqr_template || "compact2"}.png?${params.toString()}`;
+  };
   const subtotal = Number(orderData.subtotal);
   const total = Number(orderData.total_amount);
 
@@ -191,7 +214,7 @@ const OrderSuccess: React.FC = () => {
               {orderData.customer_name} | {orderData.customer_phone}
             </div>
             <div className="text-xs text-gray-500 leading-relaxed">
-              {shippingAddress?.street || shippingAddress?.address_line_1 || ""}, {shippingAddress?.ward ? `${shippingAddress.ward}, ` : ""}{shippingAddress?.city || ""}
+              {shippingAddressDisplay || ""}
             </div>
           </div>
         </div>
@@ -220,12 +243,26 @@ const OrderSuccess: React.FC = () => {
           </div>
 
           {selectedMethod === "banking" && orderData.status !== "cancelled" && orderData.payment_status !== "paid" && (
-            <div className="bg-[#fffdfd] p-3 rounded-xl border border-[#8f0012]/10 text-xs space-y-1 text-gray-700 animate-fade-in">
+              <div className="bg-[#fffdfd] p-3 rounded-xl border border-[#8f0012]/10 text-xs space-y-3 text-gray-700 animate-fade-in">
               <div className="font-bold text-[#8f0012] mb-1">Thông tin chuyển khoản:</div>
               <div>• Ngân hàng: <strong className="text-gray-900">{paymentConfig.bank_name}</strong></div>
               <div>• Số tài khoản: <strong className="text-[#8f0012] select-all font-mono font-bold">{paymentConfig.bank_account_number}</strong></div>
               <div>• Chủ tài khoản: <strong className="text-gray-900">{paymentConfig.bank_account_name}</strong></div>
               <div>• Nội dung: <strong className="text-gray-900 select-all font-mono font-bold">Thanh toan DH {orderData.order_number}</strong></div>
+                {paymentConfig.vietqr_enabled && getVietQrUrl() && (
+                  <div className="pt-2">
+                    <div className="text-[11px] font-semibold text-[#8f0012] text-center mb-2">
+                      Quét mã VietQR để thanh toán
+                    </div>
+                    <div className="bg-white border border-[#8f0012]/10 rounded-xl p-2 flex items-center justify-center">
+                      <img
+                        src={getVietQrUrl()}
+                        alt="VietQR"
+                        className="w-40 h-40 object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
             </div>
           )}
         </div>

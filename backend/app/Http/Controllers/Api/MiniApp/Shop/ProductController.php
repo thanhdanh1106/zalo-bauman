@@ -115,9 +115,14 @@ class ProductController extends Controller
             return response()->json(['error' => true, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
 
-        $user = $request->user('sanctum');
-        $email = optional($user)->email ?? ('customer_' . md5(request()->ip() . time()) . '@example.com');
-        $name = optional($user)->name ?? 'Khách hàng';
+        // Try to get authenticated user (works whether route is in auth middleware or not)
+        $user = $request->user() ?? auth('sanctum')->user();
+        if (!$user) {
+            return response()->json(['error' => true, 'message' => 'Vui lòng đăng nhập để viết đánh giá'], 401);
+        }
+
+        $email = $user->email ?? ('user_' . $user->id . '@baumann.app');
+        $name = $user->name ?? 'Khách hàng';
 
         $customer = Customer::where('email', $email)->first();
         if (!$customer) {
@@ -125,6 +130,11 @@ class ProductController extends Controller
                 'name' => $name,
                 'email' => $email,
             ]);
+        } else {
+            // Keep customer name in sync with user name
+            if ($customer->name !== $name) {
+                $customer->update(['name' => $name]);
+            }
         }
 
         $comment = new Comment([
@@ -142,7 +152,16 @@ class ProductController extends Controller
             $prod->update(['rating' => round($avgRating, 1)]);
         }
 
-        // Return updated product or comment details
+        $avatarUrl = null;
+        if ($user->avatar_id) {
+            $media = \Awcodes\Curator\Models\Media::find($user->avatar_id);
+            if ($media) {
+                $url = $media->medium_url ?: $media->url;
+                $avatarUrl = !filter_var($url, FILTER_VALIDATE_URL) ? url($url) : $url;
+            }
+        }
+        $avatarUrl = $avatarUrl ?? ("https://placehold.co/100x100?text=" . urlencode(mb_substr($name, 0, 1)));
+
         return response()->json([
             'error' => false,
             'message' => 'Đánh giá sản phẩm thành công',
@@ -153,8 +172,8 @@ class ProductController extends Controller
                 'rating' => $comment->rating,
                 'created_at' => $comment->created_at->format('d/m/Y H:i'),
                 'customer' => [
-                    'name' => $customer->name,
-                    'avatar' => optional(optional($user)->avatar)->url ?: "https://placehold.co/100x100?text=" . urlencode(mb_substr($customer->name ?: 'U', 0, 1)),
+                    'name' => $name,
+                    'avatar' => $avatarUrl,
                 ]
             ]
         ]);

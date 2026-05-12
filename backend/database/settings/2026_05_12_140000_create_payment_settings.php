@@ -20,5 +20,9 @@ return new class extends SettingsMigration
 
         $this->migrator->add('payment.enable_cod', true);
         $this->migrator->add('payment.cod_description', 'Thanh toán tiền mặt khi nhận hàng tại nhà.');
+
+        $this->migrator->add('payment.vietqr_enabled', false);
+        $this->migrator->add('payment.vietqr_bank_bin', null);
+        $this->migrator->add('payment.vietqr_template', 'compact2');
     }
 };

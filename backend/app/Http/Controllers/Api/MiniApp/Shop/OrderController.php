@@ -224,20 +224,26 @@ class OrderController extends Controller
         return response()->json(['error' => false, 'data' => $this->transformOrder($order)]);
     }
 
-    public function cancel($id)
+    public function cancel(Request $request, $id)
     {
-        $order = Order::find($id);
+        $order = Order::with('customer')->find($id);
 
         if (!$order) {
             return response()->json(['error' => true, 'message' => 'Đơn hàng không tồn tại'], 404);
         }
 
+        // Verify the authenticated user owns this order
+        $user = $request->user();
+        if ($user && $order->customer && $order->customer->email !== $user->email) {
+            return response()->json(['error' => true, 'message' => 'Bạn không có quyền hủy đơn hàng này'], 403);
+        }
+
         // Allow cancelling if status is new, pending or confirmed
         $allowCancelStatuses = ['new', 'pending', 'confirmed'];
-        
+
         if (!in_array($order->status, $allowCancelStatuses)) {
             return response()->json([
-                'error' => true, 
+                'error' => true,
                 'message' => 'Đơn hàng này đã vào công đoạn xử lý, không thể tự hủy. Vui lòng liên hệ hỗ trợ.'
             ], 400);
         }

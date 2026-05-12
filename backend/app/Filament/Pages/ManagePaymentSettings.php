@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Settings\PaymentSettings;
 use BackedEnum;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Pages\SettingsPage;
@@ -65,6 +66,25 @@ class ManagePaymentSettings extends SettingsPage
                         TextInput::make('bank_account_name')
                             ->label('Tên chủ tài khoản')
                             ->required(),
+                    ])->columns(1),
+
+                \Filament\Schemas\Components\Section::make('Cấu hình VietQR (Tạo mã QR chuyển khoản)')
+                    ->description('Thiết lập thông tin bắt buộc để tạo mã VietQR chính xác theo chuẩn ngân hàng Việt Nam.')
+                    ->schema([
+                        Toggle::make('vietqr_enabled')
+                            ->label('Kích hoạt hiển thị mã VietQR'),
+                        TextInput::make('vietqr_bank_bin')
+                            ->label('Mã BIN ngân hàng (6 số)')
+                            ->helperText('Ví dụ: Vietcombank = 970436, MB Bank = 970422.')
+                            ->maxLength(10),
+                        Select::make('vietqr_template')
+                            ->label('Template hiển thị QR')
+                            ->options([
+                                'compact2' => 'Compact 2 (mặc định)',
+                                'compact' => 'Compact',
+                                'qr_only' => 'QR only',
+                            ])
+                            ->default('compact2'),
                     ])->columns(1),
 
                 \Filament\Schemas\Components\Section::make('Cổng thanh toán ZaloPay Gateway (Tự động xác thực)')

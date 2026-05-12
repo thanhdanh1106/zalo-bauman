@@ -90,7 +90,7 @@ class MemberController extends Controller
                         : 100,
                 ],
                 'affiliate' => [
-                    'referral_link' => url('/?ref=' . $user->id),
+                    'referral_link' => 'https://zalo.me/s/' . env('ZALO_APP_ID', '347006313594163523') . '/?ref=' . $user->id,
                     'referral_code' => (string)$user->id,
                     'commission_rate' => $settings->referral_commission_rate,
                 ]

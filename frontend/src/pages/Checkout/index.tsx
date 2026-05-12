@@ -87,6 +87,9 @@ const Checkout: React.FC = () => {
     enable_cod: true,
     cod_description: "Thanh toán tiền mặt khi nhận hàng tại nhà.",
     zalopay_app_id: "2553",
+    vietqr_enabled: false,
+    vietqr_bank_bin: "",
+    vietqr_template: "compact2",
   });
 
   const fetchData = async () => {
@@ -187,7 +190,7 @@ const Checkout: React.FC = () => {
     setValue("customer_phone", addr.phone || user?.information?.phone);
     setValue("shipping_street", addr.street || addr.address || "");
     setValue("shipping_city", addr.city || "");
-    setValue("shipping_district", addr.district || addr.state || "");
+    setValue("shipping_district", addr.state || "");
     setValue("shipping_ward", addr.ward || "");
   };
 
@@ -272,7 +275,11 @@ const Checkout: React.FC = () => {
       if (response && !response.error) {
         showMessage("success", "Đặt hàng thành công!");
         clearAllItems();
-        navigate(`/thank-you`, { state: { orderData: response.data } });
+        const orderDataWithPoints = {
+          ...response.data,
+          points_earned: response.points_earned,
+        };
+        navigate(`/thank-you`, { state: { orderData: orderDataWithPoints, pointsEarned: response.points_earned } });
       } else {
         showMessage("error", "Lỗi đặt hàng, vui lòng thử lại.");
       }
@@ -389,7 +396,9 @@ const Checkout: React.FC = () => {
                                 <span className="bg-[#8f0012] text-white text-[9px] px-2 py-0.5 rounded-full uppercase">Mặc định</span>
                               )}
                             </div>
-                            <p className="text-[11px] text-gray-500 line-clamp-2 mb-2 h-8">{addr.street || addr.address}</p>
+                            <p className="text-[11px] text-gray-500 line-clamp-2 mb-2 h-8">
+                              {[addr.street || addr.address, addr.state, addr.city].filter(Boolean).join(", ")}
+                            </p>
                             <div className="flex items-center text-[11px] text-gray-400">
                               <FaPhone className="mr-1 text-[10px]" />
                               {addr.phone}
@@ -461,7 +470,7 @@ const Checkout: React.FC = () => {
                               {...field}
                               type="text"
                               className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.shipping_street ? "border-red-500" : ""}`}
-                              placeholder="Số nhà, tên đường..."
+                              placeholder="Số nhà, tên đường (Chi tiết trước xát nhập)"
                             />
                           )}
                         />
@@ -481,27 +490,17 @@ const Checkout: React.FC = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-bold text-gray-500 mb-1">Quận/Huyện *</label>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Xã/Phường *</label>
                           <Controller
                             name="shipping_district"
                             control={control}
                             rules={{ required: "Bắt buộc" }}
                             render={({ field }) => (
-                              <input {...field} className="w-full px-4 py-2.5 bg-[#f6f3f2] rounded-xl text-sm outline-none" placeholder="Quận/Huyện" />
+                              <input {...field} className="w-full px-4 py-2.5 bg-[#f6f3f2] rounded-xl text-sm outline-none" placeholder="Xã/Phường" />
                             )}
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-bold text-gray-500 mb-1">Phường/Xã *</label>
-                          <Controller
-                            name="shipping_ward"
-                            control={control}
-                            rules={{ required: "Bắt buộc" }}
-                            render={({ field }) => (
-                              <input {...field} className="w-full px-4 py-2.5 bg-[#f6f3f2] rounded-xl text-sm outline-none" placeholder="Phường/Xã" />
-                            )}
-                          />
-                        </div>
+
                       </div>
                     </div>
                   </div>

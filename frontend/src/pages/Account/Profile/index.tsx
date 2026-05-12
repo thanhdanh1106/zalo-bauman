@@ -56,11 +56,8 @@ const AccountProfile: React.FC = () => {
     if (!qrSvg) {
       setQrLoading(true);
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/affiliate/qr`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('li_at')}`
-          }
-        }).then(r => r.json());
+        const { apiClient } = await import('@shared/services/authService');
+        const res = await apiClient.get('/account/affiliate/qr').then(r => r.data);
         if (res && !res.error) {
           setQrSvg(res.data.svg);
         }

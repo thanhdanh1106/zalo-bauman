@@ -67,7 +67,13 @@ const ProductDetail: React.FC = () => {
     }
   };
 
-  const referralLink = `${window.location.origin}/products/${product?.slug || product?.id}?ref=${user?.id || ""}`;
+  const ZALO_APP_ID = import.meta.env.VITE_APP_ID || import.meta.env.APP_ID || '';
+  const isInZalo = typeof (window as any).ZaloJavaScriptInterface !== 'undefined' || navigator.userAgent.toLowerCase().includes('zalo');
+  const referralLink = product
+    ? (ZALO_APP_ID && isInZalo
+        ? `https://zalo.me/s/${ZALO_APP_ID}/?ref=${user?.id || ''}&product=${product.slug || product.id}`
+        : `${window.location.origin}/products/${product.slug || product.id}?ref=${user?.id || ''}`)
+    : '';
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(referralLink);
@@ -96,6 +102,13 @@ const ProductDetail: React.FC = () => {
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!product?.id) return;
+
+    if (!user) {
+      showMessage("error", "Vui lòng đăng nhập để viết đánh giá");
+      setShowReviewModal(false);
+      return;
+    }
+
     if (!reviewContent.trim()) {
       showMessage("error", "Vui lòng nhập nội dung đánh giá");
       return;
@@ -117,11 +130,12 @@ const ProductDetail: React.FC = () => {
         setReviewRating(5);
         fetchProduct();
       } else {
-        showMessage("error", response?.message || "Không thể gửi đánh giá");
+        const msg = response?.message || "Không thể gửi đánh giá. Vui lòng thử lại.";
+        showMessage("error", msg === "Unauthenticated." ? "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại." : msg);
       }
     } catch (err) {
       console.error(err);
-      showMessage("error", "Đã có lỗi xảy ra");
+      showMessage("error", "Đã có lỗi xảy ra khi gửi đánh giá");
     } finally {
       setIsSubmittingReview(false);
     }
