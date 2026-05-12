@@ -26,6 +26,19 @@ class ProductController extends Controller
             $query->where('name', 'like', '%' . $request->query('search') . '%');
         }
 
+        if ($request->has('sort')) {
+            $sort = $request->query('sort');
+            $order = $request->query('order', 'desc');
+            if (in_array($sort, ['views', 'sold_count', 'price', 'created_at'])) {
+                $query->orderBy($sort, $order);
+                if ($sort === 'sold_count') {
+                    $query->orderBy('views', 'desc');
+                }
+            }
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
         $products = $query->paginate($request->query('limit', 12));
 
         $data = collect($products->items())->map(function($prod) {
@@ -52,6 +65,8 @@ class ProductController extends Controller
             return response()->json(['error' => true, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
 
+        $prod->increment('views');
+
         return response()->json([
             'error' => false,
             'data' => $this->transformProduct($prod)
@@ -77,6 +92,8 @@ class ProductController extends Controller
         if (!$prod) {
             return response()->json(['error' => true, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
+
+        $prod->increment('views');
 
         return response()->json([
             'error' => false,
@@ -205,6 +222,8 @@ class ProductController extends Controller
             'is_featured' => $prod->featured,
             'stock' => (int)$prod->qty,
             'status' => $prod->is_visible ? 'published' : 'draft',
+            'views' => (int)($prod->views ?? 0),
+            'soldCount' => (int)($prod->sold_count ?? 0),
         ];
     }
 }

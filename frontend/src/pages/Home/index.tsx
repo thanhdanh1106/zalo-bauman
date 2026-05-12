@@ -31,16 +31,19 @@ const HomePage = () => {
       setProductsLoading(true);
       setBannersLoading(true);
 
-      const [catRes, prodRes, bannerRes] = await Promise.all([
+      const [catRes, newProdRes, bestSellerRes, bannerRes] = await Promise.all([
         findManyProductCategories(filterParams({ per_page: 12 })),
-        findManyProducts(filterParams({ per_page: 12 })),
+        findManyProducts(filterParams({ per_page: 6, sort: 'created_at', order: 'desc' })),
+        findManyProducts(filterParams({ per_page: 6, sort: 'sold_count', order: 'desc' })),
         findManyBanners()
       ]);
 
       if (catRes && !catRes.error) setProductCategories(catRes.data);
-      if (prodRes && !prodRes.error) {
-        setNewProducts(prodRes.data.slice(0, 6)); // First 6 for new
-        setBestSellers(prodRes.data.slice(0, 4)); // First 4 for best seller mock
+      if (newProdRes && !newProdRes.error) {
+        setNewProducts(newProdRes.data || []);
+      }
+      if (bestSellerRes && !bestSellerRes.error) {
+        setBestSellers(bestSellerRes.data || []);
       }
       if (bannerRes && !bannerRes.error) {
         setBanners(bannerRes.data || []);
@@ -190,6 +193,9 @@ const HomePage = () => {
                     </div>
                     <div className="flex justify-between items-end mt-1">
                       <span className="font-serif text-sm font-bold text-primary">{prod.price.toLocaleString()}đ</span>
+                      <span className="text-[9px] font-sans text-on-surface-variant font-medium">
+                        {prod.soldCount ? `Đã bán ${prod.soldCount}` : `${prod.views || 0} xem`}
+                      </span>
                     </div>
                   </div>
                 </div>
