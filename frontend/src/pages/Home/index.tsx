@@ -9,7 +9,8 @@ import { bannerProps } from "@shared/types/banner";
 import { scrollToTop } from "@shared/utils/scrollUtils";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Page, Swiper as ZMPSwiper } from "zmp-ui";
+import { Page } from "zmp-ui";
+import { openWebview } from "zmp-sdk/apis";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -130,10 +131,20 @@ const HomePage = () => {
                       className="relative w-full h-full cursor-pointer"
                       onClick={() => {
                         if (!link) return;
-                        if (link.startsWith("http://") || link.startsWith("https://")) {
-                          window.location.href = link;
-                        } else {
+                        // Internal route (e.g. /products/abc)
+                        if (link.startsWith("/") && !link.startsWith("//")) {
                           navigate(link);
+                          return;
+                        }
+                        // External URL — use ZMP openWebview instead of window.location
+                        try {
+                          openWebview({
+                            url: link,
+                            config: { style: "normal", leftButton: "back" },
+                          });
+                        } catch {
+                          // Fallback when not inside Zalo (e.g. browser dev)
+                          window.open(link, "_blank");
                         }
                       }}
                     >
@@ -230,9 +241,9 @@ const HomePage = () => {
                     </div>
                     <div className="flex justify-between items-end mt-1">
                       <span className="font-serif text-sm font-bold text-primary">{prod.price.toLocaleString()}đ</span>
-                      <span className="text-[9px] font-sans text-on-surface-variant font-medium">
+                      {/* <span className="text-[9px] font-sans text-on-surface-variant font-medium">
                         {prod.soldCount ? `Đã bán ${prod.soldCount}` : `${prod.views || 0} xem`}
-                      </span>
+                      </span> */}
                     </div>
                   </div>
                 </div>
