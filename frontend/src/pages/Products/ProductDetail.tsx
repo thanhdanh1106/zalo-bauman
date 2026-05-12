@@ -259,7 +259,7 @@ const ProductDetail: React.FC = () => {
                 <span className="font-bold text-gray-900 text-sm block leading-tight">
                   Tiếp thị liên kết
                 </span>
-                <span className="text-green-800 text-[11px] font-medium block mt-0.5">
+                <span className="text-green-800 text-[11px] font-medium text-[10px] block mt-0.5">
                   Nhận điểm thưởng để đổi phần quà voucher hấp dẫn
                 </span>
               </div>
@@ -514,7 +514,7 @@ const ProductDetail: React.FC = () => {
           onClose={() => setShowReviewModal(false)}
           verticalActions
         >
-          <Box className="p-4">
+          <Box className="p-2">
             <form onSubmit={handleSubmitReview} className="space-y-2">
               <div className="text-center">
                 <span className="text-xs text-gray-500 block mb-1 font-sans">Đánh giá của bạn</span>

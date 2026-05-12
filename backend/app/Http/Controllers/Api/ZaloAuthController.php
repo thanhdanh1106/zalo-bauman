@@ -69,9 +69,10 @@ class ZaloAuthController extends Controller
                 $user = User::where('email', $email)->first();
             }
 
+            $isNewRegistration = false;
             if (!$user) {
                 // Safe referral handling
-                $referredBy = $request->input('referred_by');
+                $referredBy = $request->input('referred_by') ?? $request->input('ref') ?? $request->cookie('referral');
                 if (!is_numeric($referredBy)) {
                     $referredBy = null;
                 }
@@ -84,9 +85,36 @@ class ZaloAuthController extends Controller
                     'referred_by' => $referredBy,
                     'email_verified_at' => now(),
                 ]);
+                $isNewRegistration = true;
                 Log::info('New User created: ' . $user->id);
             } else {
                 $user->update(['name' => $name]);
+                // If existing user doesn't have a referrer yet but logs in via a shared link, set it
+                $possibleRef = $request->input('referred_by') ?? $request->input('ref') ?? $request->cookie('referral');
+                if (is_numeric($possibleRef) && !$user->referred_by && $possibleRef != $user->id) {
+                    $user->update(['referred_by' => $possibleRef]);
+                    $isNewRegistration = true;
+                }
+            }
+
+            // Award referral login/registration points if applicable
+            if ($isNewRegistration && $user->referred_by) {
+                try {
+                    $referrerUser = User::find($user->referred_by);
+                    if ($referrerUser && $referrerUser->id !== $user->id) {
+                        $settings = app(\App\Settings\MembershipSettings::class);
+                        $regPoints = $settings->affiliate_register_points ?? 50;
+                        if ($regPoints > 0) {
+                            $referrerUser->deposit($regPoints, [
+                                'title' => 'Thưởng phát triển cộng đồng (Thành viên mới đăng nhập)',
+                                'type' => 'affiliate_register',
+                                'new_user_id' => $user->id,
+                            ]);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Affiliate registration reward deposit failed: ' . $e->getMessage());
+                }
             }
 
             // 3. Sync with Customer table (optional/non-fatal)

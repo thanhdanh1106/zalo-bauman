@@ -20,6 +20,8 @@ class MembershipSettings extends Settings
 
     public int $points_earning_rate; // points per 1000 VND
     public int $referral_commission_rate; // percentage
+    public int $affiliate_click_points; // Points awarded for each shared link visit
+    public int $affiliate_register_points; // Points awarded for successful login/registration via link
 
     public static function group(): string
     {

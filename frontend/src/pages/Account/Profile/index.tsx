@@ -26,6 +26,7 @@ const AccountProfile: React.FC = () => {
   useEffect(() => {
     getUser();
     fetchPoints();
+    fetchQR();
   }, []);
 
   const fetchPoints = async () => {
@@ -51,8 +52,7 @@ const AccountProfile: React.FC = () => {
     }
   };
 
-  const handleShowQR = async () => {
-    setShowQR(true);
+  const fetchQR = async () => {
     if (!qrSvg) {
       setQrLoading(true);
       try {
@@ -216,6 +216,27 @@ const AccountProfile: React.FC = () => {
               <span className="material-symbols-outlined">content_copy</span>
             </button>
           </div>
+
+          {/* Inline QR Code below the referral link */}
+          <div className="flex flex-col items-center justify-center py-4 bg-[#f6f3f2]/40 rounded-xl border border-gray-100">
+            <span className="text-xs font-bold text-gray-500 mb-2">Mã QR Giới Thiệu</span>
+            {qrLoading ? (
+              <div className="w-40 h-40 bg-gray-100 animate-pulse rounded-lg flex items-center justify-center">
+                <span className="text-gray-400 text-xs">Đang tạo mã...</span>
+              </div>
+            ) : qrSvg ? (
+              <div
+                className="w-40 h-40 bg-white p-2 rounded-lg shadow-sm border border-gray-100 flex items-center justify-center"
+                dangerouslySetInnerHTML={{ __html: qrSvg }}
+              />
+            ) : (
+              <span className="text-gray-400 text-xs">Không thể tải mã QR</span>
+            )}
+            <p className="mt-2 text-[11px] text-gray-500 text-center px-4 leading-relaxed">
+              Khách hàng quét mã này sẽ được ghi nhận là cấp dưới của bạn.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <button onClick={handleCopyLink} className="flex items-center justify-center space-x-2 py-3 bg-white border border-gray-200 rounded-xl font-semibold hover:bg-neutral-50 transition-all active:scale-95">
               <span className="material-symbols-outlined text-[#8f0012]">content_copy</span>
@@ -230,38 +251,7 @@ const AccountProfile: React.FC = () => {
               <span className="text-[12px] font-bold">Zalo Share</span>
             </button>
           </div>
-          <button onClick={handleShowQR} className="w-full flex items-center justify-center space-x-3 py-4 bg-[#e5e2e1] border-2 border-dashed border-[#e3bebb] text-[#1c1b1b] rounded-2xl font-bold hover:bg-gray-200 transition-all active:scale-[0.98]">
-            <span className="material-symbols-outlined text-[#8f0012]">qr_code_2</span>
-            <span className="text-[18px] font-bold">Xuất QR của đường Link</span>
-          </button>
         </section>
-
-        {/* QR Modal */}
-        <Modal
-          visible={showQR}
-          title="Mã QR Giới Thiệu"
-          onClose={() => setShowQR(false)}
-          verticalActions
-        >
-          <Box className="flex flex-col items-center justify-center p-4">
-            {qrLoading ? (
-              <div className="w-48 h-48 bg-gray-100 animate-pulse rounded-lg flex items-center justify-center">
-                <span className="text-gray-400 text-sm">Đang tạo mã...</span>
-              </div>
-            ) : (
-              <div
-                className="w-48 h-48 bg-white p-2 rounded-lg shadow-inner border border-gray-100 flex items-center justify-center"
-                dangerouslySetInnerHTML={{ __html: qrSvg }}
-              />
-            )}
-            <p className="mt-4 text-center text-sm text-gray-500">
-              Khách hàng quét mã này sẽ được ghi nhận là cấp dưới của bạn.
-            </p>
-            <Button className="mt-6 w-full" onClick={() => setShowQR(false)}>
-              Đóng
-            </Button>
-          </Box>
-        </Modal>
 
         {/* Menu Section */}
         <section className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
