@@ -5,6 +5,9 @@
 cd /home/tcsshop/domains/miniapp.nhansambaumann.com/public_html/backend
 
 echo "=== Clearing Laravel caches ==="
+php artisan optimize:clear
+php artisan filament:clear-cached-components
+php artisan settings:clear-cache
 php artisan route:clear
 php artisan cache:clear
 php artisan config:clear
