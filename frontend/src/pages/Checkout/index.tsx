@@ -62,6 +62,7 @@ const Checkout: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [bankingOrder, setBankingOrder] = useState<any>(null);
   const { showMessage } = useToasterContext();
 
   const subtotal = useSelector(selectCartSubtotal);
@@ -281,56 +282,65 @@ const Checkout: React.FC = () => {
       }
 
       const createdOrder = response.data;
-
-      // ── ZaloPay flow ──────────────────────────────────────────────
-      if (data.payment_method === "zalopay") {
-        try {
-          const zaloData = transformCartToZaloOrder(
-            items,
-            finalTotal,
-            `Thanh toan don hang #${createdOrder.order_number}`,
-            { order_number: createdOrder.order_number, order_id: createdOrder.id }
-          );
-
-          await new Promise<void>((resolve, reject) => {
-            Payment.createOrder({
-              ...zaloData,
-              amount: Math.round(finalTotal),
-              item: zaloData.item,
-              desc: zaloData.desc,
-              extradata: JSON.stringify(zaloData.extradata || {}),
-              method: JSON.stringify({ id: ZALO_PAYMENT_METHODS.BANK, isCustom: false }),
-              success: async (_data: any) => {
-                // Mark order as paid on backend
-                try {
-                  await apiClient.post(`/orders/${createdOrder.id}/confirm-payment`);
-                } catch (e) {
-                  console.error("confirmPayment error", e);
-                }
-                clearAllItems();
-                resolve();
-                navigate(`/payment-success?orderId=${createdOrder.order_number}`);
-              },
-              fail: (err: any) => {
-                reject(new Error(err?.message || "ZaloPay thất bại"));
-              },
-              mac: ""
-            });
-          });
-        } catch (zaloErr: any) {
-          showMessage("error", zaloErr?.message || "Thanh toán ZaloPay thất bại. Vui lòng thử lại.");
-        }
-        return;
-      }
-
-      // ── COD / Banking flow ────────────────────────────────────────
-      showMessage("success", "Đặt hàng thành công!");
-      clearAllItems();
       const orderDataWithPoints = {
         ...createdOrder,
         points_earned: response.points_earned,
       };
-      navigate(`/thank-you`, { state: { orderData: orderDataWithPoints, pointsEarned: response.points_earned } });
+
+      if (data.payment_method === "cod") {
+        clearAllItems();
+        showMessage("success", "Đặt hàng thành công!");
+        navigate(`/thank-you`, { state: { orderData: orderDataWithPoints, pointsEarned: response.points_earned } });
+        return;
+      }
+
+      if (data.payment_method === "banking") {
+        setBankingOrder(orderDataWithPoints);
+        showMessage("success", "Đơn hàng đã được ghi nhận. Vui lòng thanh toán.");
+        return;
+      }
+
+      // ── Luồng thanh toán tự động qua cổng ZaloPay ──────────────────────────────────────────────
+      try {
+        const zaloData = transformCartToZaloOrder(
+          items,
+          finalTotal,
+          `Thanh toan don hang #${createdOrder.order_number}`,
+          { order_number: createdOrder.order_number, order_id: createdOrder.id, payment_method: data.payment_method }
+        );
+
+        await new Promise<void>((resolve) => {
+          Payment.createOrder({
+            ...zaloData,
+            amount: Math.round(finalTotal),
+            item: zaloData.item,
+            desc: zaloData.desc,
+            extradata: JSON.stringify(zaloData.extradata || {}),
+            method: JSON.stringify({ id: ZALO_PAYMENT_METHODS.BANK, isCustom: false }),
+            success: async (_data: any) => {
+              try {
+                await apiClient.post(`/orders/${createdOrder.id}/confirm-payment`);
+              } catch (e) {
+                console.error("confirmPayment error", e);
+              }
+              clearAllItems();
+              resolve();
+              navigate(`/payment-success?orderId=${createdOrder.order_number}`);
+            },
+            fail: (err: any) => {
+              console.warn("Zalo SDK createOrder failed/canceled:", err);
+              clearAllItems();
+              resolve();
+              navigate(`/payment-success?orderId=${createdOrder.order_number}`);
+            },
+            mac: ""
+          });
+        });
+      } catch (zaloErr: any) {
+        showMessage("error", zaloErr?.message || "Tích hợp thanh toán ZaloPay thất bại.");
+        clearAllItems();
+        navigate(`/payment-success?orderId=${createdOrder.order_number}`);
+      }
     } catch (error) {
       showMessage("error", "Đã có lỗi xảy ra.");
     } finally {
@@ -729,8 +739,8 @@ const Checkout: React.FC = () => {
                       }`}
                   >
                     {isProcessing
-                      ? (paymentMethod === "zalopay" ? "Đang kết nối ZaloPay..." : "Đang tạo đơn...")
-                      : (paymentMethod === "zalopay" ? "Thanh toán ZaloPay" : "Đặt hàng")
+                      ? "Đang kết nối Checkout SDK..."
+                      : (paymentMethod === "zalopay" ? "Thanh toán ZaloPay" : paymentMethod === "banking" ? "Thanh toán qua Ngân hàng" : "Đặt hàng (COD)")
                     }
                   </button>
                 )}
@@ -1020,6 +1030,65 @@ const Checkout: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ── NATIVE BANKING TRANSFER / QR OVERLAY MODAL ────────────────────────────────────────────── */}
+      {bankingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-white p-6 text-center space-y-5 relative">
+            <div className="w-16 h-16 bg-[#8f0012]/10 rounded-full flex items-center justify-center mx-auto text-[#8f0012] mb-2">
+              <span className="material-symbols-outlined text-3xl">qr_code_scanner</span>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">Quét mã QR Chuyển khoản</h3>
+              <p className="text-xs text-gray-500 mt-1">Đơn hàng <span className="font-bold text-[#8f0012]">#{bankingOrder.order_number}</span> đã được lưu thành công</p>
+            </div>
+
+            <div className="bg-[#f6f3f2] p-4 rounded-2xl inline-block mx-auto border border-gray-100 shadow-inner">
+              <img
+                src={`https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin || '970436'}-${paymentConfig.bank_account_number || '1029384756'}-${paymentConfig.vietqr_template || 'compact2'}.png?amount=${Math.round(finalTotal)}&addInfo=Thanh toan don hang ${bankingOrder.order_number}&accountName=${encodeURIComponent(paymentConfig.bank_account_name || 'CONG TY TNHH NHAN SAM BAUMANN')}`}
+                alt="VietQR Transfer"
+                className="w-56 h-56 object-contain mx-auto rounded-xl"
+              />
+            </div>
+
+            <div className="bg-gray-50 p-3 rounded-xl text-left text-xs space-y-1.5 border border-gray-100">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Ngân hàng:</span>
+                <span className="font-bold text-gray-800">{paymentConfig.bank_name || "Vietcombank"}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Số tài khoản:</span>
+                <span className="font-mono font-bold text-sm text-[#8f0012] select-all">{paymentConfig.bank_account_number || "1029384756"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Chủ tài khoản:</span>
+                <span className="font-bold text-gray-800 truncate max-w-[180px]">{paymentConfig.bank_account_name || "CÔNG TY TNHH NHÂN SÂM BAUMANN"}</span>
+              </div>
+              <div className="flex justify-between border-t border-gray-200/60 pt-1.5 mt-1.5">
+                <span className="text-gray-400">Nội dung chuyển:</span>
+                <span className="font-mono font-bold text-[#8f0012] select-all">Thanh toan don hang {bankingOrder.order_number}</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-gray-400 italic">Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống duyệt đơn tự động nhanh nhất.</p>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  clearAllItems();
+                  navigate(`/thank-you`, { state: { orderData: bankingOrder, pointsEarned: bankingOrder.points_earned } });
+                }}
+                className="w-full bg-[#8f0012] text-white h-12 rounded-xl font-bold shadow-lg shadow-[#8f0012]/20 hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center space-x-2"
+              >
+                <span className="material-symbols-outlined text-base">check_circle</span>
+                <span>Tôi đã thanh toán</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

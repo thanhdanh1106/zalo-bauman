@@ -12,7 +12,7 @@ class TopProductsByRevenueChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Top Products by Revenue';
+    protected ?string $heading = 'Sản phẩm doanh thu cao nhất';
 
     protected static ?int $sort = 4;
 
@@ -53,8 +53,8 @@ class TopProductsByRevenueChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Revenue',
-                    'data' => $products->pluck('revenue')->map(fn ($v) => round((float) $v, 2))->all(),
+                    'label' => 'Doanh thu (₫)',
+                    'data' => $products->pluck('revenue')->map(fn ($v) => round((float) $v, 0))->all(),
                     'backgroundColor' => '#3b82f6',
                 ],
             ],

@@ -10,7 +10,7 @@ class ProductMarginAnalysisChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Product Margin Analysis';
+    protected ?string $heading = 'Phân tích Biên lợi nhuận Sản phẩm';
 
     protected static ?int $sort = 7;
 
@@ -42,7 +42,7 @@ class ProductMarginAnalysisChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Products',
+                    'label' => 'Sản phẩm',
                     'showLine' => false,
                     'data' => $dataPoints,
                     'backgroundColor' => '#3b82f6',

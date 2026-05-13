@@ -11,7 +11,7 @@ class OrdersYearOverYearChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Orders Year-over-Year';
+    protected ?string $heading = 'Tăng trưởng Đơn hàng qua các năm';
 
     protected static ?int $sort = 1;
 
@@ -48,7 +48,7 @@ class OrdersYearOverYearChart extends ChartWidget
         $labels = [];
 
         foreach ($recentMonths as $month) {
-            $labels[] = $month->format('M Y');
+            $labels[] = $month->translatedFormat('M Y');
             $recentData[] = $recentOrders->get($month->format('Y-m'), 0);
         }
 
@@ -59,14 +59,14 @@ class OrdersYearOverYearChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Last 12 Months',
+                    'label' => '12 tháng qua',
                     'data' => $recentData,
                     'borderColor' => '#3b82f6',
                     'backgroundColor' => 'rgba(59, 130, 246, 0.1)',
                     'fill' => 'start',
                 ],
                 [
-                    'label' => 'Prior 12 Months',
+                    'label' => '12 tháng trước đó',
                     'data' => $priorData,
                     'borderColor' => '#9ca3af',
                     'backgroundColor' => 'rgba(156, 163, 175, 0.05)',

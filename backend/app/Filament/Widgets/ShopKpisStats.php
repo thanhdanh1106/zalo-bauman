@@ -111,23 +111,23 @@ class ShopKpisStats extends BaseWidget
         }
 
         return [
-            Stat::make('Repeat Customer Rate', $repeatRate . '%')
-                ->description($repeatCustomers . ' of ' . $totalCustomers . ' customers')
+            Stat::make('Tỷ lệ quay lại', $repeatRate . '%')
+                ->description($repeatCustomers . ' trên ' . $totalCustomers . ' khách hàng')
                 ->descriptionIcon(Heroicon::ArrowPath)
                 ->chart($repeatChart)
                 ->color('success'),
-            Stat::make('Avg Items / Order', (string) $avgItemsPerOrder)
-                ->description($totalItems . ' items, ' . $totalOrders . ' orders')
+            Stat::make('Số sản phẩm / Đơn', (string) $avgItemsPerOrder)
+                ->description($totalItems . ' sản phẩm, ' . $totalOrders . ' đơn hàng')
                 ->descriptionIcon(Heroicon::ShoppingCart)
                 ->chart($avgItemsChart)
                 ->color('info'),
-            Stat::make('Cancellation Rate', $cancellationRate . '%')
-                ->description($cancelledOrders . ' cancelled orders')
+            Stat::make('Tỷ lệ hủy đơn', $cancellationRate . '%')
+                ->description($cancelledOrders . ' đơn đã hủy')
                 ->descriptionIcon(Heroicon::XCircle)
                 ->chart($cancellationChart)
                 ->color($cancellationRate > 10 ? 'danger' : 'warning'),
-            Stat::make('Revenue / Customer', '$' . number_format($revenuePerCustomer, 2))
-                ->description('$' . number_format($totalRevenue, 0) . ' total revenue')
+            Stat::make('Doanh thu / Khách', number_format($revenuePerCustomer, 0, ',', '.') . ' ₫')
+                ->description('Tổng doanh thu: ' . number_format($totalRevenue, 0, ',', '.') . ' ₫')
                 ->descriptionIcon(Heroicon::CurrencyDollar)
                 ->chart($revenueChart)
                 ->color('success'),

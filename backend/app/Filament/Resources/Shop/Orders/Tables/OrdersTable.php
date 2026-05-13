@@ -42,6 +42,23 @@ class OrdersTable
                 TextColumn::make('status')
                     ->label('Trạng thái')
                     ->badge(),
+                TextColumn::make('payment_method')
+                    ->label('Thanh toán')
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'cod' => 'COD (Tiền mặt)',
+                        'banking' => 'Chuyển khoản',
+                        'zalopay' => 'ZaloPay',
+                        default => strtoupper($state),
+                    })
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'cod' => 'warning',
+                        'banking' => 'success',
+                        'zalopay' => 'info',
+                        default => 'gray',
+                    })
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('currency')
                     ->label('Tiền tệ')
                     ->searchable()
@@ -49,22 +66,24 @@ class OrdersTable
                     ->toggleable(),
                 TextColumn::make('total_price')
                     ->label('Tổng tiền')
+                    ->money('VND')
                     ->searchable()
                     ->sortable()
                     ->summarize([
                         Sum::make()
                             ->label('Tổng cộng')
-                            ->money(),
+                            ->money('VND'),
                     ]),
                 TextColumn::make('shipping_price')
                     ->label('Phí vận chuyển')
+                    ->money('VND')
                     ->searchable()
                     ->sortable()
                     ->toggleable()
                     ->summarize([
                         Sum::make()
                             ->label('Tổng phí vận chuyển')
-                            ->money(),
+                            ->money('VND'),
                     ]),
                 TextColumn::make('created_at')
                     ->label('Ngày đặt hàng')
@@ -161,6 +180,25 @@ class OrdersTable
                                 ->success()
                                 ->send();
                         }),
+                    Action::make('confirm_payment')
+                        ->label('Đã thanh toán')
+                        ->icon(Heroicon::CheckCircle)
+                        ->color('success')
+                        ->visible(fn (Order $record): bool => $record->payment_status !== 'paid')
+                        ->requiresConfirmation()
+                        ->action(function (Order $record): void {
+                            $record->update(['payment_status' => 'paid']);
+                            try {
+                                app(\App\Http\Controllers\Api\MiniApp\Shop\OrderController::class)->awardOrderPoints($record);
+                            } catch (\Throwable $e) {
+                                // Ignore
+                            }
+
+                            Notification::make()
+                                ->title('Đã xác nhận thanh toán & cộng điểm hoa hồng')
+                                ->success()
+                                ->send();
+                        }),
                     Action::make('deliver')
                         ->label('Hoàn thành')
                         ->icon(Heroicon::CheckBadge)
@@ -169,9 +207,14 @@ class OrdersTable
                         ->requiresConfirmation()
                         ->action(function (Order $record): void {
                             $record->update(['status' => OrderStatus::Delivered]);
+                            try {
+                                app(\App\Http\Controllers\Api\MiniApp\Shop\OrderController::class)->awardOrderPoints($record);
+                            } catch (\Throwable $e) {
+                                // Ignore
+                            }
 
                             Notification::make()
-                                ->title('Đơn hàng đã được đánh dấu hoàn thành')
+                                ->title('Đơn hàng đã được đánh dấu hoàn thành & cộng điểm')
                                 ->success()
                                 ->send();
                         }),

@@ -11,7 +11,7 @@ class OrderValueDistributionChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Order Value Distribution';
+    protected ?string $heading = 'Phân bổ Giá trị Đơn hàng';
 
     protected static ?int $sort = 6;
 
@@ -38,36 +38,36 @@ class OrderValueDistributionChart extends ChartWidget
             ->pluck('total_price');
 
         $ranges = [
-            '$0-50' => 0,
-            '$50-100' => 0,
-            '$100-250' => 0,
-            '$250-500' => 0,
-            '$500-1k' => 0,
-            '$1k+' => 0,
+            'Dưới 100k' => 0,
+            '100k - 300k' => 0,
+            '300k - 500k' => 0,
+            '500k - 1tr' => 0,
+            '1tr - 2tr' => 0,
+            'Trên 2tr' => 0,
         ];
 
         foreach ($orders as $price) {
             $price = (float) $price;
 
-            if ($price < 50) {
-                $ranges['$0-50']++;
-            } elseif ($price < 100) {
-                $ranges['$50-100']++;
-            } elseif ($price < 250) {
-                $ranges['$100-250']++;
-            } elseif ($price < 500) {
-                $ranges['$250-500']++;
-            } elseif ($price < 1000) {
-                $ranges['$500-1k']++;
+            if ($price < 100000) {
+                $ranges['Dưới 100k']++;
+            } elseif ($price < 300000) {
+                $ranges['100k - 300k']++;
+            } elseif ($price < 500000) {
+                $ranges['300k - 500k']++;
+            } elseif ($price < 1000000) {
+                $ranges['500k - 1tr']++;
+            } elseif ($price < 2000000) {
+                $ranges['1tr - 2tr']++;
             } else {
-                $ranges['$1k+']++;
+                $ranges['Trên 2tr']++;
             }
         }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Orders',
+                    'label' => 'Đơn hàng',
                     'data' => array_values($ranges),
                     'backgroundColor' => [
                         '#22c55e',

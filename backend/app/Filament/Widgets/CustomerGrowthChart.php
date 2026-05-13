@@ -11,7 +11,7 @@ class CustomerGrowthChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Customer Growth';
+    protected ?string $heading = 'Tăng trưởng Khách hàng';
 
     protected static ?int $sort = 2;
 
@@ -47,14 +47,14 @@ class CustomerGrowthChart extends ChartWidget
         $data = [];
 
         foreach ($months as $month) {
-            $labels[] = $month->format('M Y');
+            $labels[] = $month->translatedFormat('M Y');
             $data[] = $customers->get($month->format('Y-m'), 0);
         }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'New Customers',
+                    'label' => 'Khách hàng mới',
                     'data' => $data,
                     'fill' => 'start',
                     'borderColor' => '#22c55e',

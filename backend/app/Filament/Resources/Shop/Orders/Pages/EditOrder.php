@@ -18,6 +18,7 @@ class EditOrder extends EditRecord
     {
         return [
             ReplicateAction::make()
+                ->label('Nhân bản đơn hàng')
                 ->requiresConfirmation()
                 ->excludeAttributes(['id', 'number', 'status', 'created_at', 'updated_at', 'deleted_at'])
                 ->mutateRecordDataUsing(function (array $data): array {
@@ -26,9 +27,9 @@ class EditOrder extends EditRecord
 
                     return $data;
                 }),
-            DeleteAction::make(),
-            RestoreAction::make(),
-            ForceDeleteAction::make(),
+            DeleteAction::make()->label('Xóa đơn hàng'),
+            RestoreAction::make()->label('Khôi phục'),
+            ForceDeleteAction::make()->label('Xóa vĩnh viễn'),
         ];
     }
 

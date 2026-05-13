@@ -31,14 +31,14 @@ class CreateOrder extends CreateRecord
     protected function getSteps(): array
     {
         return [
-            Step::make('Order Details')
+            Step::make('Chi tiết đơn hàng')
                 ->schema([
                     Section::make()
                         ->schema(OrderForm::getDetailsComponents())
                         ->columns(),
                 ]),
 
-            Step::make('Order Items')
+            Step::make('Sản phẩm trong đơn')
                 ->schema([
                     Section::make()
                         ->schema([OrderForm::getItemsRepeater()]),
@@ -55,11 +55,11 @@ class CreateOrder extends CreateRecord
         $user = auth()->user();
 
         Notification::make()
-            ->title('New order')
+            ->title('Đơn hàng mới tạo')
             ->icon(Heroicon::ShoppingBag)
-            ->body("**{$order->customer?->name} ordered {$order->orderItems->count()} products.**")
+            ->body("**{$order->customer?->name} vừa đặt {$order->orderItems->count()} sản phẩm.**")
             ->actions([
-                Action::make('View')
+                Action::make('Xem chi tiết')
                     ->url(OrderResource::getUrl('edit', ['record' => $order])),
             ])
             ->sendToDatabase($user);

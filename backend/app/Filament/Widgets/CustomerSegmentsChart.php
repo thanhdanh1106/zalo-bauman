@@ -11,7 +11,7 @@ class CustomerSegmentsChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Customer Segments';
+    protected ?string $heading = 'Phân khúc Khách hàng';
 
     protected static ?int $sort = 5;
 
@@ -37,10 +37,10 @@ class CustomerSegmentsChart extends ChartWidget
         }])->get();
 
         $segments = [
-            'One-time (1)' => 0,
-            'Occasional (2-3)' => 0,
-            'Regular (4-9)' => 0,
-            'VIP (10+)' => 0,
+            'Mua 1 lần (1)' => 0,
+            'Thỉnh thoảng (2-3)' => 0,
+            'Thường xuyên (4-9)' => 0,
+            'Khách VIP (10+)' => 0,
         ];
 
         foreach ($customers as $customer) {
@@ -51,20 +51,20 @@ class CustomerSegmentsChart extends ChartWidget
             }
 
             if ($count === 1) {
-                $segments['One-time (1)']++;
+                $segments['Mua 1 lần (1)']++;
             } elseif ($count <= 3) {
-                $segments['Occasional (2-3)']++;
+                $segments['Thỉnh thoảng (2-3)']++;
             } elseif ($count <= 9) {
-                $segments['Regular (4-9)']++;
+                $segments['Thường xuyên (4-9)']++;
             } else {
-                $segments['VIP (10+)']++;
+                $segments['Khách VIP (10+)']++;
             }
         }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Customers',
+                    'label' => 'Khách hàng',
                     'data' => array_values($segments),
                     'backgroundColor' => [
                         '#9ca3af',

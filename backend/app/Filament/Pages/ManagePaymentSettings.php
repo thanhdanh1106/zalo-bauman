@@ -28,7 +28,7 @@ class ManagePaymentSettings extends SettingsPage
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Cấu hình Vận chuyển (Shipping Configuration)')
+                \Filament\Schemas\Components\Section::make('Cấu hình Vận chuyển')
                     ->description('Thiết lập biểu phí giao hàng chuẩn và điều kiện tự động miễn phí vận chuyển cho các đơn hàng đạt mốc.')
                     ->icon(Heroicon::OutlinedTruck)
                     ->schema([
@@ -38,7 +38,7 @@ class ManagePaymentSettings extends SettingsPage
                             ->required()
                             ->helperText('Phí vận chuyển áp dụng cho các đơn hàng chưa đủ điều kiện miễn ship.'),
                         TextInput::make('free_shipping_threshold')
-                            ->label('Hạn mức tối thiểu để Miễn phí giao hàng (Free Shipping Threshold)')
+                            ->label('Hạn mức tối thiểu để Miễn phí giao hàng')
                             ->numeric()
                             ->required()
                             ->helperText('Đơn hàng có tổng tiền hàng đạt hoặc vượt ngưỡng này sẽ được hệ thống gán phí ship = 0đ tự động trên giao diện thanh toán.'),
@@ -54,7 +54,7 @@ class ManagePaymentSettings extends SettingsPage
                             ->columnSpanFull(),
                     ])->columns(1),
 
-                \Filament\Schemas\Components\Section::make('Cấu hình Chuyển khoản Ngân hàng (Manual Bank Transfer)')
+                \Filament\Schemas\Components\Section::make('Cấu hình Chuyển khoản Ngân hàng')
                     ->description('Thông tin tài khoản nhận tiền hiển thị tại bước Thanh toán để khách hàng quét mã hoặc sao chép chuyển khoản.')
                     ->schema([
                         TextInput::make('bank_name')
@@ -78,23 +78,23 @@ class ManagePaymentSettings extends SettingsPage
                             ->helperText('Ví dụ: Vietcombank = 970436, MB Bank = 970422.')
                             ->maxLength(10),
                         Select::make('vietqr_template')
-                            ->label('Template hiển thị QR')
+                            ->label('Giao diện hiển thị QR')
                             ->options([
-                                'compact2' => 'Compact 2 (mặc định)',
-                                'compact' => 'Compact',
-                                'qr_only' => 'QR only',
+                                'compact2' => 'Thu gọn 2 (mặc định)',
+                                'compact' => 'Thu gọn',
+                                'qr_only' => 'Chỉ hiện QR',
                             ])
                             ->default('compact2'),
                     ])->columns(1),
 
                 \Filament\Schemas\Components\Section::make('Cổng thanh toán ZaloPay Gateway (Tự động xác thực)')
-                    ->description('Các mã khóa bí mật kết nối với hệ sinh thái ZaloPay Merchant để sinh QR động và tự động gạch nợ đơn hàng.')
+                    ->description('Các mã khóa bí mật kết nối với hệ sinh thái ZaloPay Merchant để sinh chữ ký và tự động cập nhật trạng thái đơn hàng.')
                     ->schema([
                         TextInput::make('zalopay_app_id')
                             ->label('ZaloPay App ID')
                             ->required(),
                         Toggle::make('zalopay_sandbox')
-                            ->label('Chế độ Thử nghiệm (Sandbox Mode)')
+                            ->label('Chế độ Thử nghiệm (Sandbox)')
                             ->helperText('Bật tùy chọn này để sử dụng môi trường test của ZaloPay khi đang phát triển.'),
                         TextInput::make('zalopay_key1')
                             ->label('ZaloPay Key 1 (Dùng tạo chữ ký đơn hàng)')

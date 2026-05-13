@@ -125,6 +125,16 @@ class OrderForm
                 ->searchable()
                 ->required(),
 
+            Select::make('payment_method')
+                ->label('Phương thức thanh toán')
+                ->options([
+                    'cod' => 'Thanh toán tiền mặt (COD)',
+                    'banking' => 'Chuyển khoản ngân hàng',
+                    'zalopay' => 'Ví ZaloPay / Cổng thanh toán',
+                ])
+                ->default('cod')
+                ->required(),
+
             AddressForm::make('address')
                 ->label('Địa chỉ giao hàng')
                 ->columnSpan('full'),

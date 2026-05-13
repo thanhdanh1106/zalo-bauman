@@ -16,6 +16,8 @@ class FlaggedOrders extends BaseWidget
 
     protected static ?int $sort = 3;
 
+    protected static ?string $heading = 'Đơn hàng cần chú ý / Tồn đọng';
+
     public function table(Table $table): Table
     {
         return $table
@@ -36,25 +38,29 @@ class FlaggedOrders extends BaseWidget
             ->defaultSort('created_at', 'asc')
             ->columns([
                 TextColumn::make('number')
+                    ->label('Số đơn hàng')
                     ->searchable()
                     ->sortable()
                     ->weight(FontWeight::Medium),
                 TextColumn::make('customer.name')
+                    ->label('Khách hàng')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('status')
+                    ->label('Trạng thái')
                     ->badge(),
                 TextColumn::make('total_price')
-                    ->money('USD')
+                    ->label('Tổng tiền')
+                    ->money('VND')
                     ->sortable(),
                 TextColumn::make('days_old')
-                    ->label('Days Old')
+                    ->label('Số ngày tồn')
                     ->state(fn (Order $record): int => (int) $record->created_at?->diffInDays(now()))
                     ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderBy('created_at', $direction === 'asc' ? 'desc' : 'asc'))
                     ->weight(FontWeight::Bold),
                 TextColumn::make('issue')
-                    ->label('Issue')
-                    ->state(fn (Order $record): string => $record->status === OrderStatus::New ? 'Awaiting processing' : 'Stuck in processing')
+                    ->label('Vấn đề')
+                    ->state(fn (Order $record): string => $record->status === OrderStatus::New ? 'Chờ xử lý quá hạn' : 'Kẹt ở khâu xử lý')
                     ->badge()
                     ->color(fn (Order $record): string => $record->status === OrderStatus::New ? 'warning' : 'danger'),
             ]);
