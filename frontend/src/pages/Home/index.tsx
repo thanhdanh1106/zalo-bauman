@@ -37,7 +37,7 @@ const HomePage = () => {
       if (!showSearchModal) return;
       setIsSearching(true);
       try {
-        const res = await findManyProducts(filterParams({ search: searchQuery || undefined, per_page: 50 }));
+        const res = await findManyProducts(filterParams({ search: searchQuery || undefined, per_page: 50, limit: 50 }));
         if (res && !res.error) {
           setSearchResults(res.data || []);
         }

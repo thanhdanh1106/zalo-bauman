@@ -12,20 +12,59 @@ class PostController extends Controller
 {
     public function index(Request $request)
     {
-        $posts = Post::with(['image', 'postCategory', 'author', 'tags'])
+        $query = Post::with(['image', 'postCategory', 'author', 'tags'])
             ->where('is_visible', true)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
-            ->where(function($query) {
-                $query->whereDoesntHave('postCategory')
-                      ->orWhereHas('postCategory', function ($q) {
-                          $q->where('is_visible', true);
-                      });
-            })
-            ->latest()
-            ->paginate($request->query('per_page', 12));
+            ->where(function($q) {
+                $q->whereDoesntHave('postCategory')
+                  ->orWhereHas('postCategory', function ($subCatQ) {
+                      $subCatQ->where('is_visible', true);
+                  });
+            });
 
-        return PostTransformer::collection($posts);
+        if ($request->filled('category_id')) {
+            $query->where('post_category_id', $request->query('category_id'));
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->query('search');
+            $keywords = array_filter(explode(' ', trim(preg_replace('/\s+/', ' ', $search))));
+            if (!empty($keywords)) {
+                $query->where(function ($q) use ($keywords) {
+                    foreach ($keywords as $keyword) {
+                        $q->orWhere('title', 'like', '%' . $keyword . '%');
+                    }
+                });
+
+                $orderExprs = [];
+                $bindings = [];
+                foreach ($keywords as $keyword) {
+                    $orderExprs[] = "(title LIKE ?)";
+                    $bindings[] = '%' . $keyword . '%';
+                }
+                $query->orderByRaw('(' . implode(' + ', $orderExprs) . ') DESC', $bindings);
+            }
+        }
+
+        $page = $request->query('page', $request->query('paged', 1));
+        $posts = $query->latest()
+            ->paginate($request->query('per_page', 12), ['*'], 'page', $page);
+
+        $data = collect($posts->items())->map(function($post) {
+            return new PostTransformer($post);
+        });
+
+        return response()->json([
+            'error' => false,
+            'data' => $data,
+            'meta' => [
+                'total' => $posts->total(),
+                'per_page' => $posts->perPage(),
+                'current_page' => $posts->currentPage(),
+                'last_page' => $posts->lastPage(),
+            ]
+        ]);
     }
 
     public function show($id)

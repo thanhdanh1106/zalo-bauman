@@ -43,7 +43,8 @@ export const getCurrentTenantName = (): string | null => {
 };
 
 const buildApiUrl = (): string => {
-  let baseUrl = (import.meta as any).env?.VITE_API_URL || 'https://miniapp.test';
+  let baseUrl = import.meta.env.VITE_API_URL || 'https://miniapp.nhansambaumann.com';
+  if (typeof baseUrl !== 'string') baseUrl = 'https://miniapp.nhansambaumann.com';
   if (baseUrl.endsWith('/')) {
     baseUrl = baseUrl.slice(0, -1);
   }

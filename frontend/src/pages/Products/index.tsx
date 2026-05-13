@@ -156,6 +156,15 @@ const Products: React.FC = () => {
   };
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== (searchParams.get("search") || "")) {
+        handleFilterChange({ ...filterValues, search: searchInput });
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput, filterValues, searchParams]);
+
+  useEffect(() => {
     scrollToTop();
     fetchFilterOptions();
     setNavigationBarTitle({ title: "Sản phẩm" });

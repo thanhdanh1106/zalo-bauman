@@ -11,7 +11,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 import { Pagination as SwipperPagination, A11y } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { setNavigationBarTitle, openShareSheet } from "zmp-sdk/apis";
+import { openShareSheet, openWebview, setNavigationBarTitle } from "zmp-sdk/apis";
 import { Modal, Box, Button } from "zmp-ui";
 import { useSelector } from "react-redux";
 import { RootState } from "@shared/store";
@@ -343,7 +343,31 @@ const ProductDetail: React.FC = () => {
             Thông tin chi tiết
           </h2>
           <div className="rich-text-content">
-            <div dangerouslySetInnerHTML={{ __html: product.description }} />
+            <div 
+              onClick={(e) => {
+                const target = e.target as HTMLElement;
+                const anchor = target.closest('a');
+                if (anchor) {
+                  const href = anchor.getAttribute('href');
+                  if (href) {
+                    e.preventDefault();
+                    if (href.startsWith('/') && !href.startsWith('//')) {
+                      navigate(href);
+                    } else {
+                      try {
+                        openWebview({
+                          url: href,
+                          config: { style: 'normal', leftButton: 'back' }
+                        });
+                      } catch {
+                        window.open(href, '_blank');
+                      }
+                    }
+                  }
+                }
+              }}
+              dangerouslySetInnerHTML={{ __html: product.description }} 
+            />
 
             {/* Physical dimensions */}
             {(product.weight || product.dimensions || product.volume) && (

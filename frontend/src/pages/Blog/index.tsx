@@ -73,8 +73,8 @@ const index: React.FC = () => {
 
       if (response && !response.error) {
         const { data, meta } = response;
-        setData(data);
-        setMeta(meta);
+        setData(data || []);
+        if (meta) setMeta(meta);
       }
       setPageInit(true);
     } finally {
@@ -102,7 +102,6 @@ const index: React.FC = () => {
   const handleFindManyCategoryData = async (filter: Record<string, any>) => {
     try {
       startProgress();
-      setSearchParams(filter);
       const response = await findManyPostCategories(filter);
 
       if (response && !response.error) {
@@ -131,6 +130,15 @@ const index: React.FC = () => {
       handleFindManyData(filter);
     }
   }, [filter]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (pageInit && filter.search !== searchQuery) {
+        setFilter((prev) => ({ ...prev, search: searchQuery, paged: 1 }));
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery, pageInit]);
 
   const handleSearch = (query: string) => {
     setFilter({ ...filter, search: query, paged: 1 });
@@ -161,38 +169,39 @@ const index: React.FC = () => {
         <section className="px-margin-main py-stack-md">
           <div className="bg-surface-container-low border border-surface-variant rounded-full flex items-center px-4 py-3 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
             <span className="material-symbols-outlined text-outline mr-3" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>search</span>
-            <input 
-              className="bg-transparent border-none outline-none flex-1 font-body-md text-on-surface placeholder:text-on-surface-variant focus:ring-0 p-0 text-[14px]" 
-              placeholder="Tìm kiếm bài viết, công thức..." 
+            <input
+              className="bg-transparent border-none outline-none flex-1 font-body-md text-on-surface placeholder:text-on-surface-variant focus:ring-0 p-0 text-[14px]"
+              placeholder="Tìm kiếm bài viết, công thức..."
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSearch(searchQuery)}
             />
+
           </div>
+
+
         </section>
 
         {/* Category Chips */}
         <section className="px-margin-main pb-stack-md flex gap-stack-sm overflow-x-auto no-scrollbar">
-          <button 
+          <button
             onClick={() => handleCategoryFilter(null)}
-            className={`font-label-md px-5 py-2 rounded-full whitespace-nowrap shadow-sm transition-all text-xs border ${
-                selectedCategory === null 
-                ? "bg-primary-container text-on-primary border-primary-container" 
+            className={`font-label-md px-5 py-2 rounded-full whitespace-nowrap shadow-sm transition-all text-xs border ${selectedCategory === null
+                ? "bg-primary-container text-on-primary border-primary-container"
                 : "bg-surface-container text-on-surface border-surface-variant hover:bg-surface-container-high"
-            }`}
+              }`}
           >
             Tất cả
           </button>
           {postCategories?.map((cat) => (
-            <button 
+            <button
               key={cat.id}
               onClick={() => handleCategoryFilter(cat.id.toString())}
-              className={`font-label-md px-5 py-2 rounded-full whitespace-nowrap shadow-sm transition-all text-xs border ${
-                  selectedCategory === cat.id.toString() 
-                  ? "bg-primary-container text-on-primary border-primary-container" 
+              className={`font-label-md px-5 py-2 rounded-full whitespace-nowrap shadow-sm transition-all text-xs border ${selectedCategory === cat.id.toString()
+                  ? "bg-primary-container text-on-primary border-primary-container"
                   : "bg-surface-container text-on-surface border-surface-variant hover:bg-surface-container-high"
-              }`}
+                }`}
             >
               {cat.name}
             </button>
@@ -203,15 +212,15 @@ const index: React.FC = () => {
         {featuredPosts.length > 0 && selectedCategory === null && searchQuery === "" && (
           <section className="px-margin-main pb-stack-lg">
             <h2 className="font-headline-md text-on-background mb-stack-sm text-lg font-bold font-serif text-primary">Bài viết nổi bật</h2>
-            <article 
+            <article
               onClick={() => navigate(`/blog/${featuredPosts[0].slug}`)}
               className="bg-surface rounded-xl overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.04)] active:scale-[0.98] transition-transform cursor-pointer border border-[#EEEEEE]"
             >
               <div className="relative h-[200px] w-full">
-                <img 
-                  alt={featuredPosts[0].title} 
-                  className="w-full h-full object-cover" 
-                  src={getThumbnailUrl(featuredPosts[0].thumbnail)} 
+                <img
+                  alt={featuredPosts[0].title}
+                  className="w-full h-full object-cover"
+                  src={getThumbnailUrl(featuredPosts[0].thumbnail)}
                 />
                 <div className="absolute top-3 left-3 bg-secondary-container text-on-secondary-container font-label-md px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1 text-[11px]">
                   <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
@@ -230,11 +239,11 @@ const index: React.FC = () => {
                 </p>
                 <div className="flex items-center text-gray-500 font-label-md text-[11px] gap-4">
                   <span className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[14px]">calendar_today</span> 
+                    <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                     {new Date(featuredPosts[0].created_at).toLocaleDateString("vi-VN")}
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[14px]">schedule</span> 
+                    <span className="material-symbols-outlined text-[14px]">schedule</span>
                     5 phút đọc
                   </span>
                 </div>
@@ -248,22 +257,22 @@ const index: React.FC = () => {
           <div className="flex justify-between items-center mb-stack-sm">
             <h2 className="font-headline-md text-on-background text-lg font-bold font-serif text-primary">Mới cập nhật</h2>
           </div>
-          
+
           {isLoading ? (
             <PageLoading height={"30vh"} />
           ) : (
             <>
               <div className="flex flex-col gap-3">
                 {data.length > 0 ? data.map((post) => (
-                  <article 
+                  <article
                     key={post.id}
                     onClick={() => navigate(`/blog/${post.slug}`)}
                     className="bg-surface rounded-xl p-3 flex gap-4 shadow-[0_4px_15px_rgba(0,0,0,0.04)] active:bg-surface-container-low transition-colors cursor-pointer border border-surface-variant/50"
                   >
-                    <img 
-                      alt={post.title} 
-                      className="w-[100px] h-[100px] rounded-lg object-cover flex-shrink-0" 
-                      src={getThumbnailUrl(post.thumbnail)} 
+                    <img
+                      alt={post.title}
+                      className="w-[100px] h-[100px] rounded-lg object-cover flex-shrink-0"
+                      src={getThumbnailUrl(post.thumbnail)}
                     />
                     <div className="flex flex-col justify-center flex-1 py-1">
                       <span className="text-secondary font-label-md text-[10px] uppercase tracking-wider mb-1.5 block font-semibold">
@@ -286,7 +295,7 @@ const index: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               {meta?.total > 12 && (
                 <div className="flex justify-center mt-6">
                   <Pagination

@@ -24,8 +24,25 @@ class ProductController extends Controller
             });
         }
 
-        if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->query('search') . '%');
+        if ($request->filled('search')) {
+            $search = $request->query('search');
+            $keywords = array_filter(explode(' ', trim(preg_replace('/\s+/', ' ', $search))));
+            if (!empty($keywords)) {
+                $query->where(function ($q) use ($keywords) {
+                    foreach ($keywords as $keyword) {
+                        $q->orWhere('name', 'like', '%' . $keyword . '%')
+                          ->orWhere('sku', 'like', '%' . $keyword . '%');
+                    }
+                });
+
+                $orderExprs = [];
+                $bindings = [];
+                foreach ($keywords as $keyword) {
+                    $orderExprs[] = "(name LIKE ?)";
+                    $bindings[] = '%' . $keyword . '%';
+                }
+                $query->orderByRaw('(' . implode(' + ', $orderExprs) . ') DESC', $bindings);
+            }
         }
 
         if ($request->has('sort')) {
@@ -41,7 +58,8 @@ class ProductController extends Controller
             $query->orderBy('id', 'desc');
         }
 
-        $products = $query->paginate($request->query('limit', 12));
+        $limit = $request->query('limit', $request->query('per_page', 12));
+        $products = $query->paginate($limit);
 
         $data = collect($products->items())->map(function($prod) {
             return $this->transformProduct($prod);

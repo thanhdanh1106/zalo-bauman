@@ -14,7 +14,8 @@ import HTMLReactParser from "html-react-parser";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaCalendarAlt, FaComments } from "react-icons/fa";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { openWebview } from "zmp-sdk/apis";
 import TrendingPosts from "./Components/TrendingPosts";
 
 dayjs.extend(relativeTime);
@@ -23,6 +24,7 @@ dayjs.extend(relativeTime);
 const DetailBlog: React.FC = () => {
   const { t } = useTranslation();
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { showMessage, startProgress, completeProgress } = useToasterContext();
   const [data, setData] = useState<postProps | null>(null);
   const [pageInit, setPageInit] = useState(false);
@@ -124,7 +126,31 @@ const DetailBlog: React.FC = () => {
           <div className="rich-text-content"
           >
             {html ? (
-              <div dangerouslySetInnerHTML={{ __html: html }} />
+              <div 
+                onClick={(e) => {
+                  const target = e.target as HTMLElement;
+                  const anchor = target.closest('a');
+                  if (anchor) {
+                    const href = anchor.getAttribute('href');
+                    if (href) {
+                      e.preventDefault();
+                      if (href.startsWith('/') && !href.startsWith('//')) {
+                        navigate(href);
+                      } else {
+                        try {
+                          openWebview({
+                            url: href,
+                            config: { style: 'normal', leftButton: 'back' }
+                          });
+                        } catch {
+                          window.open(href, '_blank');
+                        }
+                      }
+                    }
+                  }
+                }}
+                dangerouslySetInnerHTML={{ __html: html }} 
+              />
             ) : (
               <div className="text-center py-12 border border-[#eee] rounded-xl bg-white shadow-sm">
                 <span className="text-4xl text-gray-300 mb-2 block">📝</span>
