@@ -110,13 +110,13 @@ const HomePage = () => {
         </div>
 
         {/* Hero Banner */}
-        <section className="relative w-full h-[200px] rounded-xl overflow-hidden shadow-md">
+        <section className="relative w-full h-[200px] rounded-xl overflow-hidden shadow-md bg-neutral-100">
           <Swiper
+            key={Array.isArray(banners) ? banners.length : 0}
             modules={[Autoplay, Pagination]}
             autoplay={{ delay: 5000 }}
-
-            loop={banners.length > 1}
-            className="h-full"
+            loop={(Array.isArray(banners) && banners.length > 1)}
+            className="h-full w-full"
           >
             {banners.length > 0 ? (
               banners.map((banner: any, index) => {

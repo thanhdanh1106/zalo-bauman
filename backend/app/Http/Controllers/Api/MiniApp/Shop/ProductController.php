@@ -190,7 +190,12 @@ class ProductController extends Controller
             ->paginate($request->query('per_page', 12));
 
         $data = collect($categories->items())->map(function($cat) {
+            // Lọc tiền tố 'public/' để Glide không bị tìm sai đường dẫn
             $imageUrl = $cat->image?->medium_url ?: ($cat->image?->url ?: $cat->getFirstMediaUrl('category-images'));
+            
+            if ($imageUrl && str_contains($imageUrl, '/curator/public/')) {
+                $imageUrl = str_replace('/curator/public/', '/curator/', $imageUrl);
+            }
             
             if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 $imageUrl = url($imageUrl);
@@ -243,8 +248,13 @@ class ProductController extends Controller
 
     private function transformProduct($prod)
     {
+        // Lọc tiền tố 'public/' để Glide không bị tìm sai đường dẫn
         $imageUrl = $prod->image?->medium_url ?: ($prod->image?->url ?: $prod->getFirstMediaUrl('product-images'));
         
+        if ($imageUrl && str_contains($imageUrl, '/curator/public/')) {
+            $imageUrl = str_replace('/curator/public/', '/curator/', $imageUrl);
+        }
+
         if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
             $imageUrl = url($imageUrl);
         }

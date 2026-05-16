@@ -15,20 +15,43 @@ class BannerController extends Controller
             ->orderBy('sort_order', 'asc')
             ->get();
 
-        if ($banners->isNotEmpty()) {
-            return response()->json([
-                'error' => false,
-                'data' => BannerTransformer::collection($banners)->resolve()
-            ]);
-        }
+        $data = $banners->map(function($banner) {
+            $imageUrl = null;
+            if ($banner->image) {
+                // Ưu tiên dùng medium_url (Glide) để tối ưu dung lượng
+                $imageUrl = $banner->image->medium_url ?: $banner->image->url;
+                
+                // Lọc sạch đường dẫn để Glide tìm đúng file
+                if ($imageUrl && str_contains($imageUrl, '/curator/public/')) {
+                    $imageUrl = str_replace('/curator/public/', '/curator/', $imageUrl);
+                }
+
+                // Ép về tuyệt đối và đảm bảo HTTPS
+                if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+                    $imageUrl = url($imageUrl);
+                }
+                
+                // Đảm bảo luôn là https nếu không phải localhost
+                if ($imageUrl && str_starts_with($imageUrl, 'http://') && !str_contains($imageUrl, 'localhost')) {
+                    $imageUrl = str_replace('http://', 'https://', $imageUrl);
+                }
+            }
+
+            return [
+                'id' => $banner->id,
+                'title' => $banner->title,
+                'subtitle' => $banner->subtitle,
+                'link' => $banner->link,
+                'image' => $imageUrl ?: "https://placehold.co/1200x400?text=Banner+" . ($banner->id),
+            ];
+        });
 
         return response()->json([
             'error' => false,
-            'data' => [
-                ['image' => "https://placehold.co/1200x400?text=Banner+1", 'title' => 'Banner 1', 'subtitle' => '', 'link' => null],
-                ['image' => "https://placehold.co/1200x400?text=Banner+2", 'title' => 'Banner 2', 'subtitle' => '', 'link' => null],
-                ['image' => "https://placehold.co/1200x400?text=Banner+3", 'title' => 'Banner 3', 'subtitle' => '', 'link' => null]
-            ]
+            'data' => $data->isEmpty() ? [
+                ['image' => "https://placehold.co/1200x400?text=Nhân+Sâm+Baumann+1", 'title' => 'Nhân Sâm Baumann', 'subtitle' => 'Khởi nguồn sức khỏe', 'link' => null],
+                ['image' => "https://placehold.co/1200x400?text=Nhân+Sâm+Baumann+2", 'title' => 'Nhân Sâm Baumann', 'subtitle' => 'Khởi nguồn sức khỏe', 'link' => null]
+            ] : $data
         ]);
     }
 }

@@ -6,7 +6,10 @@ import { findManyUserWishlist } from '@shared/utils/Account';
 import { setCartItems } from '@shared/store/slices/cartSlice';
 import { setWishlistItems } from '@shared/store/slices/wishlistSlice';
 
+import api from "zmp-sdk";
+
 const DataSync: React.FC = () => {
+    const { getStartupParams } = api;
     const dispatch = useDispatch();
     const { user } = useSelector((state: RootState) => state.auth);
     const { items: cartItems } = useSelector((state: RootState) => state.cart);
@@ -21,11 +24,10 @@ const DataSync: React.FC = () => {
             // 2. Try from Zalo Startup Params if URL doesn't have it
             if (!ref) {
                 try {
-                    const { getStartupParams } = await import("zmp-sdk/apis");
                     const startupParams = await getStartupParams();
-                    ref = startupParams?.ref || (startupParams as any)?.referrerId;
+                    ref = (startupParams as any)?.ref || (startupParams as any)?.referrerId;
                 } catch (e) {
-                    console.error("Error getting startup params:", e);
+                    console.warn("Error getting startup params (expected if in browser):", e);
                 }
             }
 

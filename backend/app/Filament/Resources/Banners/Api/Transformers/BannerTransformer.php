@@ -10,10 +10,21 @@ class BannerTransformer extends JsonResource
     {
         $imageUrl = null;
         if ($this->image) {
-            $imageUrl = $this->image->large_url ?: $this->image->url;
+            // Logic y hệt ProductController để đảm bảo đồng bộ
+            $imageUrl = $this->image->url ?: $this->image->medium_url;
+            
+            if ($imageUrl && str_contains($imageUrl, '/curator/public/')) {
+                $imageUrl = str_replace('/curator/public/', '/curator/', $imageUrl);
+            }
+
             if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 $imageUrl = url($imageUrl);
             }
+        }
+
+        // Fallback nếu vẫn không có hình
+        if (!$imageUrl) {
+            $imageUrl = "https://placehold.co/1200x400?text=Banner+" . ($this->id ?? 'No+Image');
         }
 
         return [
