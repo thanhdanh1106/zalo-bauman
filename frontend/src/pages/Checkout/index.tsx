@@ -61,9 +61,17 @@ const Checkout: React.FC = () => {
   const { items, clearAllItems } = useCart();
   const { user } = useSelector((state: RootState) => state.auth);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
   const [bankingOrder, setBankingOrder] = useState<any>(null);
+  const [currentStep, setCurrentStep] = useState(1);
   const { showMessage } = useToasterContext();
+
+  const [provinces, setProvinces] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [wards, setWards] = useState<any[]>([]);
+
+  const [selectedProvince, setSelectedProvince] = useState<any>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<any>(null);
+  const [selectedWard, setSelectedWard] = useState<any>(null);
 
   const subtotal = useSelector(selectCartSubtotal);
   const discount = useSelector(selectCartDiscount);
@@ -89,6 +97,7 @@ const Checkout: React.FC = () => {
     bank_account_number: "1029384756",
     bank_account_name: "CÔNG TY TNHH NHÂN SÂM BAUMANN",
     enable_cod: true,
+    enable_banking: true,
     cod_description: "Thanh toán tiền mặt khi nhận hàng tại nhà.",
     zalopay_app_id: "2553",
     vietqr_enabled: false,
@@ -141,7 +150,14 @@ const Checkout: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    // Fetch provinces
+    fetch("https://provinces.open-api.vn/api/?depth=1")
+      .then(res => res.json())
+      .then(data => setProvinces(data))
+      .catch(err => console.error("Fetch provinces error", err));
   }, []);
+
+  // Address selectors are now manual text inputs as per user request
 
   const handleRedeemReward = async (reward: any) => {
     if (reward.outOfStock || userPoints < reward.points || isRedeeming) return;
@@ -300,46 +316,43 @@ const Checkout: React.FC = () => {
         return;
       }
 
-      // ── Luồng thanh toán tự động qua cổng ZaloPay ──────────────────────────────────────────────
+      // ── Luồng thanh toán qua Cổng Zalo (ZaloPay, ATM, Credit Card...) ──────────────────
       try {
-        const zaloData = transformCartToZaloOrder(
-          items,
-          finalTotal,
-          `Thanh toan don hang #${createdOrder.order_number}`,
-          { order_number: createdOrder.order_number, order_id: createdOrder.id, payment_method: data.payment_method }
-        );
+        const zaloItems = items.map(item => ({
+          id: item.id.toString(),
+          amount: Math.round(item.price * item.quantity)
+        }));
 
-        await new Promise<void>((resolve) => {
-          Payment.createOrder({
-            ...zaloData,
-            amount: Math.round(finalTotal),
-            item: zaloData.item,
-            desc: zaloData.desc,
-            extradata: JSON.stringify(zaloData.extradata || {}),
-            method: JSON.stringify({ id: ZALO_PAYMENT_METHODS.BANK, isCustom: false }),
-            success: async (_data: any) => {
-              try {
-                await apiClient.post(`/orders/${createdOrder.id}/confirm-payment`);
-              } catch (e) {
-                console.error("confirmPayment error", e);
-              }
-              clearAllItems();
-              resolve();
-              navigate(`/payment-success?orderId=${createdOrder.order_number}`);
-            },
-            fail: (err: any) => {
-              console.warn("Zalo SDK createOrder failed/canceled:", err);
-              clearAllItems();
-              resolve();
-              navigate(`/payment-success?orderId=${createdOrder.order_number}`);
-            },
-            mac: ""
-          });
+        Payment.createOrder({
+          desc: `Thanh toán đơn hàng #${createdOrder.order_number}`,
+          item: zaloItems,
+          amount: Math.round(finalTotal),
+          // Link chặt chẽ với đơn hàng qua extradata
+          extradata: JSON.stringify({
+            order_id: createdOrder.id,
+            order_number: createdOrder.order_number
+          }),
+          success: async (res) => {
+            console.log("Thanh toán thành công:", res);
+            // Cập nhật trạng thái 'paid' ngay lập tức cho UI mượt mà
+            try {
+              await apiClient.post(`/orders/${createdOrder.id}/confirm-payment`);
+            } catch (e) {
+              console.error("Lỗi cập nhật trạng thái:", e);
+            }
+            clearAllItems();
+            navigate(`/payment-success?orderId=${createdOrder.order_number}`);
+          },
+          fail: (err) => {
+            console.warn("Thanh toán thất bại hoặc khách hủy:", err);
+            // Dẫn khách về trang chi tiết đơn hàng để họ có thể xem lại hoặc thử lại
+            clearAllItems();
+            navigate(`/order-success/${createdOrder.order_number}`);
+          }
         });
       } catch (zaloErr: any) {
-        showMessage("error", zaloErr?.message || "Tích hợp thanh toán ZaloPay thất bại.");
-        clearAllItems();
-        navigate(`/payment-success?orderId=${createdOrder.order_number}`);
+        showMessage("error", "Không thể khởi tạo cổng thanh toán Zalo.");
+        navigate(`/order-success/${createdOrder.order_number}`);
       }
     } catch (error) {
       showMessage("error", "Đã có lỗi xảy ra.");
@@ -347,11 +360,6 @@ const Checkout: React.FC = () => {
       setIsProcessing(false);
     }
   };
-
-  const steps = [
-    { id: 1, title: "Thông tin", icon: FaUser },
-    { id: 2, title: "Xác minh", icon: FaCheck },
-  ];
 
   const formData = watch();
 
@@ -393,94 +401,132 @@ const Checkout: React.FC = () => {
               </div>
             )}
 
-            {/* Progress Steps */}
-            <div className="mt-6 mb-8 px-4">
-              <div className="flex items-center justify-center space-x-12">
-                {steps.map((step, index) => {
-                  const Icon = step.icon;
-                  const isActive = currentStep === step.id;
-                  const isCompleted = currentStep > step.id;
+            <form onSubmit={handleFormSubmit(handleSubmitOrder)} className="space-y-4 pt-4">
 
-                  return (
-                    <React.Fragment key={step.id}>
-                      <div className="flex flex-col items-center relative z-10">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 shadow-sm ${isCompleted
-                            ? "bg-green-500 border-green-500 text-white"
-                            : isActive
-                              ? "bg-white border-[#8f0012] text-[#8f0012] scale-110"
-                              : "bg-white border-gray-100 text-gray-300"
-                            }`}
-                        >
-                          {isCompleted ? <FaCheck /> : <Icon />}
-                        </div>
-                        <span className={`mt-2 text-[10px] font-bold uppercase tracking-tighter ${isActive ? "text-[#8f0012]" : "text-gray-400"}`}>
-                          {step.title}
-                        </span>
+              {/* 1. TÓM TẮT ĐƠN HÀNG */}
+              <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
+                <h3 className="text-sm font-bold text-gray-800 mb-6 uppercase tracking-wider flex items-center gap-2">
+                  <FaShoppingCart className="text-[#8f0012]" />
+                  Tóm tắt đơn hàng
+                </h3>
+                <div className="space-y-4 mb-6">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex items-center space-x-4">
+                      <img
+                        src={getThumbnailUrl(item.thumbnail)}
+                        alt={item.title}
+                        className="w-14 h-14 object-cover rounded-xl bg-[#f6f3f2]"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold text-gray-800 truncate">{item.title}</h4>
+                        <p className="text-[11px] text-gray-400">
+                          {item.quantity}x • {item.price.toLocaleString()}đ
+                        </p>
                       </div>
-                      {index < steps.length - 1 && (
-                        <div className={`w-20 h-0.5 mt-[-18px] ${isCompleted ? "bg-green-500" : "bg-gray-200"}`} />
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-            </div>
+                      <span className="text-sm font-bold text-[#8f0012]">
+                        {(item.price * item.quantity).toLocaleString()}đ
+                      </span>
+                    </div>
+                  ))}
+                </div>
 
-            <form onSubmit={handleFormSubmit(handleSubmitOrder)} className="space-y-4">
-              {/* Step 1: Input Information */}
-              {currentStep === 1 && (
-                <div className="space-y-6">
-                  {/* Saved Addresses Section */}
-                  {savedAddresses.length > 0 && (
-                    <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
-                      <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center uppercase tracking-wider">
-                        <FaMapMarkerAlt className="mr-3 text-[#8f0012]" />
-                        Địa chỉ đã lưu
-                      </h2>
-                      <div className="flex overflow-x-auto gap-4 pb-2 no-scrollbar">
-                        {savedAddresses.map((addr) => (
-                          <div
-                            key={addr.id}
-                            onClick={() => handleSelectAddress(addr)}
-                            className={`min-w-[240px] p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedAddressId === addr.id
-                              ? "border-[#8f0012] bg-[#8f0012]/5"
-                              : "border-gray-50 bg-gray-50"
-                              }`}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="font-bold text-gray-800 text-sm truncate">{addr.name}</span>
-                              {addr.is_default && (
-                                <span className="bg-[#8f0012] text-white text-[9px] px-2 py-0.5 rounded-full uppercase">Mặc định</span>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-gray-500 line-clamp-2 mb-2 h-8">
-                              {[addr.street || addr.address, addr.state, addr.city].filter(Boolean).join(", ")}
-                            </p>
-                            <div className="flex items-center text-[11px] text-gray-400">
-                              <FaPhone className="mr-1 text-[10px]" />
-                              {addr.phone}
-                            </div>
-                          </div>
-                        ))}
-                        <div
-                          onClick={() => setSelectedAddressId(null)}
-                          className={`min-w-[120px] flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer ${selectedAddressId === null ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-200"}`}
-                        >
-                          <span className="material-symbols-outlined text-gray-400 mb-1">add_location_alt</span>
-                          <span className="text-[11px] font-bold text-gray-500 text-center leading-tight">Nhập địa chỉ mới</span>
-                        </div>
-                      </div>
+                <div className="space-y-3 pt-6 border-t border-gray-50">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Tạm tính</span>
+                    <span className="font-bold text-gray-800">{subtotal.toLocaleString()}đ</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Phí vận chuyển</span>
+                    <span className="font-bold text-gray-800">{shipping === 0 ? "Miễn phí" : `${shipping.toLocaleString()}đ`}</span>
+                  </div>
+                  {appliedPromotion && (
+                    <div className="flex justify-between text-sm text-[#8f0012]">
+                      <span>Giảm giá ({appliedPromotion.title})</span>
+                      <span className="font-bold">-{discount.toLocaleString()}đ</span>
                     </div>
                   )}
+                  {appliedReward && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Quà tặng ({appliedReward.name})</span>
+                      <span className="font-bold">Miễn phí</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-3 border-t border-gray-50">
+                    <span className="text-base font-bold text-gray-800">Tổng cộng</span>
+                    <span className="text-xl font-bold text-[#8f0012]">{finalTotal.toLocaleString()}đ</span>
+                  </div>
+                </div>
+              </div>
 
+              {/* 2. ƯU ĐÃI CỦA BẠN */}
+              <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Ưu đãi của bạn</h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowVouchers(true)}
+                    className="text-[#8f0012] text-[12px] font-bold flex items-center"
+                  >
+                    {vouchers.length > 0 ? `Chọn mã (${vouchers.length})` : "Tất cả ưu đãi"}
+                    <FaArrowRight className="ml-1 text-[10px]" />
+                  </button>
+                </div>
+                <PromoCodeForm className="mb-4" />
+              </div>
+
+              {/* 3. THÔNG TIN NHẬN HÀNG */}
+              <div className="space-y-6">
+                {/* Saved Addresses Section */}
+                {savedAddresses.length > 0 && (
                   <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
-                    <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                      <FaUser className="mr-3 text-[#8f0012]" />
-                      Thông tin nhận hàng
+                    <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center uppercase tracking-wider">
+                      <FaMapMarkerAlt className="mr-3 text-[#8f0012]" />
+                      Địa chỉ đã lưu
                     </h2>
+                    <div className="flex overflow-x-auto gap-4 pb-2 no-scrollbar">
+                      {savedAddresses.map((addr) => (
+                        <div
+                          key={addr.id}
+                          onClick={() => handleSelectAddress(addr)}
+                          className={`min-w-[240px] p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedAddressId === addr.id
+                            ? "border-[#8f0012] bg-[#8f0012]/5"
+                            : "border-gray-50 bg-gray-50"
+                            }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-bold text-gray-800 text-sm truncate">{addr.name}</span>
+                            {addr.is_default && (
+                              <span className="bg-[#8f0012] text-white text-[9px] px-2 py-0.5 rounded-full uppercase">Mặc định</span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-gray-500 line-clamp-2 mb-2 h-8">
+                            {[addr.street || addr.address, addr.ward, addr.district, addr.city].filter(Boolean).join(", ")}
+                          </p>
+                          <div className="flex items-center text-[11px] text-gray-400">
+                            <FaPhone className="mr-1 text-[10px]" />
+                            {addr.phone}
+                          </div>
+                        </div>
+                      ))}
+                      <div
+                        onClick={() => setSelectedAddressId(null)}
+                        className={`min-w-[120px] flex flex-col items-center justify-center p-4 rounded-xl border-2 border-dashed transition-all cursor-pointer ${selectedAddressId === null ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-200"}`}
+                      >
+                        <span className="material-symbols-outlined text-gray-400 mb-1">add_location_alt</span>
+                        <span className="text-[11px] font-bold text-gray-500 text-center leading-tight">Nhập địa chỉ mới</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                    <div className="space-y-5">
+                <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
+                  <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
+                    <FaUser className="mr-3 text-[#8f0012]" />
+                    Thông tin nhận hàng
+                  </h2>
+
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-bold text-gray-600 mb-2">Họ và tên *</label>
                         <Controller
@@ -516,26 +562,11 @@ const Checkout: React.FC = () => {
                         />
                         {errors.customer_phone && <p className="mt-1 text-xs text-red-500">{errors.customer_phone.message}</p>}
                       </div>
+                    </div>
 
-                      <div>
-                        <label className="block text-sm font-bold text-gray-600 mb-2">Địa chỉ chi tiết *</label>
-                        <Controller
-                          name="shipping_street"
-                          control={control}
-                          rules={{ required: "Vui lòng nhập địa chỉ" }}
-                          render={({ field }) => (
-                            <input
-                              {...field}
-                              type="text"
-                              className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.shipping_street ? "border-red-500" : ""}`}
-                              placeholder="Số nhà, tên đường (Chi tiết trước xát nhập)"
-                            />
-                          )}
-                        />
-                        {errors.shipping_street && <p className="mt-1 text-xs text-red-500">{errors.shipping_street.message}</p>}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Tỉnh/Thành phố */}
                         <div>
                           <label className="block text-xs font-bold text-gray-500 mb-1">Tỉnh/Thành phố *</label>
                           <Controller
@@ -543,547 +574,434 @@ const Checkout: React.FC = () => {
                             control={control}
                             rules={{ required: "Bắt buộc" }}
                             render={({ field }) => (
-                              <input {...field} className="w-full px-4 py-2.5 bg-[#f6f3f2] rounded-xl text-sm outline-none" placeholder="Tỉnh/TP" />
+                              <input
+                                {...field}
+                                type="text"
+                                className="w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-sm font-medium"
+                                placeholder="Ví dụ: TP. Hồ Chí Minh"
+                              />
                             )}
                           />
                         </div>
+
+                        {/* Phường/Xã, Quận/Huyện */}
                         <div>
-                          <label className="block text-xs font-bold text-gray-500 mb-1">Xã/Phường *</label>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Phường/Xã</label>
                           <Controller
-                            name="shipping_district"
+                            name="shipping_ward"
                             control={control}
                             rules={{ required: "Bắt buộc" }}
                             render={({ field }) => (
-                              <input {...field} className="w-full px-4 py-2.5 bg-[#f6f3f2] rounded-xl text-sm outline-none" placeholder="Xã/Phường" />
+                              <input
+                                {...field}
+                                type="text"
+                                className="w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-sm font-medium"
+                                placeholder="Ví dụ: P. Hiệp Phú, TP. Thủ Đức"
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  // Also sync to shipping_district for backend compatibility
+                                  setValue("shipping_district", e.target.value);
+                                }}
+                              />
                             )}
                           />
                         </div>
-
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Payment Method Section */}
-                  <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
-                    <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center uppercase tracking-wider">
-                      <span className="material-symbols-outlined text-[#8f0012] mr-2">payments</span>
-                      Phương thức thanh toán
-                    </h2>
-                    <div className="space-y-3">
-                      {[
-                        { id: "cod", label: "Thanh toán khi nhận hàng (COD)", desc: paymentConfig.cod_description || "Nhận hàng rồi mới thanh toán tiền mặt", visible: paymentConfig.enable_cod ?? true },
-                        { id: "banking", label: "Chuyển khoản ngân hàng", desc: "Thanh toán an toàn qua ứng dụng ngân hàng", visible: true },
-                        { id: "zalopay", label: "Ví ZaloPay", desc: "Thanh toán tiện lợi qua cổng thanh toán tự động", visible: true }
-                      ].filter(m => m.visible).map((method) => (
-                        <div key={method.id} className="space-y-2">
-                          <div
-                            onClick={() => setValue("payment_method", method.id as any, { shouldValidate: true })}
-                            className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${paymentMethod === method.id ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-50 bg-gray-50/50 hover:bg-gray-50"
-                              }`}
-                          >
-                            <div>
-                              <span className="text-xs font-bold text-gray-800 block">{method.label}</span>
-                              <span className="text-[11px] text-gray-500 block mt-0.5">{method.desc}</span>
-                            </div>
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === method.id ? "border-[#8f0012] bg-[#8f0012]" : "border-gray-300 bg-white"
-                              }`}>
-                              {paymentMethod === method.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                            </div>
-                          </div>
-
-                          {/* Dynamic Gateway Credentials / Info Box when Selected */}
-                          {paymentMethod === method.id && method.id === "banking" && (
-                            <div className="p-3 bg-[#f6f3f2] rounded-xl border border-gray-200 text-xs space-y-1 text-gray-700 animate-fade-in">
-                              <div className="font-bold text-[#8f0012] mb-1">Thông tin tài khoản chuyển khoản:</div>
-                              <div>• <span className="font-semibold">Ngân hàng:</span> {paymentConfig.bank_name || "Vietcombank"}</div>
-                              <div>• <span className="font-semibold">Số tài khoản:</span> <span className="font-mono font-bold text-sm select-all">{paymentConfig.bank_account_number || "1029384756"}</span></div>
-                              <div>• <span className="font-semibold">Chủ tài khoản:</span> {paymentConfig.bank_account_name || "CÔNG TY TNHH NHÂN SÂM BAUMANN"}</div>
-                              <div className="text-[10px] text-gray-500 italic mt-1">Hệ thống sẽ cung cấp mã QR chuyển khoản chính xác tại bước Đặt hàng thành công.</div>
-                            </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-600 mb-2">Số nhà, tên đường *</label>
+                        <Controller
+                          name="shipping_street"
+                          control={control}
+                          rules={{ required: "Vui lòng nhập địa chỉ cụ thể" }}
+                          render={({ field }) => (
+                            <input
+                              {...field}
+                              type="text"
+                              className={`w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 ${errors.shipping_street ? "border-red-500" : ""}`}
+                              placeholder="Ví dụ: 123 Đường Lê Lợi"
+                            />
                           )}
+                        />
+                        {errors.shipping_street && <p className="mt-1 text-xs text-red-500">{errors.shipping_street.message}</p>}
+                      </div>
 
-                          {paymentMethod === method.id && method.id === "zalopay" && (
-                            <div className="p-3 bg-[#e8f5e9] rounded-xl border border-green-200 text-xs text-green-800 animate-fade-in">
-                              <span className="font-bold block mb-0.5">Thanh toán qua Ví ZaloPay</span>
-                              Hệ thống sẽ tự động gạch nợ đơn hàng sau khi hoàn tất thanh toán qua App ZaloPay.
-                            </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-600 mb-2">Ghi chú đơn hàng (Tùy chọn)</label>
+                        <Controller
+                          name="notes"
+                          control={control}
+                          render={({ field }) => (
+                            <textarea
+                              {...field}
+                              rows={3}
+                              className="w-full px-4 py-3 bg-[#f6f3f2] border border-transparent rounded-xl focus:bg-white focus:border-[#8f0012]/30 outline-none transition-all text-gray-800 text-sm"
+                              placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi đến..."
+                            />
                           )}
-                        </div>
-                      ))}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* Step 2: Verification / Review */}
-              {currentStep === 2 && (
-                <div className="space-y-6 animate-fade-in">
-                  <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
-                    <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                      <FaCheck className="mr-3 text-green-500" />
-                      Xác minh thông tin
-                    </h2>
-
-                    <div className="space-y-4">
-                      <div className="p-4 bg-gray-50 rounded-xl space-y-3">
-                        <div className="flex justify-between">
-                          <span className="text-xs text-gray-400 font-medium">Người nhận:</span>
-                          <span className="text-xs font-bold text-gray-800">{formData.customer_name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-xs text-gray-400 font-medium">Số điện thoại:</span>
-                          <span className="text-xs font-bold text-gray-800">{formData.customer_phone}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-xs text-gray-400 font-medium">Thanh toán:</span>
-                          <span className="text-xs font-bold text-[#8f0012]">
-                            {paymentMethod === "banking" ? "Chuyển khoản ngân hàng" : paymentMethod === "zalopay" ? "Ví ZaloPay" : "Ship COD (Tiền mặt)"}
-                          </span>
-                        </div>
-                        <div className="flex flex-col pt-2 border-t border-gray-100">
-                          <span className="text-xs text-gray-400 font-medium mb-1">Địa chỉ nhận hàng:</span>
-                          <span className="text-xs font-bold text-gray-800 leading-relaxed">
-                            {formData.shipping_street}, {formData.shipping_ward}, {formData.shipping_district}, {formData.shipping_city}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Sản phẩm của bạn</h3>
-                        {items.map((item) => (
-                          <div key={item.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                            <img src={getThumbnailUrl(item.product?.thumbnail)} className="w-10 h-10 rounded-lg object-cover shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold text-gray-800 truncate">{item.product?.name || item.title}</p>
-                              <p className="text-[10px] text-gray-400">SL: {item.quantity}</p>
-                            </div>
-                            <span className="text-xs font-bold text-[#8f0012] shrink-0">{(item.price * item.quantity).toLocaleString()}đ</span>
+                {/* 4. PHƯƠNG THỨC THANH TOÁN */}
+                <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
+                  <h2 className="text-sm font-bold text-gray-800 mb-4 flex items-center uppercase tracking-wider">
+                    <span className="material-symbols-outlined text-[#8f0012] mr-2">payments</span>
+                    Phương thức thanh toán
+                  </h2>
+                  <div className="space-y-3">
+                    {[
+                      { id: "cod", label: "Thanh toán khi nhận hàng (COD)", desc: paymentConfig.cod_description || "Nhận hàng rồi mới thanh toán tiền mặt", visible: paymentConfig.enable_cod ?? true },
+                      { id: "banking", label: "Chuyển khoản ngân hàng (Thủ công)", desc: "Chuyển khoản trực tiếp tới số tài khoản của shop", visible: paymentConfig.enable_banking ?? true },
+                      { id: "zalopay", label: "Thanh toán trực tuyến (ZaloPay, Thẻ ATM, Visa...)", desc: "An toàn, tiện lợi qua cổng thanh toán Zalo", visible: !!(paymentConfig.zalopay_app_id && paymentConfig.zalopay_app_id !== "" && paymentConfig.zalopay_app_id !== "2553") }
+                    ].filter(m => m.visible).map((method) => (
+                      <div key={method.id} className="space-y-2">
+                        <div
+                          onClick={() => setValue("payment_method", method.id as any, { shouldValidate: true })}
+                          className={`p-3 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${paymentMethod === method.id ? "border-[#8f0012] bg-[#8f0012]/5" : "border-gray-50 bg-gray-50/50 hover:bg-gray-50"
+                            }`}
+                        >
+                          <div>
+                            <span className="text-xs font-bold text-gray-800 block">{method.label}</span>
+                            <span className="text-[11px] text-gray-500 block mt-0.5">{method.desc}</span>
                           </div>
-                        ))}
-                      </div>
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMethod === method.id ? "border-[#8f0012] bg-[#8f0012]" : "border-gray-300 bg-white"
+                            }`}>
+                            {paymentMethod === method.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                          </div>
+                        </div>
 
-                      <div className="pt-4 border-t border-gray-100 space-y-2">
-                        <div className="flex justify-between text-xs">
-                          <span className="text-gray-400">Tạm tính:</span>
-                          <span className="font-bold text-gray-800">{subtotal.toLocaleString()}đ</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-gray-400">Phí vận chuyển:</span>
-                          <span className="font-bold text-gray-800">{shipping === 0 ? "Miễn phí" : `${shipping.toLocaleString()}đ`}</span>
-                        </div>
-                        {discount > 0 && (
-                          <div className="flex justify-between text-xs">
-                            <span className="text-[#8f0012]">Giảm giá:</span>
-                            <span className="font-bold text-[#8f0012]">-{discount.toLocaleString()}đ</span>
+                        {paymentMethod === method.id && method.id === "banking" && (
+                          <div className="p-3 bg-[#f6f3f2] rounded-xl border border-gray-200 text-xs space-y-1 text-gray-700 animate-fade-in">
+                            <div className="font-bold text-[#8f0012] mb-1 text-[11px]">Thông tin tài khoản (Chuyển khoản thủ công):</div>
+                            <div>• <span className="font-semibold">{paymentConfig.bank_name || "Vietcombank"}</span></div>
+                            <div>• <span className="font-mono font-bold text-[#8f0012]">{paymentConfig.bank_account_number || "1029384756"}</span></div>
+                            <div>• <span className="font-semibold uppercase">{paymentConfig.bank_account_name || "NHAN SAM BAUMANN"}</span></div>
+                            <div className="text-[10px] text-gray-500 italic mt-1 leading-tight">Bạn hãy chuyển khoản đúng số tiền trên. Đơn hàng sẽ được xác nhận sau khi shop nhận được tiền.</div>
                           </div>
                         )}
-                        <div className="flex justify-between pt-2 border-t border-gray-100">
-                          <span className="text-sm font-bold text-gray-800">Tổng cộng:</span>
-                          <span className="text-lg font-bold text-[#8f0012]">{finalTotal.toLocaleString()}đ</span>
-                        </div>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-white">
-                    <Controller
-                      name="agreeToTerms"
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => (
-                        <label className="flex items-start">
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={field.onChange}
-                            className="mt-1 mr-3 accent-[#8f0012]"
-                          />
-                          <span className="text-xs text-gray-500">
-                            Tôi xác nhận các thông tin trên là chính xác và đồng ý với <span className="text-[#8f0012] underline">điều khoản đặt hàng</span>.
-                          </span>
-                        </label>
-                      )}
-                    />
+                    ))}
                   </div>
                 </div>
-              )}
 
-              {/* Navigation Buttons */}
-              <div className="flex justify-between items-center space-x-4 pt-4 px-2">
-                <button
-                  type="button"
-                  onClick={handlePrevStep}
-                  disabled={currentStep === 1}
-                  className="flex-1 flex items-center justify-center py-4 text-sm font-bold text-gray-500 bg-white border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all disabled:opacity-30"
-                >
-                  <FaArrowLeft className="mr-2" />
-                  Quay lại
-                </button>
+                {/* 5. XÁC NHẬN & ĐẶT HÀNG */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-white">
+                  <Controller
+                    name="agreeToTerms"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field }) => (
+                      <label className="flex items-start">
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className="mt-1 mr-3 accent-[#8f0012]"
+                        />
+                        <span className="text-[11px] text-gray-500 leading-relaxed">
+                          Tôi xác nhận các thông tin trên là chính xác và đồng ý với <span className="text-[#8f0012] underline">điều khoản đặt hàng</span> của Bauman.
+                        </span>
+                      </label>
+                    )}
+                  />
 
-                {currentStep === 1 ? (
-                  <button
-                    type="button"
-                    onClick={handleNextStep}
-                    className="flex-[2] flex items-center justify-center py-4 text-sm font-bold text-white bg-[#8f0012] rounded-2xl shadow-lg shadow-[#8f0012]/20 active:scale-95 transition-all"
-                  >
-                    Tiếp tục xác minh
-                    <FaArrowRight className="ml-2" />
-                  </button>
-                ) : (
                   <button
                     type="submit"
-                    disabled={isProcessing || !formData.agreeToTerms}
-                    className={`flex-[2] flex items-center justify-center py-4 text-sm font-bold text-white rounded-2xl shadow-lg active:scale-95 transition-all disabled:opacity-50 ${paymentMethod === "zalopay"
+                    disabled={isProcessing || !formData.agreeToTerms || !formData.shipping_city || !formData.shipping_district || !formData.shipping_ward}
+                    className={`w-full mt-6 flex items-center justify-center py-4 text-sm font-bold text-white rounded-2xl shadow-lg active:scale-95 transition-all disabled:opacity-50 ${paymentMethod === "zalopay"
                       ? "bg-[#0088ff] shadow-blue-500/20"
                       : "bg-[#8f0012] shadow-[#8f0012]/20"
                       }`}
                   >
                     {isProcessing
-                      ? "Đang kết nối Checkout SDK..."
-                      : (paymentMethod === "zalopay" ? "Thanh toán ZaloPay" : paymentMethod === "banking" ? "Thanh toán qua Ngân hàng" : "Đặt hàng (COD)")
+                      ? "Đang xử lý..."
+                      : (paymentMethod === "zalopay" ? "Thanh toán ZaloPay" : paymentMethod === "banking" ? "Xác nhận & Nhận mã QR" : "Đặt hàng ngay (COD)")
                     }
                   </button>
-                )}
+                </div>
               </div>
             </form>
-          </div>
-
-          <div className="col-span-12 mt-6">
-            <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Ưu đãi của bạn</h3>
-                <button
-                  onClick={() => setShowVouchers(true)}
-                  className="text-[#8f0012] text-[12px] font-bold flex items-center"
-                >
-                  {vouchers.length > 0 ? `Chọn mã (${vouchers.length})` : "Tất cả ưu đãi"}
-                  <FaArrowRight className="ml-1 text-[10px]" />
-                </button>
-              </div>
-
-              <PromoCodeForm className="mb-4" />
-
-
-            </div>
-
-            <Sheet
-              visible={showVouchers}
-              onClose={() => setShowVouchers(false)}
-              autoHeight
-              mask
-              handler
-              swipeToClose
-              title="Chọn Voucher"
-            >
-              <Box className="px-0 pb-10">
-                {/* Tab Header */}
-                <Box className="flex border-b border-gray-100 mb-4 px-4">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("vouchers")}
-                    className={`flex-1 py-3 text-[14px] font-bold transition-all border-b-2 ${activeTab === "vouchers" ? "text-[#8f0012] border-[#8f0012]" : "text-gray-400 border-transparent"}`}
-                  >
-                    Voucher
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("rewards")}
-                    className={`flex-1 py-3 text-[14px] font-bold transition-all border-b-2 ${activeTab === "rewards" ? "text-[#8f0012] border-[#8f0012]" : "text-gray-400 border-transparent"}`}
-                  >
-                    Tích điểm
-                  </button>
-                </Box>
-
-                <Box className="px-4 space-y-4">
-                  {activeTab === "vouchers" ? (
-                    <>
-                      <Text className="text-gray-500 text-sm mb-4">
-                        Danh sách các chương trình khuyến mãi đang diễn ra.
-                      </Text>
-                      <Box className="space-y-3 max-h-[50vh] overflow-y-auto pr-1 no-scrollbar">
-                        {allPromotions.filter(v => v.is_visible).length > 0 ? allPromotions.filter(v => v.is_visible).map((v) => {
-                          const isSelected = appliedPromotion?.id === v.id;
-                          return (
-                            <Box
-                              key={v.id}
-                              onClick={() => {
-                                if (isSelected) {
-                                  dispatch(removePromotion());
-                                } else {
-                                  dispatch(applyPromotion(v));
-                                }
-                                setShowVouchers(false);
-                              }}
-                              className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${isSelected
-                                ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
-                                : "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer"
-                                }`}
-                            >
-                              <Box className="flex items-center space-x-4">
-                                <Box className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-[#8f0012] text-white" : "bg-gray-50 text-[#8f0012]"}`}>
-                                  <span className="material-symbols-outlined text-[24px]">confirmation_number</span>
-                                </Box>
-                                <Box>
-                                  <Text className={`text-[15px] font-bold ${isSelected ? "text-[#8f0012]" : "text-gray-800"}`}>
-                                    {v.title || v.promotion_code}
-                                  </Text>
-                                  <Text className="text-[12px] text-gray-500">Giảm {v.discount}% đơn hàng</Text>
-                                  <Text className="text-[10px] text-gray-400 mt-0.5">HSD: {v.end_date ? new Date(v.end_date).toLocaleDateString("vi-VN") : "Vĩnh viễn"}</Text>
-                                </Box>
-                              </Box>
-                              <Box>
-                                {isSelected ? (
-                                  <span className="material-symbols-outlined text-green-600 font-bold">check_circle</span>
-                                ) : (
-                                  <Box className="w-6 h-6 rounded-full border-2 border-gray-200" />
-                                )}
-                              </Box>
-                            </Box>
-                          );
-                        }) : (
-                          <Box className="py-10 text-center">
-                            <Text className="text-gray-400">Hiện không có voucher khuyến mãi nào</Text>
-                          </Box>
-                        )}
-                      </Box>
-                    </>
-                  ) : (
-                    <>
-                      <Box className="flex items-center justify-between bg-[#fdf8e9] p-3 rounded-xl border border-[#f5e6ba] mb-4">
-                        <Box className="flex items-center space-x-2">
-                          <span className="material-symbols-outlined text-[#735c00] text-[20px] icon-fill">stars</span>
-                          <Text className="text-[#735c00] font-bold text-[13px]">Điểm của bạn:</Text>
-                        </Box>
-                        <Text className="text-[#8f0012] font-extrabold text-[15px]">{userPoints.toLocaleString()} điểm</Text>
-                      </Box>
-                      <Box className="space-y-3 max-h-[50vh] overflow-y-auto pr-1 no-scrollbar">
-                        <Text className="text-[13px] font-bold text-gray-800 mb-2">Phần thưởng đã đổi:</Text>
-                        {/* Combine vouchers and non-voucher redemptions */}
-                        {([...vouchers, ...redemptions.filter(r => r.category !== "voucher")]).length > 0 ? (
-                          ([...vouchers, ...redemptions.filter(r => r.category !== "voucher")]).map((v, idx) => {
-                            const isVoucher = (v as any).promotion_code !== undefined;
-                            const isRewardSelected = appliedReward?.id === v.id;
-                            const isPromoSelected = isVoucher && appliedPromotion?.id === v.id;
-                            const isSelected = isRewardSelected || isPromoSelected;
-
-                            return (
-                              <Box
-                                key={isVoucher ? `v-${v.id}` : `r-${v.id}-${idx}`}
-                                onClick={() => {
-                                  if (isVoucher) {
-                                    if (isPromoSelected) {
-                                      dispatch(removePromotion());
-                                    } else {
-                                      dispatch(applyPromotion(v as promotionProps));
-                                    }
-                                  } else {
-                                    if (isRewardSelected) {
-                                      dispatch(removeReward());
-                                    } else {
-                                      dispatch(applyReward(v));
-                                    }
-                                  }
-                                  setShowVouchers(false);
-                                }}
-                                className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${isSelected
-                                  ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
-                                  : isVoucher ? "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer" : "border-gray-50 bg-gray-50/30 opacity-80"
-                                  }`}
-                              >
-                                <Box className="flex items-center space-x-4">
-                                  <Box className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-[#8f0012] text-white" : "bg-gray-50 text-[#8f0012]"}`}>
-                                    <span className="material-symbols-outlined text-[24px]">{isVoucher ? "confirmation_number" : "redeem"}</span>
-                                  </Box>
-                                  <Box>
-                                    <Text className={`text-[15px] font-bold ${isSelected ? "text-[#8f0012]" : "text-gray-800"}`}>
-                                      {isVoucher ? ((v as any).title || (v as any).promotion_code) : (v as any).name}
-                                    </Text>
-                                    <Box className="flex items-center space-x-2">
-                                      <Text className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-medium uppercase">
-                                        {isVoucher ? "Voucher" : (v as any).category === 'product' ? 'Sản phẩm' : (v as any).category === 'service' ? 'Dịch vụ' : 'Phần thưởng'}
-                                      </Text>
-                                      <Text className="text-[12px] text-gray-500">
-                                        {isVoucher ? `Giảm ${(v as any).discount}% đơn hàng` : `Đã đổi: ${new Date((v as any).redeemed_at).toLocaleDateString("vi-VN")}`}
-                                      </Text>
-                                    </Box>
-                                  </Box>
-                                </Box>
-                                <Box>
-                                  {isVoucher ? (
-                                    isSelected ? (
-                                      <span className="material-symbols-outlined text-green-600 font-bold">check_circle</span>
-                                    ) : (
-                                      <Box className="w-6 h-6 rounded-full border-2 border-gray-200" />
-                                    )
-                                  ) : (
-                                    <Text className="text-[10px] text-gray-400 font-bold uppercase">Quà tặng</Text>
-                                  )}
-                                </Box>
-                              </Box>
-                            );
-                          })
-                        ) : (
-                          <Box className="py-4 text-center">
-                            <Text className="text-gray-400 text-[12px]">Bạn chưa có phần thưởng nào từ tích điểm</Text>
-                          </Box>
-                        )}
-
-                        <div className="border-t border-dashed border-gray-200 my-4 pt-4">
-                          <Text className="text-[13px] font-bold text-gray-800 mb-2">Đổi thêm quà tặng:</Text>
-                          {rewards.length > 0 ? (
-                            rewards.map((r) => (
-                              <Box
-                                key={r.id}
-                                className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50 mb-3"
-                              >
-                                <Box className="flex items-center space-x-4">
-                                  <Box className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#8f0012] shadow-sm">
-                                    <span className="material-symbols-outlined text-[20px]">redeem</span>
-                                  </Box>
-                                  <Box>
-                                    <Text className="text-[13px] font-bold text-gray-800">{r.name}</Text>
-                                    <Text className="text-[11px] text-[#8f0012] font-bold">{r.points.toLocaleString()} điểm</Text>
-                                  </Box>
-                                </Box>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRedeemReward(r)}
-                                  disabled={r.outOfStock || userPoints < r.points || isRedeeming === r.id}
-                                  className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${r.outOfStock ? "bg-gray-100 text-gray-400" : userPoints >= r.points ? "bg-[#8f0012] text-white active:scale-95 shadow-sm" : "bg-gray-200 text-gray-400"}`}
-                                >
-                                  {isRedeeming === r.id ? "..." : r.outOfStock ? "Hết hàng" : "Đổi quà"}
-                                </button>
-                              </Box>
-                            ))
-                          ) : (
-                            <Box className="py-4 text-center">
-                              <Text className="text-gray-400 text-[12px]">Hiện không có quà thưởng để đổi</Text>
-                            </Box>
-                          )}
-                        </div>
-                      </Box>
-                    </>
-                  )}
-                </Box>
-                <Box className="px-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowVouchers(false)}
-                    className="w-full bg-[#8f0012] text-white h-12 rounded-xl font-bold mt-6"
-                  >
-                    Xác nhận
-                  </button>
-                </Box>
-              </Box>
-            </Sheet>
-
-            <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-6 border border-white">
-              <h3 className="text-sm font-bold text-gray-800 mb-6 uppercase tracking-wider">Tóm tắt đơn hàng</h3>
-              <div className="space-y-4 mb-6">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4">
-                    <img
-                      src={getThumbnailUrl(item.thumbnail)}
-                      alt={item.title}
-                      className="w-14 h-14 object-cover rounded-xl bg-[#f6f3f2]"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-bold text-gray-800 truncate">{item.title}</h4>
-                      <p className="text-[11px] text-gray-400">
-                        {item.quantity}x • {item.price.toLocaleString()}đ
-                      </p>
-                    </div>
-                    <span className="text-sm font-bold text-[#8f0012]">
-                      {(item.price * item.quantity).toLocaleString()}đ
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-3 pt-6 border-t border-gray-50">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Tạm tính</span>
-                  <span className="font-bold text-gray-800">{subtotal.toLocaleString()}đ</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Phí vận chuyển</span>
-                  <span className="font-bold text-gray-800">{shipping === 0 ? "Miễn phí" : `${shipping.toLocaleString()}đ`}</span>
-                </div>
-                {appliedPromotion && (
-                  <div className="flex justify-between text-sm text-[#8f0012]">
-                    <span>Giảm giá ({appliedPromotion.title})</span>
-                    <span className="font-bold">-{discount.toLocaleString()}đ</span>
-                  </div>
-                )}
-                {appliedReward && (
-                  <div className="flex justify-between text-sm text-green-600">
-                    <span>Quà tặng ({appliedReward.name})</span>
-                    <span className="font-bold">Miễn phí</span>
-                  </div>
-                )}
-                <div className="flex justify-between pt-3 border-t border-gray-50">
-                  <span className="text-base font-bold text-gray-800">Tổng cộng</span>
-                  <span className="text-xl font-bold text-[#8f0012]">{finalTotal.toLocaleString()}đ</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
+      <Sheet
+        visible={showVouchers}
+        onClose={() => setShowVouchers(false)}
+        autoHeight
+        mask
+        handler
+        swipeToClose
+        title="Chọn Voucher"
+      >
+        <Box className="px-0 pb-10">
+          {/* Tab Header */}
+          <Box className="flex border-b border-gray-100 mb-4 px-4">
+            <button
+              type="button"
+              onClick={() => setActiveTab("vouchers")}
+              className={`flex-1 py-3 text-[14px] font-bold transition-all border-b-2 ${activeTab === "vouchers" ? "text-[#8f0012] border-[#8f0012]" : "text-gray-400 border-transparent"}`}
+            >
+              Voucher
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("rewards")}
+              className={`flex-1 py-3 text-[14px] font-bold transition-all border-b-2 ${activeTab === "rewards" ? "text-[#8f0012] border-[#8f0012]" : "text-gray-400 border-transparent"}`}
+            >
+              Tích điểm
+            </button>
+          </Box>
+
+          <Box className="px-4 space-y-4">
+            {activeTab === "vouchers" ? (
+              <>
+                <Text className="text-gray-500 text-sm mb-4">
+                  Danh sách các chương trình khuyến mãi đang diễn ra.
+                </Text>
+                <Box className="space-y-3 max-h-[50vh] overflow-y-auto pr-1 no-scrollbar">
+                  {allPromotions.filter(v => v.is_visible).length > 0 ? allPromotions.filter(v => v.is_visible).map((v) => {
+                    const isSelected = appliedPromotion?.id === v.id;
+                    return (
+                      <Box
+                        key={v.id}
+                        onClick={() => {
+                          if (isSelected) {
+                            dispatch(removePromotion());
+                          } else {
+                            dispatch(applyPromotion(v));
+                          }
+                          setShowVouchers(false);
+                        }}
+                        className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${isSelected
+                          ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
+                          : "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer"
+                          }`}
+                      >
+                        <Box className="flex items-center space-x-4">
+                          <Box className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-[#8f0012] text-white" : "bg-gray-50 text-[#8f0012]"}`}>
+                            <span className="material-symbols-outlined text-[24px]">confirmation_number</span>
+                          </Box>
+                          <Box>
+                            <Text className={`text-[15px] font-bold ${isSelected ? "text-[#8f0012]" : "text-gray-800"}`}>
+                              {v.title || v.promotion_code}
+                            </Text>
+                            <Text className="text-[12px] text-gray-500">Giảm {v.discount}% đơn hàng</Text>
+                            <Text className="text-[10px] text-gray-400 mt-0.5">HSD: {v.end_date ? new Date(v.end_date).toLocaleDateString("vi-VN") : "Vĩnh viễn"}</Text>
+                          </Box>
+                        </Box>
+                        <Box>
+                          {isSelected ? (
+                            <span className="material-symbols-outlined text-green-600 font-bold">check_circle</span>
+                          ) : (
+                            <Box className="w-6 h-6 rounded-full border-2 border-gray-200" />
+                          )}
+                        </Box>
+                      </Box>
+                    );
+                  }) : (
+                    <Box className="py-10 text-center">
+                      <Text className="text-gray-400">Hiện không có voucher khuyến mãi nào</Text>
+                    </Box>
+                  )}
+                </Box>
+              </>
+            ) : (
+              <>
+                <Box className="flex items-center justify-between bg-[#fdf8e9] p-3 rounded-xl border border-[#f5e6ba] mb-4">
+                  <Box className="flex items-center space-x-2">
+                    <span className="material-symbols-outlined text-[#735c00] text-[20px] icon-fill">stars</span>
+                    <Text className="text-[#735c00] font-bold text-[13px]">Điểm của bạn:</Text>
+                  </Box>
+                  <Text className="text-[#8f0012] font-extrabold text-[15px]">{userPoints.toLocaleString()} điểm</Text>
+                </Box>
+                <Box className="space-y-3 max-h-[50vh] overflow-y-auto pr-1 no-scrollbar">
+                  <Text className="text-[13px] font-bold text-gray-800 mb-2">Phần thưởng đã đổi:</Text>
+                  {([...vouchers, ...redemptions.filter(r => r.category !== "voucher")]).length > 0 ? (
+                    ([...vouchers, ...redemptions.filter(r => r.category !== "voucher")]).map((v, idx) => {
+                      const isVoucher = (v as any).promotion_code !== undefined;
+                      const isRewardSelected = appliedReward?.id === v.id;
+                      const isPromoSelected = isVoucher && appliedPromotion?.id === v.id;
+                      const isSelected = isRewardSelected || isPromoSelected;
+
+                      return (
+                        <Box
+                          key={isVoucher ? `v-${v.id}` : `r-${v.id}-${idx}`}
+                          onClick={() => {
+                            if (isVoucher) {
+                              if (isPromoSelected) {
+                                dispatch(removePromotion());
+                              } else {
+                                dispatch(applyPromotion(v as promotionProps));
+                              }
+                            } else {
+                              if (isRewardSelected) {
+                                dispatch(removeReward());
+                              } else {
+                                dispatch(applyReward(v));
+                              }
+                            }
+                            setShowVouchers(false);
+                          }}
+                          className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${isSelected
+                            ? "border-[#8f0012] bg-[#8f0012]/5 shadow-sm"
+                            : isVoucher ? "border-gray-100 bg-white hover:bg-gray-50 cursor-pointer" : "border-gray-50 bg-gray-50/30 opacity-80"
+                            }`}
+                        >
+                          <Box className="flex items-center space-x-4">
+                            <Box className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-[#8f0012] text-white" : "bg-gray-50 text-[#8f0012]"}`}>
+                              <span className="material-symbols-outlined text-[24px]">{isVoucher ? "confirmation_number" : "redeem"}</span>
+                            </Box>
+                            <Box>
+                              <Text className={`text-[15px] font-bold ${isSelected ? "text-[#8f0012]" : "text-gray-800"}`}>
+                                {isVoucher ? ((v as any).title || (v as any).promotion_code) : (v as any).name}
+                              </Text>
+                              <Box className="flex items-center space-x-2">
+                                <Text className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-medium uppercase">
+                                  {isVoucher ? "Voucher" : (v as any).category === 'product' ? 'Sản phẩm' : (v as any).category === 'service' ? 'Dịch vụ' : 'Phần thưởng'}
+                                </Text>
+                                <Text className="text-[12px] text-gray-500">
+                                  {isVoucher ? `Giảm ${(v as any).discount}% đơn hàng` : `Đã đổi: ${new Date((v as any).redeemed_at).toLocaleDateString("vi-VN")}`}
+                                </Text>
+                              </Box>
+                            </Box>
+                          </Box>
+                          <Box>
+                            {isVoucher ? (
+                              isSelected ? (
+                                <span className="material-symbols-outlined text-green-600 font-bold">check_circle</span>
+                              ) : (
+                                <Box className="w-6 h-6 rounded-full border-2 border-gray-200" />
+                              )
+                            ) : (
+                              <Text className="text-[10px] text-gray-400 font-bold uppercase">Quà tặng</Text>
+                            )}
+                          </Box>
+                        </Box>
+                      );
+                    })
+                  ) : (
+                    <Box className="py-4 text-center">
+                      <Text className="text-gray-400 text-[12px]">Bạn chưa có phần thưởng nào từ tích điểm</Text>
+                    </Box>
+                  )}
+
+                  <div className="border-t border-dashed border-gray-200 my-4 pt-4">
+                    <Text className="text-[13px] font-bold text-gray-800 mb-2">Đổi thêm quà tặng:</Text>
+                    {rewards.length > 0 ? (
+                      rewards.map((r) => (
+                        <Box
+                          key={r.id}
+                          className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50 mb-3"
+                        >
+                          <Box className="flex items-center space-x-4">
+                            <Box className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#8f0012] shadow-sm">
+                              <span className="material-symbols-outlined text-[20px]">redeem</span>
+                            </Box>
+                            <Box>
+                              <Text className="text-[13px] font-bold text-gray-800">{r.name}</Text>
+                              <Text className="text-[11px] text-[#8f0012] font-bold">{r.points.toLocaleString()} điểm</Text>
+                            </Box>
+                          </Box>
+                          <button
+                            type="button"
+                            onClick={() => handleRedeemReward(r)}
+                            disabled={r.outOfStock || userPoints < r.points || isRedeeming === r.id}
+                            className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${r.outOfStock ? "bg-gray-100 text-gray-400" : userPoints >= r.points ? "bg-[#8f0012] text-white active:scale-95 shadow-sm" : "bg-gray-200 text-gray-400"}`}
+                          >
+                            {isRedeeming === r.id ? "..." : r.outOfStock ? "Hết hàng" : "Đổi quà"}
+                          </button>
+                        </Box>
+                      ))
+                    ) : (
+                      <Box className="py-4 text-center">
+                        <Text className="text-gray-400 text-[12px]">Hiện không có quà thưởng để đổi</Text>
+                      </Box>
+                    )}
+                  </div>
+                </Box>
+              </>
+            )}
+          </Box>
+          <Box className="px-4">
+            <button
+              type="button"
+              onClick={() => setShowVouchers(false)}
+              className="w-full bg-[#8f0012] text-white h-12 rounded-xl font-bold mt-6"
+            >
+              Xác nhận
+            </button>
+          </Box>
+        </Box>
+      </Sheet>
+
+
       {/* ── NATIVE BANKING TRANSFER / QR OVERLAY MODAL ────────────────────────────────────────────── */}
       {bankingOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-white p-6 text-center space-y-5 relative">
-            <div className="w-16 h-16 bg-[#8f0012]/10 rounded-full flex items-center justify-center mx-auto text-[#8f0012] mb-2">
-              <span className="material-symbols-outlined text-3xl">qr_code_scanner</span>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-bold text-gray-800">Quét mã QR Chuyển khoản</h3>
-              <p className="text-xs text-gray-500 mt-1">Đơn hàng <span className="font-bold text-[#8f0012]">#{bankingOrder.order_number}</span> đã được lưu thành công</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fade-in">
+          <div className="bg-white rounded-[12px] w-full max-w-[340px] max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 p-5 text-center relative flex flex-col no-scrollbar">
+            <div className="space-y-4">
+              <div className="pt-2">
+                <h3 className="text-[18px] font-bold text-gray-800 leading-tight">Quét mã QR Chuyển khoản</h3>
+                <p className="text-[11px] text-gray-400 mt-1.5 px-4">Đơn hàng <span className="font-bold text-[#8f0012]">#{bankingOrder.order_number}</span> đã được lưu thành công</p>
+              </div>
+
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-full bg-white flex justify-center">
+                  <img
+                    id="vietqr-image"
+                    src={`https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin || '970436'}-${paymentConfig.bank_account_number || '1029384756'}-${paymentConfig.vietqr_template || 'compact2'}.png?amount=${Math.round(finalTotal)}&addInfo=${encodeURIComponent((paymentConfig.bank_transfer_description || 'Thanh toan don hang {order_number}').replace('{order_number}', bankingOrder.order_number))}&accountName=${encodeURIComponent(paymentConfig.bank_account_name || 'CONG TY TNHH NHAN SAM BAUMANN')}`}
+                    alt="VietQR Transfer"
+                    className="w-full max-w-[280px] h-auto object-contain mx-auto"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const qrUrl = `https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin || '970436'}-${paymentConfig.bank_account_number || '1029384756'}-${paymentConfig.vietqr_template || 'compact2'}.png?amount=${Math.round(finalTotal)}&addInfo=${encodeURIComponent((paymentConfig.bank_transfer_description || 'Thanh toan don hang {order_number}').replace('{order_number}', bankingOrder.order_number))}&accountName=${encodeURIComponent(paymentConfig.bank_account_name || 'CONG TY TNHH NHAN SAM BAUMANN')}`;
+                    window.open(qrUrl, '_blank');
+                  }}
+                  className="text-[#8f0012] text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#8f0012]/5 active:scale-95 transition-all"
+                >
+                  <span className="material-symbols-outlined text-[16px]">download</span>
+                  Tải mã QR về máy
+                </button>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-xl text-left text-xs border border-gray-100">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 shrink-0 mr-4">Nội dung chuyển:</span>
+                  <span className="font-mono font-bold text-sm text-[#8f0012] select-all break-all text-right">
+                    {(paymentConfig.bank_transfer_description || 'Thanh toan don hang {order_number}').replace('{order_number}', bankingOrder.order_number)}
+                  </span>
+                </div>
+              </div>
+
             </div>
 
-            <div className="bg-[#f6f3f2] p-4 rounded-2xl inline-block mx-auto border border-gray-100 shadow-inner">
-              <img
-                src={`https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin || '970436'}-${paymentConfig.bank_account_number || '1029384756'}-${paymentConfig.vietqr_template || 'compact2'}.png?amount=${Math.round(finalTotal)}&addInfo=Thanh toan don hang ${bankingOrder.order_number}&accountName=${encodeURIComponent(paymentConfig.bank_account_name || 'CONG TY TNHH NHAN SAM BAUMANN')}`}
-                alt="VietQR Transfer"
-                className="w-56 h-56 object-contain mx-auto rounded-xl"
-              />
-            </div>
-
-            <div className="bg-gray-50 p-3 rounded-xl text-left text-xs space-y-1.5 border border-gray-100">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Ngân hàng:</span>
-                <span className="font-bold text-gray-800">{paymentConfig.bank_name || "Vietcombank"}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Số tài khoản:</span>
-                <span className="font-mono font-bold text-sm text-[#8f0012] select-all">{paymentConfig.bank_account_number || "1029384756"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Chủ tài khoản:</span>
-                <span className="font-bold text-gray-800 truncate max-w-[180px]">{paymentConfig.bank_account_name || "CÔNG TY TNHH NHÂN SÂM BAUMANN"}</span>
-              </div>
-              <div className="flex justify-between border-t border-gray-200/60 pt-1.5 mt-1.5">
-                <span className="text-gray-400">Nội dung chuyển:</span>
-                <span className="font-mono font-bold text-[#8f0012] select-all">Thanh toan don hang {bankingOrder.order_number}</span>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-gray-400 italic">Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống duyệt đơn tự động nhanh nhất.</p>
+            <p className="text-[11px] text-gray-400 italic px-2">Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống duyệt đơn tự động nhanh nhất.</p>
 
             <div className="pt-2">
               <button
                 type="button"
                 onClick={() => {
                   clearAllItems();
-                  navigate(`/thank-you`, { state: { orderData: bankingOrder, pointsEarned: bankingOrder.points_earned } });
+                  // Chuyển hướng kèm theo mã đơn hàng trên URL để OrderSuccess có thể lấy được qua useParams
+                  navigate(`/order-success/${bankingOrder.order_number}`, {
+                    state: {
+                      orderData: bankingOrder,
+                      pointsEarned: bankingOrder.points_earned
+                    },
+                    replace: true
+                  });
                 }}
-                className="w-full bg-[#8f0012] text-white h-12 rounded-xl font-bold shadow-lg shadow-[#8f0012]/20 hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center space-x-2"
+                className="w-full bg-[#8f0012] text-white h-12 rounded-2xl font-bold shadow-xl shadow-[#8f0012]/30 hover:bg-[#a00015] active:scale-[0.97] transition-all flex items-center justify-center space-x-2"
               >
-                <span className="material-symbols-outlined text-base">check_circle</span>
-                <span>Tôi đã thanh toán</span>
+                <span className="material-symbols-outlined text-xl">verified</span>
+                <span className="text-[15px]">Tôi đã thanh toán</span>
               </button>
             </div>
           </div>

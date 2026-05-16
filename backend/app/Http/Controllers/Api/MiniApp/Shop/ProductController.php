@@ -124,8 +124,9 @@ class ProductController extends Controller
     public function storeComment(Request $request, $id)
     {
         $request->validate([
-            'content' => 'required|string',
+            'content' => 'required|string|min:5',
             'rating' => 'required|integer|min:1|max:5',
+            'title' => 'nullable|string|max:255',
         ]);
 
         $prod = Product::find($id);
@@ -133,7 +134,6 @@ class ProductController extends Controller
             return response()->json(['error' => true, 'message' => 'Sản phẩm không tồn tại'], 404);
         }
 
-        // Try to get authenticated user (works whether route is in auth middleware or not)
         $user = $request->user() ?? auth('sanctum')->user();
         if (!$user) {
             return response()->json(['error' => true, 'message' => 'Vui lòng đăng nhập để viết đánh giá'], 401);
@@ -147,42 +147,29 @@ class ProductController extends Controller
             $customer = Customer::create([
                 'name' => $name,
                 'email' => $email,
+                'phone' => $user->phone,
             ]);
-        } else {
-            // Keep customer name in sync with user name
-            if ($customer->name !== $name) {
-                $customer->update(['name' => $name]);
-            }
         }
 
-        $comment = new Comment([
+        $comment = Comment::create([
             'customer_id' => $customer->id,
+            'commentable_id' => $prod->id,
+            'commentable_type' => Product::class,
             'title' => $request->input('title'),
             'content' => $request->input('content'),
             'rating' => $request->input('rating'),
             'is_visible' => true,
         ]);
 
-        $prod->comments()->save($comment);
-
+        // Cập nhật rating trung bình cho sản phẩm
         $avgRating = $prod->comments()->where('is_visible', true)->avg('rating');
         if ($avgRating) {
             $prod->update(['rating' => round($avgRating, 1)]);
         }
 
-        $avatarUrl = null;
-        if ($user->avatar_id) {
-            $media = \Awcodes\Curator\Models\Media::find($user->avatar_id);
-            if ($media) {
-                $url = $media->medium_url ?: $media->url;
-                $avatarUrl = !filter_var($url, FILTER_VALIDATE_URL) ? url($url) : $url;
-            }
-        }
-        $avatarUrl = $avatarUrl ?? ("https://placehold.co/100x100?text=" . urlencode(mb_substr($name, 0, 1)));
-
         return response()->json([
             'error' => false,
-            'message' => 'Đánh giá sản phẩm thành công',
+            'message' => 'Đánh giá thành công!',
             'data' => [
                 'id' => $comment->id,
                 'title' => $comment->title,
@@ -191,7 +178,7 @@ class ProductController extends Controller
                 'created_at' => $comment->created_at->format('d/m/Y H:i'),
                 'customer' => [
                     'name' => $name,
-                    'avatar' => $avatarUrl,
+                    'avatar' => optional($customer)->avatar ?? 'https://placehold.co/100x100?text=U',
                 ]
             ]
         ]);
@@ -252,6 +239,7 @@ class ProductController extends Controller
             ]
         ]);
     }
+
 
     private function transformProduct($prod)
     {

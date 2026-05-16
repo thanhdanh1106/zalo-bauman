@@ -3,6 +3,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Provider } from "react-redux";
 import { ToasterProvider } from "@shared/components/ToasterContext";
 import DataSync from "@shared/components/DataSync";
+import PopupManager from "@shared/components/PopupManager";
 import Router from "./Router";
 import { store } from "@shared/store";
 

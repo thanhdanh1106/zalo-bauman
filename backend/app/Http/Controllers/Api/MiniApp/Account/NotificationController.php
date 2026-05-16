@@ -19,9 +19,9 @@ class NotificationController extends Controller
         $query = $user->notifications();
 
         if ($type === 'promotion') {
-            $query->where('data->type', 'promotion');
+            $query->where('data', 'like', '%"type":"promotion"%');
         } elseif ($type === 'order') {
-            $query->where('data->type', 'order');
+            $query->where('data', 'like', '%"type":"order"%');
         }
 
         $notifications = $query->paginate(20);

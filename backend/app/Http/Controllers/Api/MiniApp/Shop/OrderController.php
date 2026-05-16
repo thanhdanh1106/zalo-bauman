@@ -11,6 +11,7 @@ use App\Models\Shop\OrderItem;
 use App\Models\User;
 use App\Settings\MembershipSettings;
 use Illuminate\Support\Str;
+use App\Notifications\OrderStatusNotification;
 
 class OrderController extends Controller
 {
@@ -91,10 +92,16 @@ class OrderController extends Controller
             'promotion_id' => $request->promotion_id,
             'reward_id' => $request->reward_id,
             'payment_method' => $paymentMethod,
-            'payment_status' => 'pending',
+            'payment_status' => $paymentMethod === 'zalopay' ? 'paid' : 'unpaid',
             'affiliate_referrer_id' => $referrerId ?: null,
-            'affiliate_points_awarded' => false,
+            'affiliate_points_awarded' => $paymentMethod === 'zalopay',
         ]);
+
+        // Notify customer about new order
+        if ($user) {
+            $notifStatus = $paymentMethod === 'zalopay' ? 'paid' : 'processing';
+            $user->notify(new OrderStatusNotification($order, $notifStatus));
+        }
 
         if ($request->has('shipping_address')) {
             $addr = $request->shipping_address;
@@ -238,14 +245,14 @@ class OrderController extends Controller
             return response()->json(['error' => true, 'message' => 'Bạn không có quyền hủy đơn hàng này'], 403);
         }
 
-        // Allow cancelling if status is new, pending or confirmed
-        $allowCancelStatuses = ['new', 'pending', 'confirmed'];
+        // Cho phép hủy nếu đơn CHƯA được giao đi (chưa ở mức đang giao/đã giao)
+        $cannotCancelStatuses = ['shipped', 'delivering', 'delivered', 'cancelled'];
 
-        if (!in_array($order->status, $allowCancelStatuses)) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Đơn hàng này đã vào công đoạn xử lý, không thể tự hủy. Vui lòng liên hệ hỗ trợ.'
-            ], 400);
+        if (in_array($order->status, $cannotCancelStatuses)) {
+            $reason = $order->status === 'cancelled'
+                ? 'Đơn hàng đã được hủy trước đó.'
+                : 'Đơn hàng đang trên đường giao, không thể hủy. Vui lòng liên hệ hỗ trợ.';
+            return response()->json(['error' => true, 'message' => $reason], 400);
         }
 
         $order->update(['status' => 'cancelled']);
@@ -282,7 +289,7 @@ class OrderController extends Controller
             'customer_email' => optional($order->customer)->email,
             'customer_phone' => optional($order->customer)->phone,
             'status' => $order->status,
-            'payment_status' => $order->payment_status ?? 'pending',
+            'payment_status' => $order->payment_status ?? 'unpaid',
             'payment_method' => $order->payment_method ?? 'cod',
             'subtotal' => $order->total_price - $order->shipping_price,
             'tax_amount' => 0,

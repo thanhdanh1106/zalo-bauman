@@ -10,7 +10,7 @@ return [
     'features' => [
         'curations' => true,
         'file_swap' => true,
-        'directory_restriction' => false,
+        'directory_restriction' => true,
         'preserve_file_names' => false,
         'tenancy' => [
             'enabled' => false,
@@ -19,7 +19,7 @@ return [
     ],
     'glide_token' => env('CURATOR_GLIDE_TOKEN'),
     'model' => Awcodes\Curator\Models\Media::class,
-    'path_generator' => \Awcodes\Curator\PathGenerators\DatePathGenerator::class,
+    'path_generator' => \App\Services\Curator\WordPressPathGenerator::class,
     'resource' => [
         'label' => 'Media',
         'plural_label' => 'Media',

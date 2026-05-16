@@ -157,4 +157,36 @@ class ZaloAuthController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Dev Login: Đăng nhập bằng email/password (chỉ dùng để test)
+     * Nên bảo vệ hoặc xóa khi đưa lên production thật sự.
+     */
+    public function devLogin(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['error' => true, 'message' => 'Email hoặc mật khẩu không đúng'], 401);
+        }
+
+        $token = $user->createToken('dev-login')->plainTextToken;
+
+        return response()->json([
+            'error'   => false,
+            'message' => 'Đăng nhập dev thành công',
+            'li_at'   => $token,
+            'credentials' => [
+                'access_token' => $token,
+                'token_type'   => 'Bearer',
+                'expires_in'   => 2592000,
+            ],
+            'user' => $user,
+        ]);
+    }
 }

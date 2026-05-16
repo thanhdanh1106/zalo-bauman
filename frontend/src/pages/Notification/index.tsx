@@ -36,8 +36,9 @@ const NotificationPage: React.FC = () => {
     setLoading(true);
     try {
       const res = await instance.get(`/notifications?type=${type}`);
-      if (res && !res.error && res.data) {
-        setNotifications(res.data.data.data); // Pagination data
+      if (res.data && res.data.error === false) {
+        // Laravel pagination structure: res.data.data is the paginator, res.data.data.data is the items array
+        setNotifications(res.data.data.data || []);
       }
     } catch (error) {
       console.error("Error fetching notifications:", error);

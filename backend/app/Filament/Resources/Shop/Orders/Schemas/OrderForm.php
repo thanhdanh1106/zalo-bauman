@@ -135,6 +135,24 @@ class OrderForm
                 ->default('cod')
                 ->required(),
 
+            ToggleButtons::make('payment_status')
+                ->label('Tình trạng thanh toán')
+                ->inline()
+                ->options([
+                    'unpaid' => 'Chưa thanh toán',
+                    'paid' => 'Đã thanh toán',
+                ])
+                ->colors([
+                    'unpaid' => 'danger',
+                    'paid' => 'success',
+                ])
+                ->icons([
+                    'unpaid' => Heroicon::OutlinedXCircle,
+                    'paid' => Heroicon::OutlinedCheckCircle,
+                ])
+                ->default('unpaid')
+                ->required(),
+
             AddressForm::make('address')
                 ->label('Địa chỉ giao hàng')
                 ->columnSpan('full'),

@@ -29,10 +29,12 @@ import PaymentFailed from "./pages/PaymentFailed";
 import PaymentPending from "./pages/PaymentPending";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NotificationPage from "./pages/Notification";
+import PopupManager from "@shared/components/PopupManager";
 
 const Router = () => {
   return (
    <ZMPRouter>
+      <PopupManager />
       <Routes>
         <Route
           path="/"

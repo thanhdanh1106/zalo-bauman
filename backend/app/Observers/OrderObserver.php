@@ -8,16 +8,27 @@ class OrderObserver
 {
     public function updated(\App\Models\Shop\Order $order): void
     {
-        // If order is completed/delivered (assuming status 'delivered' or similar)
-        if ($order->status === 'delivered' && $order->wasChanged('status')) {
+        // 1. Tự động gửi thông báo khi có bất kỳ thay đổi trạng thái nào
+        if ($order->wasChanged('status')) {
             $customerUser = \App\Models\User::where('email', $order->customer?->email)->first();
-            
-            if ($customerUser && $customerUser->referred_by) {
-                $referrer = \App\Models\User::find($customerUser->referred_by);
-                if ($referrer) {
-                    $commission = $order->total_price * 0.1; // 10% commission
-                    $referrer->deposit($commission, ['description' => 'Hoa hồng từ đơn hàng #' . $order->number]);
+            if ($customerUser) {
+                try {
+                    $customerUser->notify(new \App\Notifications\OrderStatusNotification($order, $order->status->value));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Notification Error: " . $e->getMessage());
                 }
+            }
+        }
+
+        // 2. Logic cộng điểm khi đơn hàng chuyển sang 'delivered'
+        if ($order->status === \App\Enums\OrderStatus::Delivered && 
+            $order->wasChanged('status') && 
+            !$order->affiliate_points_awarded) {
+            
+            try {
+                app(\App\Http\Controllers\Api\MiniApp\Shop\OrderController::class)->awardOrderPoints($order);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("OrderObserver Award Points Error: " . $e->getMessage());
             }
         }
     }

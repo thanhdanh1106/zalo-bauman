@@ -66,7 +66,7 @@ const Products: React.FC = () => {
   const fetchProducts = async (
     filters: FilterValues,
     page: number = 1,
-    limit: number = 12
+    limit: number = 10
   ) => {
     setIsLoading(true);
     setError(null);
@@ -137,7 +137,14 @@ const Products: React.FC = () => {
   };
 
   const handleFilterChange = (newFilters: FilterValues) => {
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams);
+    // Reset page to 1 on filter change
+    params.set("page", "1");
+
+    // Clear existing filter keys to rebuild from newFilters
+    const filterKeys = ["search", "category_ids", "sort_by", "sort_direction"];
+    filterKeys.forEach(key => params.delete(key));
+
     Object.entries(newFilters).forEach(([key, value]) => {
       if (value !== undefined && value !== "" && value !== false) {
         if (key === "category_ids" && Array.isArray(value) && value.length > 0) {
@@ -148,6 +155,13 @@ const Products: React.FC = () => {
       }
     });
     setSearchParams(params);
+  };
+
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", page.toString());
+    setSearchParams(params);
+    scrollToTop();
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -172,7 +186,7 @@ const Products: React.FC = () => {
 
   useEffect(() => {
     const currentPage = Number(searchParams.get("page")) || 1;
-    const itemsPerPage = Number(searchParams.get("per_page")) || 12;
+    const itemsPerPage = Number(searchParams.get("per_page")) || 10;
 
     if (filterValues.search) {
       debouncedFetchProducts(filterValues, currentPage, itemsPerPage);
@@ -210,8 +224,8 @@ const Products: React.FC = () => {
           <button
             onClick={() => handleFilterChange({ ...filterValues, category_ids: undefined })}
             className={`snap-start shrink-0 px-5 py-2 rounded-full font-sans font-semibold text-xs transition-all shadow-sm ${!filterValues.category_ids?.length
-                ? "bg-primary text-white"
-                : "bg-surface-container-highest text-on-surface-variant border border-surface-variant"
+              ? "bg-primary text-white"
+              : "bg-surface-container-highest text-on-surface-variant border border-surface-variant"
               }`}
           >
             Tất cả
@@ -221,8 +235,8 @@ const Products: React.FC = () => {
               key={cat.id}
               onClick={() => handleFilterChange({ ...filterValues, category_ids: [parseInt(cat.id.toString())] })}
               className={`snap-start shrink-0 px-5 py-2 rounded-full font-sans font-semibold text-xs transition-all shadow-sm ${filterValues.category_ids?.includes(parseInt(cat.id.toString()))
-                  ? "bg-primary text-white"
-                  : "bg-surface-container-highest text-on-surface-variant border border-surface-variant"
+                ? "bg-primary text-white"
+                : "bg-surface-container-highest text-on-surface-variant border border-surface-variant"
                 }`}
             >
               {cat.name}
@@ -242,8 +256,8 @@ const Products: React.FC = () => {
               key={tab.id}
               onClick={() => handleFilterChange({ ...filterValues, sort_by: tab.id })}
               className={`pb-3 shrink-0 font-sans font-bold text-xs uppercase tracking-wider transition-all border-b-2 ${filterValues.sort_by === tab.id
-                  ? "border-primary text-primary"
-                  : "border-transparent text-on-surface-variant"
+                ? "border-primary text-primary"
+                : "border-transparent text-on-surface-variant"
                 }`}
             >
               {tab.label}
@@ -269,6 +283,31 @@ const Products: React.FC = () => {
               viewMode="grid"
               onAddToCart={(p) => addToCart(p, 1)}
             />
+          )}
+
+          {/* Pagination */}
+          {meta && meta.last_page > 1 && !isLoading && (
+            <div className="flex items-center justify-center gap-6 mt-8">
+              <button
+                disabled={meta.current_page === 1}
+                onClick={() => handlePageChange(meta.current_page - 1)}
+                className="w-10 h-10 flex items-center justify-center rounded-full border border-surface-variant text-on-surface-variant disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface-container-highest transition-all"
+              >
+                <span className="material-symbols-outlined">chevron_left</span>
+              </button>
+
+              <div className="text-sm font-bold text-on-surface font-sans">
+                Trang {meta.current_page} / {meta.last_page}
+              </div>
+
+              <button
+                disabled={meta.current_page === meta.last_page}
+                onClick={() => handlePageChange(meta.current_page + 1)}
+                className="w-10 h-10 flex items-center justify-center rounded-full border border-surface-variant text-on-surface-variant disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface-container-highest transition-all"
+              >
+                <span className="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
           )}
 
           {products.length === 0 && !isLoading && (

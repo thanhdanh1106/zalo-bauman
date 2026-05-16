@@ -20,7 +20,8 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use App\Notifications\OrderStatusNotification;
+use App\Models\User;
 use Illuminate\Support\Carbon;
 
 class OrdersTable
@@ -28,6 +29,7 @@ class OrdersTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('number')
                     ->label('Số đơn hàng')
@@ -59,8 +61,23 @@ class OrdersTable
                     })
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('payment_status')
+                    ->label('Tình trạng thanh toán')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'paid' => 'Đã thanh toán',
+                        'unpaid' => 'Chưa thanh toán',
+                        default => $state,
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'paid' => 'success',
+                        'unpaid' => 'danger',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 TextColumn::make('currency')
                     ->label('Tiền tệ')
+                    ->formatStateUsing(fn ($state): string => strtoupper($state instanceof \UnitEnum ? $state->value : $state))
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
@@ -136,6 +153,12 @@ class OrdersTable
                         ->action(function (Order $record): void {
                             $record->update(['status' => OrderStatus::Processing]);
 
+                            // Notify customer
+                            $user = User::where('email', optional($record->customer)->email)->first();
+                            if ($user) {
+                                $user->notify(new OrderStatusNotification($record, 'processing'));
+                            }
+
                             Notification::make()
                                 ->title('Đơn hàng đang được xử lý')
                                 ->success()
@@ -163,6 +186,12 @@ class OrdersTable
                                         'notes' => $data['notes'] ?? null,
                                     ]);
 
+                                    // Notify customer
+                                    $user = User::where('email', optional($record->customer)->email)->first();
+                                    if ($user) {
+                                        $user->notify(new OrderStatusNotification($record, 'shipped'));
+                                    }
+
                                     Notification::make()
                                         ->title('Đã giao hàng & thông báo khách hàng thành công')
                                         ->success()
@@ -175,16 +204,25 @@ class OrdersTable
                                 'notes' => $data['notes'] ?? null,
                             ]);
 
+                            // Notify customer
+                            $user = User::where('email', optional($record->customer)->email)->first();
+                            if ($user) {
+                                $user->notify(new OrderStatusNotification($record, 'shipped'));
+                            }
+
                             Notification::make()
                                 ->title('Đã xác nhận giao hàng')
                                 ->success()
                                 ->send();
                         }),
                     Action::make('confirm_payment')
-                        ->label('Đã thanh toán')
+                        ->label('Xác nhận thanh toán')
                         ->icon(Heroicon::CheckCircle)
                         ->color('success')
-                        ->visible(fn (Order $record): bool => $record->payment_status !== 'paid')
+                        ->visible(fn (Order $record): bool => 
+                            $record->payment_status !== 'paid' && 
+                            $record->payment_method !== 'zalopay'
+                        )
                         ->requiresConfirmation()
                         ->action(function (Order $record): void {
                             $record->update(['payment_status' => 'paid']);
@@ -192,6 +230,12 @@ class OrdersTable
                                 app(\App\Http\Controllers\Api\MiniApp\Shop\OrderController::class)->awardOrderPoints($record);
                             } catch (\Throwable $e) {
                                 // Ignore
+                            }
+
+                            // Notify customer
+                            $user = User::where('email', optional($record->customer)->email)->first();
+                            if ($user) {
+                                $user->notify(new OrderStatusNotification($record, 'paid'));
                             }
 
                             Notification::make()
@@ -213,6 +257,12 @@ class OrdersTable
                                 // Ignore
                             }
 
+                            // Notify customer
+                            $user = User::where('email', optional($record->customer)->email)->first();
+                            if ($user) {
+                                $user->notify(new OrderStatusNotification($record, 'delivered'));
+                            }
+
                             Notification::make()
                                 ->title('Đơn hàng đã được đánh dấu hoàn thành & cộng điểm')
                                 ->success()
@@ -229,30 +279,24 @@ class OrdersTable
                         ->action(function (Order $record): void {
                             $record->update(['status' => OrderStatus::Cancelled]);
 
+                            // Notify customer
+                            $user = User::where('email', optional($record->customer)->email)->first();
+                            if ($user) {
+                                $user->notify(new OrderStatusNotification($record, 'cancelled'));
+                            }
+
                             Notification::make()
                                 ->title('Đã hủy đơn hàng')
                                 ->danger()
                                 ->send();
                         }),
                     DeleteAction::make()
-                        ->label('Xóa')
-                        ->action(function (): void {
-                            Notification::make()
-                                ->title('Dữ liệu này không thể xóa trực tiếp!')
-                                ->warning()
-                                ->send();
-                        }),
+                        ->label('Xóa'),
                 ]),
             ])
             ->groupedBulkActions([
                 DeleteBulkAction::make()
-                    ->label('Xóa đã chọn')
-                    ->action(function (): void {
-                        Notification::make()
-                            ->title('Thao tác hàng loạt bị hạn chế!')
-                            ->warning()
-                            ->send();
-                    }),
+                    ->label('Xóa đã chọn'),
             ])
             ->groups([
                 Group::make('created_at')

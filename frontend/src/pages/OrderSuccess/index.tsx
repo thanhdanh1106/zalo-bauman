@@ -18,7 +18,7 @@ import {
   FaHome,
   FaTimesCircle,
 } from "react-icons/fa";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "zmp-ui";
 import { CheckoutSDK, EventName, events } from "zmp-sdk/apis";
 
 const OrderSuccess: React.FC = () => {
@@ -31,6 +31,7 @@ const OrderSuccess: React.FC = () => {
   const [loadingZaloPayment, setLoadingZaloPayment] = useState(false);
   const [cancellingOrder, setCancellingOrder] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string>("cod");
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const [paymentConfig, setPaymentConfig] = useState<any>({
     bank_name: "Vietcombank",
@@ -91,8 +92,7 @@ const OrderSuccess: React.FC = () => {
 
   const handleCancelOrder = async () => {
     if (!orderData) return;
-    if (!confirm(`Bạn có chắc muốn hủy đơn hàng #${orderData.order_number}?`)) return;
-
+    setShowCancelModal(false);
     try {
       setCancellingOrder(true);
       const response = await cancelOrder(orderData.id);
@@ -187,20 +187,63 @@ const OrderSuccess: React.FC = () => {
 
   const statusMeta = getStatusDisplay(orderData.status);
 
+  const cannotCancelStatuses = ['shipped', 'delivering', 'delivered', 'cancelled'];
+
   return (
     <div className="min-h-screen bg-[#f8f9fa] pb-40 animate-fade-in">
+
+      {/* ===== CONFIRM CANCEL MODAL ===== */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setShowCancelModal(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div
+            className="relative bg-white rounded-3xl p-8 shadow-2xl w-full max-w-sm"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                <FaTimesCircle className="text-3xl text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Hủy đơn hàng?</h3>
+              <p className="text-sm text-gray-500 mb-1">Bạn có chắc chắn muốn hủy đơn hàng</p>
+              <p className="text-base font-bold text-gray-800 mb-6">#{orderData?.order_number}</p>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Không, giữ lại
+                </button>
+                <button
+                  onClick={handleCancelOrder}
+                  disabled={cancellingOrder}
+                  className="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors disabled:opacity-60"
+                >
+                  {cancellingOrder ? "Đang hủy..." : "Xác nhận hủy"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Không dùng custom duplicate header tại đây vì IndexLayout đã bao gồm header chính */}
 
       <div className="p-4 space-y-4 pt-6">
         {/* Order Status Ribbon */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50 flex items-center justify-between">
           <div>
-            <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Trạng thái đơn hàng</span>
+            <span className="text-[10px] text-gray-400 font-bold block uppercase tracking-wider">Thông tin đơn hàng</span>
             <span className="text-sm font-bold text-gray-800">#{orderData.order_number}</span>
           </div>
-          <span className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${statusMeta.bg}`}>
-            {statusMeta.label}
-          </span>
+          <div className="flex flex-col items-end gap-1.5">
+            <span className={`px-3 py-1 rounded-lg text-[10px] font-bold border ${statusMeta.bg}`}>
+              {statusMeta.label}
+            </span>
+            <span className={`px-3 py-1 rounded-lg text-[10px] font-bold border ${orderData.payment_status === "paid" ? "bg-green-50 text-green-600 border-green-100" : "bg-red-50 text-red-600 border-red-100"}`}>
+              {orderData.payment_status === "paid" ? "Đã thanh toán" : "Chưa thanh toán"}
+            </span>
+          </div>
         </div>
 
         {/* Shipping Address */}
@@ -311,9 +354,9 @@ const OrderSuccess: React.FC = () => {
         </div>
 
         {/* Cancellation Section */}
-        {["new", "confirmed", "pending"].includes(orderData.status) && (
-           <button 
-             onClick={handleCancelOrder}
+        {!cannotCancelStatuses.includes(orderData.status) && (
+           <button
+             onClick={() => setShowCancelModal(true)}
              disabled={cancellingOrder}
              className="w-full py-3.5 text-xs font-bold text-red-500 bg-red-50 rounded-xl active:bg-red-100 transition-colors flex items-center justify-center gap-2 border border-red-100"
            >

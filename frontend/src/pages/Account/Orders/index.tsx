@@ -32,12 +32,14 @@ const AccountOrders: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [data, setData] = useState<orderProps[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(
-    null
-  );
+  const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
+  } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    orderId: number;
+    orderNumber: string;
   } | null>(null);
 
   const getStatusInfo = (status: string) => {
@@ -120,35 +122,22 @@ const AccountOrders: React.FC = () => {
     }
   }
 
-  const handleCancelOrder = async (e: React.MouseEvent, orderId: number, orderNumber: string) => {
-    e.stopPropagation();
-    if (!confirm(`Bạn có chắc chắn muốn hủy đơn hàng #${orderNumber}?`)) {
-      return;
-    }
-
+  const handleCancelOrder = async (orderId: number, orderNumber: string) => {
     try {
       setCancellingOrderId(orderId);
+      setConfirmModal(null);
       setMessage(null);
       const response = await cancelOrder(orderId);
 
       if (response.error) {
-        setMessage({
-          type: "error",
-          text: "Không thể hủy đơn hàng. Vui lòng thử lại sau.",
-        });
+        setMessage({ type: "error", text: response.message || "Không thể hủy đơn hàng. Vui lòng thử lại sau." });
       } else {
         await fetchOrders({ user_id: user?.id });
-        setMessage({
-          type: "success",
-          text: "Đơn hàng đã được hủy thành công!",
-        });
+        setMessage({ type: "success", text: "Đơn hàng đã được hủy thành công!" });
         setTimeout(() => setMessage(null), 5000);
       }
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: "Có lỗi xảy ra khi hủy đơn hàng. Vui lòng thử lại.",
-      });
+      setMessage({ type: "error", text: "Có lỗi xảy ra khi hủy đơn hàng. Vui lòng thử lại." });
     } finally {
       setCancellingOrderId(null);
     }
@@ -191,12 +180,52 @@ const AccountOrders: React.FC = () => {
     );
   }
 
-  if (isLoading) {
-    return <PageLoading height={300} />;
-  }
+  if (isLoading) return <PageLoading height={300} />;
+
+  const cannotCancelStatuses = ['shipped', 'delivering', 'delivered', 'cancelled'];
 
   return (
     <div className="min-h-screen bg-[#f6f3f2] pb-24">
+
+      {/* ===== CONFIRM CANCEL MODAL ===== */}
+      {confirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setConfirmModal(null)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div
+            className="relative bg-white rounded-3xl p-8 shadow-2xl w-full max-w-sm"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                <FaTimesCircle className="text-3xl text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Hủy đơn hàng?</h3>
+              <p className="text-sm text-gray-500 mb-1">
+                Bạn có chắc chắn muốn hủy đơn hàng
+              </p>
+              <p className="text-base font-bold text-gray-800 mb-6">
+                #{confirmModal.orderNumber}
+              </p>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setConfirmModal(null)}
+                  className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Không, giữ lại
+                </button>
+                <button
+                  onClick={() => handleCancelOrder(confirmModal.orderId, confirmModal.orderNumber)}
+                  disabled={cancellingOrderId === confirmModal.orderId}
+                  className="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors disabled:opacity-60"
+                >
+                  {cancellingOrderId === confirmModal.orderId ? "Đang hủy..." : "Xác nhận hủy"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -290,9 +319,14 @@ const AccountOrders: React.FC = () => {
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Đơn hàng</span>
                         <span className="text-sm font-bold text-gray-800">#{order.order_number}</span>
                      </div>
-                     <div className={`px-4 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 ${status.bgColor} ${status.color} border border-current/10`}>
-                        {status.icon}
-                        {status.label}
+                     <div className="flex flex-col items-end gap-1.5">
+                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 ${status.bgColor} ${status.color} border border-current/10`}>
+                           {status.icon}
+                           {status.label}
+                        </div>
+                        <div className={`px-3 py-1 rounded-lg text-[10px] font-bold border ${order.payment_status === "paid" ? "bg-green-50 text-green-600 border-green-100" : "bg-red-50 text-red-600 border-red-100"}`}>
+                           {order.payment_status === "paid" ? "Đã thanh toán" : "Chưa thanh toán"}
+                        </div>
                      </div>
                   </div>
 
@@ -317,9 +351,6 @@ const AccountOrders: React.FC = () => {
                            <p className="text-xs text-gray-400 mt-1">{item.quantity} sản phẩm</p>
                            <div className="flex items-center justify-between mt-2">
                               <span className="text-sm font-bold text-[#8f0012]">{formatCurrency(Number(order.total_amount))}</span>
-                              <span className={`text-[10px] font-bold px-3 py-1 rounded-lg ${payment.bgColor} ${payment.color}`}>
-                                {payment.label}
-                              </span>
                            </div>
                         </div>
                       </div>
@@ -338,9 +369,9 @@ const AccountOrders: React.FC = () => {
                         {new Date(order.order_date).toLocaleDateString("vi-VN")}
                      </div>
                      <div className="flex gap-2">
-                        {['new', 'confirmed', 'pending'].includes(order.status) && (
-                          <button 
-                            onClick={(e) => handleCancelOrder(e, order.id, order.order_number)}
+                        {!cannotCancelStatuses.includes(order.status) && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setConfirmModal({ orderId: order.id, orderNumber: order.order_number }); }}
                             disabled={cancellingOrderId === order.id}
                             className="px-4 py-2 text-[10px] font-bold text-red-500 border border-red-100 rounded-xl bg-white hover:bg-red-50 transition-colors"
                           >

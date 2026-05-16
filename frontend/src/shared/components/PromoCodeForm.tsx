@@ -84,14 +84,14 @@ const PromoCodeForm: React.FC<PromoCodeFormProps> = ({
       {appliedPromotion ? (
         <div className="flex items-center justify-between bg-green-50 p-3 rounded-xl border border-green-100">
           <div className="flex items-center space-x-2">
-             <span className="material-symbols-outlined text-green-600 text-[20px]">check_circle</span>
-             <div className="flex flex-col">
-                <span className="text-[13px] font-bold text-green-800">{appliedPromotion.promotion_code}</span>
-                <span className="text-[11px] text-green-600">Đã áp dụng giảm giá</span>
-             </div>
+            <span className="material-symbols-outlined text-green-600 text-[20px]">check_circle</span>
+            <div className="flex flex-col">
+              <span className="text-[13px] font-bold text-green-800">{appliedPromotion.promotion_code}</span>
+              <span className="text-[11px] text-green-600">Đã áp dụng giảm giá</span>
+            </div>
           </div>
           <button onClick={handleRemovePromotion} className="text-gray-400 p-1">
-             <span className="material-symbols-outlined text-[18px]">close</span>
+            <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
       ) : (
@@ -109,7 +109,7 @@ const PromoCodeForm: React.FC<PromoCodeFormProps> = ({
             <button
               type="submit"
               disabled={isLoading || !promoCode.trim()}
-              className="bg-[#8f0012] text-white px-5 py-3 rounded-lg text-[13px] font-bold active:scale-95 transition-transform disabled:opacity-50"
+              className="bg-[#8f0012] text-white px-5 py-3 rounded-lg text-[10px] font-bold active:scale-95 transition-transform disabled:opacity-50"
             >
               {isLoading ? "..." : "Áp dụng"}
             </button>

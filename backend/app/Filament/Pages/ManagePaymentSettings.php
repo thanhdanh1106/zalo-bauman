@@ -57,6 +57,8 @@ class ManagePaymentSettings extends SettingsPage
                 \Filament\Schemas\Components\Section::make('Cấu hình Chuyển khoản Ngân hàng')
                     ->description('Thông tin tài khoản nhận tiền hiển thị tại bước Thanh toán để khách hàng quét mã hoặc sao chép chuyển khoản.')
                     ->schema([
+                        Toggle::make('enable_banking')
+                            ->label('Kích hoạt phương thức Chuyển khoản ngân hàng (Thủ công)'),
                         TextInput::make('bank_name')
                             ->label('Tên Ngân hàng (Ví dụ: Vietcombank, MB Bank...)')
                             ->required(),
@@ -66,6 +68,10 @@ class ManagePaymentSettings extends SettingsPage
                         TextInput::make('bank_account_name')
                             ->label('Tên chủ tài khoản')
                             ->required(),
+                        TextInput::make('bank_transfer_description')
+                            ->label('Nội dung chuyển khoản mẫu')
+                            ->required()
+                            ->helperText('Sử dụng {order_number} để hệ thống tự điền mã đơn hàng thực tế. Ví dụ: "Thanh toan {order_number}"'),
                     ])->columns(1),
 
                 \Filament\Schemas\Components\Section::make('Cấu hình VietQR (Tạo mã QR chuyển khoản)')
@@ -73,10 +79,29 @@ class ManagePaymentSettings extends SettingsPage
                     ->schema([
                         Toggle::make('vietqr_enabled')
                             ->label('Kích hoạt hiển thị mã VietQR'),
-                        TextInput::make('vietqr_bank_bin')
-                            ->label('Mã BIN ngân hàng (6 số)')
-                            ->helperText('Ví dụ: Vietcombank = 970436, MB Bank = 970422.')
-                            ->maxLength(10),
+                        Select::make('vietqr_bank_bin')
+                            ->label('Chọn Ngân hàng nhận tiền')
+                            ->options(function () {
+                                try {
+                                    $response = \Illuminate\Support\Facades\Http::get('https://api.vietqr.io/v2/banks');
+                                    if ($response->successful()) {
+                                        return collect($response->json()['data'])->mapWithKeys(function ($bank) {
+                                            return [$bank['bin'] => "{$bank['shortName']} - {$bank['name']}"];
+                                        })->toArray();
+                                    }
+                                } catch (\Exception $e) {
+                                    return [
+                                        '970436' => 'Vietcombank',
+                                        '970422' => 'MB Bank',
+                                        '970415' => 'VietinBank',
+                                        '970418' => 'BIDV',
+                                      ];
+                                }
+                                return [];
+                            })
+                            ->searchable()
+                            ->required()
+                            ->helperText('Hệ thống tự động lấy mã BIN chuẩn từ VietQR API dựa trên ngân hàng bạn chọn.'),
                         Select::make('vietqr_template')
                             ->label('Giao diện hiển thị QR')
                             ->options([
@@ -106,7 +131,8 @@ class ManagePaymentSettings extends SettingsPage
                             ->password()
                             ->revealable()
                             ->required(),
-                    ])->columns(2),
+                    ])->columns(2)
+                    ->collapsed(),
             ]);
     }
 }

@@ -8,6 +8,7 @@ import { Page, Text, Modal, Box, Button } from "zmp-ui";
 import { logout } from "@shared/store/slices/authSlice";
 import { getUserPoints } from "@shared/utils/Rewards";
 import { getThumbnailUrl } from "@shared/utils/Hooks";
+import { instance } from "@shared/utils/axiosInstance";
 import Login from "../../Auth/Login";
 
 const AccountProfile: React.FC = () => {
@@ -20,6 +21,7 @@ const AccountProfile: React.FC = () => {
   const [showQR, setShowQR] = useState(false);
   const [qrSvg, setQrSvg] = useState<string>("");
   const [qrLoading, setQrLoading] = useState(false);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -27,7 +29,17 @@ const AccountProfile: React.FC = () => {
     getUser();
     fetchPoints();
     fetchQR();
+    fetchUnreadCount();
   }, []);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await instance.get('/notifications/unread-count');
+      if (res.data && res.data.error === false) {
+        setUnreadNotifCount(res.data.count);
+      }
+    } catch (e) { }
+  };
 
   const fetchPoints = async () => {
     setPointsLoading(true);
@@ -114,6 +126,13 @@ const AccountProfile: React.FC = () => {
       path: "/account/orders",
     },
     {
+      id: "notifications",
+      title: "Thông báo",
+      iconName: "notifications",
+      path: "/notifications",
+      badge: unreadNotifCount > 0 ? unreadNotifCount : null,
+    },
+    {
       id: "wishlist",
       title: "Sản phẩm yêu thích",
       iconName: "favorite",
@@ -125,12 +144,7 @@ const AccountProfile: React.FC = () => {
       iconName: "location_on",
       path: "/account/addresses",
     },
-    {
-      id: "settings",
-      title: "Cài đặt tài khoản",
-      iconName: "settings",
-      path: "/account",
-    },
+
   ];
 
   return (
@@ -263,6 +277,11 @@ const AccountProfile: React.FC = () => {
                   <span className="material-symbols-outlined">{item.iconName}</span>
                 </div>
                 <span className="flex-1 text-[16px] font-medium text-[#1c1b1b]">{item.title}</span>
+                {item.badge && (
+                  <span className="bg-[#8f0012] text-white text-[10px] font-bold px-2 py-0.5 rounded-full mr-2">
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </span>
+                )}
                 <span className="material-symbols-outlined text-neutral-300">chevron_right</span>
               </button>
             ))}

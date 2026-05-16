@@ -13,13 +13,29 @@ const DataSync: React.FC = () => {
     const prevUserRef = useRef(user);
 
     useEffect(() => {
-        // Capture referral ID from URL
-        const queryParams = new URLSearchParams(window.location.search);
-        const ref = queryParams.get('ref');
-        if (ref) {
-            console.log("Captured referral ID:", ref);
-            localStorage.setItem('referred_by', ref);
-        }
+        const captureRef = async () => {
+            // 1. Try from URL query string
+            const queryParams = new URLSearchParams(window.location.search);
+            let ref = queryParams.get('ref');
+
+            // 2. Try from Zalo Startup Params if URL doesn't have it
+            if (!ref) {
+                try {
+                    const { getStartupParams } = await import("zmp-sdk/apis");
+                    const startupParams = await getStartupParams();
+                    ref = startupParams?.ref || (startupParams as any)?.referrerId;
+                } catch (e) {
+                    console.error("Error getting startup params:", e);
+                }
+            }
+
+            if (ref) {
+                console.log("Captured referral ID:", ref);
+                localStorage.setItem('affiliate_ref', ref.toString());
+            }
+        };
+
+        captureRef();
     }, []);
 
     useEffect(() => {

@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\ProcessReferral::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'api/zalopay/callback',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         Flare::handles($exceptions);

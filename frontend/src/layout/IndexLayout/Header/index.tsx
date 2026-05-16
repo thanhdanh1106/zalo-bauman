@@ -20,7 +20,7 @@ const HomeHeader = () => {
     const fetchUnreadCount = async () => {
       try {
         const res = await instance.get('/notifications/unread-count');
-        if (res && !res.error) {
+        if (res.data && res.data.error === false) {
           setUnreadCount(res.data.count);
         }
       } catch (e) {}
@@ -60,7 +60,7 @@ const HomeHeader = () => {
         >
           <span className="material-symbols-outlined icon-fill" style={{ fontSize: '20px' }}>notifications</span>
           {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 w-4 h-4 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#8f0012] text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-pulse-slow">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}

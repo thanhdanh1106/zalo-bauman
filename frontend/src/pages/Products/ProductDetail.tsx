@@ -9,7 +9,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import "swiper/css";
 import "swiper/css/pagination";
-import { Pagination as SwipperPagination, A11y } from "swiper/modules";
+import { Pagination as SwipperPagination, A11y, Navigation } from "swiper/modules";
+import "swiper/css/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { openShareSheet, openWebview, setNavigationBarTitle } from "zmp-sdk/apis";
 import { Modal, Box, Button } from "zmp-ui";
@@ -29,6 +30,7 @@ const ProductDetail: React.FC = () => {
   const { toggleWishlist, isInWishlist } = useWishlist();
 
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [quantity, setQuantity] = useState(1);
   const [showAffiliateModal, setShowAffiliateModal] = useState(false);
   const { user } = useSelector((state: RootState) => state.auth);
 
@@ -71,8 +73,8 @@ const ProductDetail: React.FC = () => {
   const isInZalo = typeof (window as any).ZaloJavaScriptInterface !== 'undefined' || navigator.userAgent.toLowerCase().includes('zalo');
   const referralLink = product
     ? (ZALO_APP_ID && isInZalo
-        ? `https://zalo.me/s/${ZALO_APP_ID}/?ref=${user?.id || ''}&product=${product.slug || product.id}`
-        : `${window.location.origin}/products/${product.slug || product.id}?ref=${user?.id || ''}`)
+      ? `https://zalo.me/s/${ZALO_APP_ID}/?ref=${user?.id || ''}&product=${product.slug || product.id}`
+      : `${window.location.origin}/products/${product.slug || product.id}?ref=${user?.id || ''}`)
     : '';
 
   const handleCopyLink = () => {
@@ -176,14 +178,18 @@ const ProductDetail: React.FC = () => {
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
 
   return (
-    <div className="bg-background min-h-screen pb-[100px] antialiased">
+    <div className="bg-background min-h-screen pb-[180px] antialiased">
       <main>
         {/* Image Gallery */}
-        <section className="relative w-full aspect-square bg-white border-b border-gray-100">
+        <section className="relative w-full aspect-square bg-white border-b border-gray-100 group">
           <Swiper
-            modules={[SwipperPagination, A11y]}
+            modules={[SwipperPagination, A11y, Navigation]}
             pagination={{ clickable: true }}
-            className="h-full w-full"
+            navigation={{
+              nextEl: '.swiper-button-next-custom',
+              prevEl: '.swiper-button-prev-custom',
+            }}
+            className="h-full w-full product-detail-swiper"
           >
             {gallery.map((img, idx) => (
               <SwiperSlide key={idx}>
@@ -195,6 +201,18 @@ const ProductDetail: React.FC = () => {
               </SwiperSlide>
             ))}
           </Swiper>
+
+          {/* Custom Navigation Buttons */}
+          {gallery.length > 1 && (
+            <>
+              <button className="swiper-button-prev-custom absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm text-gray-800 shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-90">
+                <span className="material-symbols-outlined text-xl">chevron_left</span>
+              </button>
+              <button className="swiper-button-next-custom absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm text-gray-800 shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-90">
+                <span className="material-symbols-outlined text-xl">chevron_right</span>
+              </button>
+            </>
+          )}
 
           {/* Badges */}
           <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
@@ -248,7 +266,7 @@ const ProductDetail: React.FC = () => {
           </div>
 
           {/* Rating Stars and Sold count matching user screenshot */}
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 ">
             <div className="flex text-yellow-400 text-sm">
               {Array.from({ length: 5 }).map((_, idx) => (
                 <span key={idx}>★</span>
@@ -259,91 +277,95 @@ const ProductDetail: React.FC = () => {
               Lượt bán: {product.soldCount || 0}
             </span>
           </div>
+          {/* Variants Selection Section - Precise Mockup Match */}
+          {hasVariants && (
+            <div id="variant-selection" className="py-2 mt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-sans font-bold text-base text-gray-800 shrink-0">
+                  {product.variant_label || 'Khối lượng'}
+                </span>
+                <div className="relative flex-1 max-w-[220px]">
+                  <select
+                    value={selectedVariant?.id || ""}
+                    onChange={(e) => {
+                      const selected = product.variants.find((v: any) => v.id === Number(e.target.value));
+                      setSelectedVariant(selected || null);
+                    }}
+                    className="w-full appearance-none bg-white border-2 border-primary/30 rounded-2xl py-3 pl-5 pr-10 text-sm text-gray-700 font-sans font-bold outline-none focus:border-primary cursor-pointer transition-all shadow-sm"
+                  >
+                    <option value="">Chọn một tùy chọn</option>
+                    {product.variants.map((v: any) => (
+                      <option key={v.id} value={v.id}>
+                        {v.display_label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-primary flex items-center">
+                    <span className="material-symbols-outlined text-2xl font-bold">expand_more</span>
+                  </div>
+                </div>
+              </div>
+
+              {selectedVariant && selectedVariant.image && (
+                <div className="mt-4 flex items-center gap-4 p-3 bg-gray-50 rounded-2xl animate-fade-in border border-gray-100">
+                  <div className="w-14 h-14 rounded-xl overflow-hidden border border-white shadow-sm shrink-0">
+                    <img src={selectedVariant.image} alt={selectedVariant.display_label} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="text-sm flex-1">
+                    <span className="font-bold text-gray-800 block mb-1 leading-tight">{selectedVariant.display_label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-primary font-bold text-base">{selectedVariant.effective_price.toLocaleString()} đ</span>
+                      {selectedVariant.old_price > selectedVariant.effective_price && (
+                        <span className="text-xs text-gray-400 line-through">
+                          {selectedVariant.old_price.toLocaleString()} đ
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Affiliate Marketing Banner matching user screenshot */}
           <div
             onClick={() => setShowAffiliateModal(true)}
-            className="bg-gradient-to-r from-[#e5fce3] to-[#80f977] rounded-2xl p-3 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all shadow-sm mb-4 border border-[#80f977]/30"
+            className="bg-gradient-to-r from-[#e6ffed] to-[#afffb2] rounded-2xl p-4 mt-4 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all shadow-sm mb-6 border border-[#afffb2]/50"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-green-600 shrink-0 shadow-sm">
-                <span className="material-symbols-outlined text-xl">campaign</span>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-green-500 shrink-0 shadow-sm border border-green-50">
+                <span className="material-symbols-outlined text-2xl icon-fill">campaign</span>
               </div>
               <div>
-                <span className="font-bold text-gray-900 text-sm block leading-tight">
+                <span className="font-bold text-gray-900 text-[15px] block leading-tight">
                   Tiếp thị liên kết
                 </span>
-                <span className="text-green-800 text-[11px] font-medium text-[7px] block mt-0.5">
-                  Nhận điểm thưởng để đổi phần quà voucher hấp dẫn
+                <span className="text-green-800 text-[9px] font-medium block mt-1 opacity-80">
+                  Nhận điểm thưởng để đổi phần quà hấp dẫn
                 </span>
               </div>
             </div>
-            <span className="material-symbols-outlined text-gray-800 text-lg">chevron_right</span>
+            <span className="material-symbols-outlined text-gray-800 text-xl">chevron_right</span>
           </div>
 
           {/* Details Bar */}
-          <div className="grid grid-cols-2 gap-4 py-4 border-t border-gray-50">
+          <div className="py-4 border-t border-gray-100 flex flex-col gap-3">
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-secondary" style={{ fontSize: '20px' }}>verified</span>
-              <span className="text-[10px] font-sans font-semibold text-gray-500 uppercase tracking-widest">Chính hãng 100%</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-secondary" style={{ fontSize: '20px' }}>local_shipping</span>
-              <span className="text-[10px] font-sans font-semibold text-gray-500 uppercase tracking-widest">Giao nhanh 2h</span>
+              <span className="material-symbols-outlined text-orange-400" style={{ fontSize: '22px' }}>verified</span>
+              <span className="text-[11px] font-sans font-bold text-gray-600 uppercase tracking-widest">Chính hãng 100%</span>
             </div>
           </div>
         </section>
-
-        {/* Variants Selection Section matching exact UI mockup */}
-        {hasVariants && (
-          <section className="p-margin-main bg-white mb-2 shadow-sm border-t border-gray-50">
-            <div className="flex items-center justify-between gap-4 py-3">
-              <span className="font-sans font-bold text-sm text-gray-800 shrink-0">
-                {product.variant_label || 'Khối lượng'}
-              </span>
-              <div className="relative flex-1 max-w-[240px]">
-                <select
-                  value={selectedVariant?.id || ""}
-                  onChange={(e) => {
-                    const selected = product.variants.find((v: any) => v.id === Number(e.target.value));
-                    setSelectedVariant(selected || null);
-                  }}
-                  className="w-full appearance-none bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm text-gray-800 font-sans outline-none focus:border-primary/50 cursor-pointer shadow-sm"
-                >
-                  <option value="">Chọn một tùy chọn</option>
-                  {product.variants.map((v: any) => (
-                    <option key={v.id} value={v.id}>
-                      {v.display_label}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 flex items-center">
-                  <span className="material-symbols-outlined text-base">expand_more</span>
-                </div>
-              </div>
-            </div>
-            {selectedVariant && selectedVariant.image && (
-              <div className="mt-2 flex items-center gap-3 p-2 bg-gray-50 rounded-lg animate-fade-in">
-                <img src={selectedVariant.image} alt={selectedVariant.display_label} className="w-12 h-12 object-cover rounded-md border border-gray-200" />
-                <div className="text-xs">
-                  <span className="font-bold text-gray-700 block">{selectedVariant.display_label}</span>
-                  <span className="text-primary font-bold">{selectedVariant.effective_price.toLocaleString()} đ</span>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
 
 
 
         {/* Details Section */}
         <section className="p-margin-main bg-white mb-2 shadow-sm">
-          <h2 className="font-serif font-bold text-xl text-red-800 uppercase   text-on-surface mb-4 flex items-center gap-2">
-
+          <h2 className="font-serif font-bold text-xl text-[#8B0000] uppercase mb-4 flex items-center gap-2">
             Thông tin chi tiết
           </h2>
           <div className="rich-text-content">
-            <div 
+            <div
               onClick={(e) => {
                 const target = e.target as HTMLElement;
                 const anchor = target.closest('a');
@@ -366,7 +388,7 @@ const ProductDetail: React.FC = () => {
                   }
                 }
               }}
-              dangerouslySetInnerHTML={{ __html: product.description }} 
+              dangerouslySetInnerHTML={{ __html: product.description }}
             />
 
             {/* Physical dimensions */}
@@ -460,11 +482,26 @@ const ProductDetail: React.FC = () => {
               {product.comments.map((comment) => (
                 <div key={comment.id} className="py-4 first:pt-0 last:pb-0 animate-fade-in">
                   <div className="flex items-center gap-3 mb-2">
-                    <img
-                      src={comment.customer?.avatar || "https://placehold.co/100x100?text=U"}
-                      alt={comment.customer?.name || "Khách hàng"}
-                      className="w-9 h-9 rounded-full object-cover border border-gray-100 shrink-0"
-                    />
+                    {/* Avatar with fallback to initials */}
+                    {comment.customer?.avatar ? (
+                      <img
+                        src={getThumbnailUrl(comment.customer.avatar)}
+                        alt={comment.customer?.name || "Khách hàng"}
+                        className="w-9 h-9 rounded-full object-cover border border-gray-100 shrink-0 bg-gray-50"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className="w-9 h-9 rounded-full shrink-0 bg-primary/10 text-primary font-bold text-xs flex items-center justify-center border border-primary/10"
+                      style={{ display: comment.customer?.avatar ? 'none' : 'flex' }}
+                    >
+                      {(comment.customer?.name || 'K').charAt(0).toUpperCase()}
+                    </div>
                     <div>
                       <span className="font-bold text-xs text-gray-900 block font-sans">
                         {comment.customer?.name || "Khách hàng"}
@@ -617,47 +654,110 @@ const ProductDetail: React.FC = () => {
       </main>
 
       {/* Sticky Footer Actions */}
-      <div className="fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-lg border-t border-gray-100 p-4 pb-safe flex gap-3 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] max-w-[768px] mx-auto" style={{ left: '50%', transform: 'translateX(-50%)' }}>
-        <button
-          onClick={() => {
-            if (hasVariants && !selectedVariant) {
-              showMessage("error", "Vui lòng chọn một tùy chọn phân loại");
-              return;
-            }
-            const productToCart = selectedVariant ? {
-              ...product,
-              title: `${product.title} (${selectedVariant.display_label})`,
-              price: selectedVariant.effective_price,
-              sku: selectedVariant.sku || product.sku,
-              thumbnail: selectedVariant.image ? { original_url: selectedVariant.image } : product.thumbnail
-            } : product;
-            addToCart(productToCart, 1, selectedVariant?.display_label || undefined);
-          }}
-          className="flex-1 h-[52px] rounded-xl border border-primary text-primary bg-white font-serif font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform"
-        >
-          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 0" }}>add_shopping_cart</span>
-          Thêm vào giỏ
-        </button>
-        <button
-          onClick={() => {
-            if (hasVariants && !selectedVariant) {
-              showMessage("error", "Vui lòng chọn một tùy chọn phân loại");
-              return;
-            }
-            const productToCart = selectedVariant ? {
-              ...product,
-              title: `${product.title} (${selectedVariant.display_label})`,
-              price: selectedVariant.effective_price,
-              sku: selectedVariant.sku || product.sku,
-              thumbnail: selectedVariant.image ? { original_url: selectedVariant.image } : product.thumbnail
-            } : product;
-            addToCart(productToCart, 1, selectedVariant?.display_label || undefined);
-            navigate("/cart");
-          }}
-          className="flex-1 h-[52px] rounded-xl bg-primary text-white font-serif font-bold text-base flex items-center justify-center active:scale-95 transition-transform shadow-md hover:opacity-90"
-        >
-          Mua ngay
-        </button>
+      <div className="fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-lg border-t border-gray-100 p-3 pb-safe z-50 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] max-w-[768px] mx-auto" style={{ left: '50%', transform: 'translateX(-50%)' }}>
+        {/* Selection Summary (Mini version) */}
+        {hasVariants && (
+          <div className="flex items-center justify-between mb-3 px-1">
+            <div className="flex flex-col">
+              <span className="text-[10px] text-gray-400 font-sans uppercase tracking-wider leading-none mb-1">
+                {product.variant_label || 'Khối lượng'}
+              </span>
+              <span className={`text-xs font-bold font-sans ${selectedVariant ? 'text-primary' : 'text-orange-500'}`}>
+                {selectedVariant ? selectedVariant.display_label : 'Chưa chọn phân loại'}
+              </span>
+            </div>
+            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                className="w-8 h-8 flex items-center justify-center text-gray-600 active:scale-90"
+              >
+                <span className="material-symbols-outlined text-lg">remove</span>
+              </button>
+              <span className="w-8 text-center font-bold text-sm font-sans">{quantity}</span>
+              <button
+                onClick={() => setQuantity(prev => prev + 1)}
+                className="w-8 h-8 flex items-center justify-center text-gray-600 active:scale-90"
+              >
+                <span className="material-symbols-outlined text-lg">add</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!hasVariants && (
+          <div className="flex items-center justify-end mb-3 px-1">
+            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                className="w-8 h-8 flex items-center justify-center text-gray-600 active:scale-90"
+              >
+                <span className="material-symbols-outlined text-lg">remove</span>
+              </button>
+              <span className="w-8 text-center font-bold text-sm font-sans">{quantity}</span>
+              <button
+                onClick={() => setQuantity(prev => prev + 1)}
+                className="w-8 h-8 flex items-center justify-center text-gray-600 active:scale-90"
+              >
+                <span className="material-symbols-outlined text-lg">add</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-4 items-center">
+          <div className="flex-1 flex flex-col justify-center leading-tight">
+            <span className="text-[11px] text-gray-400 font-sans uppercase tracking-wider font-bold mb-0.5">Tổng cộng</span>
+            <span className="text-xl font-serif font-bold text-primary">
+              {((selectedVariant ? selectedVariant.effective_price : (product.price || 0)) * quantity).toLocaleString()} đ
+            </span>
+          </div>
+
+          <div className="flex gap-2.5 shrink-0">
+            <button
+              onClick={() => {
+                if (hasVariants && !selectedVariant) {
+                  const element = document.getElementById('variant-selection');
+                  element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  showMessage("error", "Vui lòng chọn một tùy chọn phân loại");
+                  return;
+                }
+                const productToCart = selectedVariant ? {
+                  ...product,
+                  title: `${product.title} (${selectedVariant.display_label})`,
+                  price: selectedVariant.effective_price,
+                  sku: selectedVariant.sku || product.sku,
+                  thumbnail: selectedVariant.image ? { original_url: selectedVariant.image } : product.thumbnail
+                } : product;
+                addToCart(productToCart, quantity, selectedVariant?.display_label || undefined);
+              }}
+              className="w-[54px] h-[54px] rounded-2xl border-2 border-primary text-primary bg-white flex items-center justify-center active:scale-95 transition-transform"
+            >
+              <span className="material-symbols-outlined text-[24px]">add_shopping_cart</span>
+            </button>
+            <button
+              onClick={() => {
+                if (hasVariants && !selectedVariant) {
+                  const element = document.getElementById('variant-selection');
+                  element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  showMessage("error", "Vui lòng chọn một tùy chọn phân loại");
+                  return;
+                }
+                const productToCart = selectedVariant ? {
+                  ...product,
+                  title: `${product.title} (${selectedVariant.display_label})`,
+                  price: selectedVariant.effective_price,
+                  sku: selectedVariant.sku || product.sku,
+                  thumbnail: selectedVariant.image ? { original_url: selectedVariant.image } : product.thumbnail
+                } : product;
+                addToCart(productToCart, quantity, selectedVariant?.display_label || undefined);
+                navigate("/cart");
+              }}
+              className="px-6 h-[54px] rounded-2xl bg-primary text-white font-serif font-bold text-lg flex items-center justify-center active:scale-95 transition-transform shadow-lg"
+            >
+              Mua ngay
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

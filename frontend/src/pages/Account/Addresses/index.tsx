@@ -264,6 +264,19 @@ const AccountAddresses: React.FC = () => {
                   <span className="material-symbols-outlined text-[14px]">edit</span>
                   Sửa
                 </button>
+                {!address.isDefault && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
+                        handleDelete(address.id);
+                      }
+                    }}
+                    className="flex items-center gap-1 text-[12px] text-gray-400 font-semibold hover:text-red-600 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">delete</span>
+                    Xóa
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -450,8 +463,10 @@ const AccountAddresses: React.FC = () => {
               {editingAddress && (
                 <button
                   onClick={() => {
-                    handleDelete(editingAddress.id);
-                    handleCloseModal();
+                    if (window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
+                      handleDelete(editingAddress.id);
+                      handleCloseModal();
+                    }
                   }}
                   className="px-4 py-3.5 border border-red-200 text-[#b32025] rounded-xl text-[13px] font-semibold hover:bg-red-50 transition-colors"
                 >

@@ -35,6 +35,10 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::post('/auth/zalo-login', [\App\Http\Controllers\Api\ZaloAuthController::class, 'login']);
+Route::post('/auth/login', [\App\Http\Controllers\Api\ZaloAuthController::class, 'devLogin']); // DEV ONLY
+
+// Zalo Payment Callback (Public)
+Route::post('/zalopay/callback', [\App\Http\Controllers\Api\ZaloPaymentController::class, 'callback']);
 
 // Public Content Routes
 Route::get('/banners', [BannerController::class, 'index']);
@@ -48,6 +52,7 @@ Route::get('/stations', [OrderController::class, 'stations']);
 Route::get('/posts', [PostController::class, 'index']);
 Route::get('/posts/{id}', [PostController::class, 'show']);
 Route::get('/posts/name/{slug}', [PostController::class, 'showBySlug']);
+Route::get('/popups/active', [\App\Http\Controllers\Api\PopupController::class, 'getActive']);
 
 // Public Shop Routes
 Route::get('/promotions', [PromotionController::class, 'index']);
