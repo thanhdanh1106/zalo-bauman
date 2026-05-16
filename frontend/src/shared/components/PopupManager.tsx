@@ -34,10 +34,10 @@ const PopupManager = () => {
             className="zalo-popup-modal"
         >
             <Box className="relative overflow-hidden rounded-3xl bg-transparent shadow-2xl max-w-[90vw] mx-auto">
-                {popup.image_url && (
+                {popup.image && (
                     <div className="relative w-full bg-transparent">
                         <img 
-                            src={popup.image_url} 
+                            src={popup.image} 
                             alt={popup.title || 'Promotion'} 
                             className="w-full h-auto object-contain rounded-3xl cursor-pointer shadow-lg"
                             onClick={() => {
