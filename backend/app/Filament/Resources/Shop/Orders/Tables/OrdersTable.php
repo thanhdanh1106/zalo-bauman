@@ -23,6 +23,7 @@ use Filament\Tables\Table;
 use App\Notifications\OrderStatusNotification;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class OrdersTable
 {
