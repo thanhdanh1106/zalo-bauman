@@ -32,6 +32,10 @@ class UserForm
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
 
+                        TextInput::make('phone')
+                            ->label('Số điện thoại')
+                            ->maxLength(255),
+
                         TextInput::make('password')
                             ->label('Mật khẩu')
                             ->password()

@@ -66,4 +66,20 @@ class Customer extends Model
     {
         return $this->hasManyThrough(Payment::class, Order::class, 'customer_id');
     }
+
+    public function avatar(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\Awcodes\Curator\Models\Media::class, 'avatar_id');
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if ($this->avatar) {
+            return asset('storage/' . $this->avatar->path);
+        }
+        if ($this->photo) {
+            return $this->photo;
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=8f0012&background=fdf2f2';
+    }
 }

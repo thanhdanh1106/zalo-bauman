@@ -13,6 +13,7 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -23,7 +24,12 @@ class CustomersTable
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
+                ImageColumn::make('avatar_url')
+                    ->label('Ảnh đại diện')
+                    ->circular()
+                    ->size(40),
                 TextColumn::make('name')
+                    ->label('Họ và tên')
                     ->searchable(isIndividual: true)
                     ->sortable()
                     ->weight(FontWeight::Medium),
@@ -31,9 +37,11 @@ class CustomersTable
                     ->label('Email address')
                     ->searchable(isIndividual: true, isGlobal: false)
                     ->sortable(),
-                TextColumn::make('country')
-                    ->getStateUsing(fn ($record): ?string => $record->addresses->first()?->country?->getLabel()),
+                TextColumn::make('city')
+                    ->label('Tỉnh/TP')
+                    ->getStateUsing(fn ($record): ?string => $record->addresses->first()?->city),
                 TextColumn::make('phone')
+                    ->label('Số điện thoại')
                     ->searchable()
                     ->sortable(),
             ])

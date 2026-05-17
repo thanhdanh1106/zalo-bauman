@@ -17,9 +17,12 @@ import {
   FaRegMoneyBillAlt,
   FaHome,
   FaTimesCircle,
+  FaCopy,
+  FaDownload,
 } from "react-icons/fa";
 import { useNavigate, useParams } from "zmp-ui";
 import { CheckoutSDK, EventName, events } from "zmp-sdk/apis";
+import { apiClient } from "@shared/services/authService";
 
 const OrderSuccess: React.FC = () => {
   const { order_code } = useParams();
@@ -40,14 +43,37 @@ const OrderSuccess: React.FC = () => {
     vietqr_enabled: false,
     vietqr_bank_bin: "",
     vietqr_template: "compact2",
+    bank_transfer_description: "Thanh toan DH {order_number}",
   });
 
+  const copyToClipboard = (text: string, label: string) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      showMessage("success", `Đã sao chép ${label}!`);
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        showMessage("success", `Đã sao chép ${label}!`);
+      } catch (err) {
+        showMessage("error", "Không thể sao chép");
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL || ""}/api/settings/payment`)
-      .then(r => r.json())
+    apiClient.get('/settings/payment')
       .then(res => {
-        if (res && !res.error && res.data) {
-          setPaymentConfig((prev: any) => ({ ...prev, ...res.data }));
+        if (res.data && !res.data.error && res.data.data) {
+          setPaymentConfig((prev: any) => ({
+            ...prev,
+            ...res.data.data,
+            vietqr_enabled: res.data.data.vietqr_enabled !== undefined ? Boolean(res.data.data.vietqr_enabled) : prev.vietqr_enabled,
+          }));
         }
       })
       .catch(e => console.error(e));
@@ -154,12 +180,17 @@ const OrderSuccess: React.FC = () => {
     shippingAddress?.city,
   ].filter(Boolean).join(", ");
 
+  const getTransferDescription = () => {
+    const template = paymentConfig.bank_transfer_description || "Thanh toan DH {order_number}";
+    return template.replace("{order_number}", orderData.order_number);
+  };
+
   const getVietQrUrl = () => {
     if (!paymentConfig.vietqr_enabled) return "";
     if (!paymentConfig.vietqr_bank_bin || !paymentConfig.bank_account_number) return "";
 
     const amount = Math.round(Number(orderData.total_amount || 0));
-    const addInfo = `Thanh toan DH ${orderData.order_number}`;
+    const addInfo = getTransferDescription();
     const params = new URLSearchParams({
       amount: amount.toString(),
       addInfo,
@@ -167,6 +198,28 @@ const OrderSuccess: React.FC = () => {
     });
 
     return `https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin}-${paymentConfig.bank_account_number}-${paymentConfig.vietqr_template || "compact2"}.png?${params.toString()}`;
+  };
+
+  const handleDownloadQr = async () => {
+    const url = getVietQrUrl();
+    if (!url) return;
+    try {
+      showMessage("info", "Đang chuẩn bị tải mã QR...");
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `VietQR-${orderData.order_number || "checkout"}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      showMessage("success", "Đã tải mã QR về máy thành công!");
+    } catch (error) {
+      window.open(url, "_blank");
+      showMessage("success", "Đã mở mã QR trong tab mới. Hãy nhấn giữ hoặc click chuột phải để tải về.");
+    }
   };
   const subtotal = Number(orderData.subtotal);
   const total = Number(orderData.total_amount);
@@ -286,26 +339,97 @@ const OrderSuccess: React.FC = () => {
           </div>
 
           {selectedMethod === "banking" && orderData.status !== "cancelled" && orderData.payment_status !== "paid" && (
-              <div className="bg-[#fffdfd] p-3 rounded-xl border border-[#8f0012]/10 text-xs space-y-3 text-gray-700 animate-fade-in">
-              <div className="font-bold text-[#8f0012] mb-1">Thông tin chuyển khoản:</div>
-              <div>• Ngân hàng: <strong className="text-gray-900">{paymentConfig.bank_name}</strong></div>
-              <div>• Số tài khoản: <strong className="text-[#8f0012] select-all font-mono font-bold">{paymentConfig.bank_account_number}</strong></div>
-              <div>• Chủ tài khoản: <strong className="text-gray-900">{paymentConfig.bank_account_name}</strong></div>
-              <div>• Nội dung: <strong className="text-gray-900 select-all font-mono font-bold">Thanh toan DH {orderData.order_number}</strong></div>
-                {paymentConfig.vietqr_enabled && getVietQrUrl() && (
-                  <div className="pt-2">
-                    <div className="text-[11px] font-semibold text-[#8f0012] text-center mb-2">
-                      Quét mã VietQR để thanh toán
-                    </div>
-                    <div className="bg-white border border-[#8f0012]/10 rounded-xl p-2 flex items-center justify-center">
-                      <img
-                        src={getVietQrUrl()}
-                        alt="VietQR"
-                        className="w-40 h-40 object-contain"
-                      />
-                    </div>
+            <div className="bg-[#fffdfd] p-5 rounded-2xl border border-[#8f0012]/10 space-y-4 text-gray-700 animate-fade-in shadow-sm">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2 mb-1">
+                <div className="font-bold text-[#8f0012] text-sm flex items-center gap-1.5">
+
+                  <span>Thông tin chuyển khoản</span>
+                </div>
+
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div
+                  onClick={() => copyToClipboard(paymentConfig.bank_name, "Tên ngân hàng")}
+                  className="flex justify-between items-center py-1.5 px-2.5 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-100"
+                >
+                  <span className="text-gray-400 font-medium">Ngân hàng</span>
+                  <div className="flex items-center gap-1.5">
+                    <strong className="text-gray-900 font-semibold">{paymentConfig.bank_name}</strong>
+                    <FaCopy className="text-gray-300 text-[10px]" />
                   </div>
-                )}
+                </div>
+
+                <div
+                  onClick={() => copyToClipboard(paymentConfig.bank_account_number, "Số tài khoản")}
+                  className="flex justify-between items-center py-1.5 px-2.5 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-100"
+                >
+                  <span className="text-gray-400 font-medium">Số tài khoản</span>
+                  <div className="flex items-center gap-1.5">
+                    <strong className="text-[#8f0012] font-mono font-bold text-sm select-all">{paymentConfig.bank_account_number}</strong>
+                    <FaCopy className="text-[#8f0012]/40 text-[10px]" />
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => copyToClipboard(paymentConfig.bank_account_name, "Chủ tài khoản")}
+                  className="flex justify-between items-center py-1.5 px-2.5 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-100"
+                >
+                  <span className="text-gray-400 font-medium">Chủ tài khoản</span>
+                  <div className="flex items-center gap-1.5">
+                    <strong className="text-gray-900 font-semibold uppercase">{paymentConfig.bank_account_name}</strong>
+                    <FaCopy className="text-gray-300 text-[10px]" />
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => copyToClipboard(getTransferDescription(), "Nội dung chuyển khoản")}
+                  className="flex justify-between items-center py-1.5 px-2.5 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-100"
+                >
+                  <span className="text-gray-400 font-medium">Nội dung CK</span>
+                  <div className="flex items-center gap-1.5">
+                    <strong className="text-gray-900 font-mono font-bold select-all">{getTransferDescription()}</strong>
+                    <FaCopy className="text-gray-400 text-[10px]" />
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => copyToClipboard(Math.round(total).toString(), "Số tiền")}
+                  className="flex justify-between items-center py-1.5 px-2.5 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer border border-transparent hover:border-gray-100"
+                >
+                  <span className="text-gray-400 font-medium">Số tiền</span>
+                  <div className="flex items-center gap-1.5">
+                    <strong className="text-[#8f0012] font-bold text-sm">{formatCurrency(total)}</strong>
+                    <FaCopy className="text-[#8f0012]/40 text-[10px]" />
+                  </div>
+                </div>
+              </div>
+
+              {paymentConfig.vietqr_enabled && getVietQrUrl() && (
+                <div className="pt-3 border-t border-gray-100 flex flex-col items-center">
+                  <div className="text-[11px] font-semibold text-[#8f0012] text-center mb-2.5 uppercase tracking-wider flex items-center gap-1">
+                    <span>Quét mã VietQR để thanh toán</span>
+                  </div>
+                  <div className="bg-white border border-[#8f0012]/10 flex flex-col items-center justify-center ">
+                    <img
+                      src={getVietQrUrl()}
+                      alt="VietQR"
+                      className="w-60 h-60 md:w-64 md:h-64 object-contain transition-transform duration-300 hover:scale-105"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  </div>
+                  <button
+                    onClick={handleDownloadQr}
+                    className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-[#8f0012]/5 hover:bg-[#8f0012]/10 active:scale-95 text-[#8f0012] text-xs font-bold rounded-xl transition-all shadow-sm border border-[#8f0012]/10"
+                  >
+                    <FaDownload className="text-xs" />
+                    <span>Tải mã QR</span>
+                  </button>
+                  <div className="text-[10px] text-gray-400 mt-2 text-center leading-relaxed">
+                    Mở app ngân hàng bất kỳ để quét mã VietQR tự động nhập số tiền và nội dung chuyển khoản.
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -336,43 +460,43 @@ const OrderSuccess: React.FC = () => {
           </div>
 
           <div className="pt-4 border-t border-gray-50 space-y-2">
-             <div className="flex justify-between text-xs">
-                <span className="text-gray-400">Tạm tính</span>
-                <span className="font-bold text-gray-800">{formatCurrency(subtotal)}</span>
-             </div>
-             <div className="flex justify-between text-xs">
-                <span className="text-gray-400">Phí vận chuyển</span>
-                <span className="font-bold text-gray-800">{orderData.shipping_fee === 0 ? "Miễn phí" : formatCurrency(orderData.shipping_fee)}</span>
-             </div>
-             <div className="flex justify-between pt-2 border-t border-gray-50 items-end">
-                <span className="text-xs text-gray-500 font-bold">Tổng thanh toán</span>
-                <span className="text-base font-bold text-[#8f0012]">
-                  {formatCurrency(total)}
-                </span>
-             </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-400">Tạm tính</span>
+              <span className="font-bold text-gray-800">{formatCurrency(subtotal)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-400">Phí vận chuyển</span>
+              <span className="font-bold text-gray-800">{orderData.shipping_fee === 0 ? "Miễn phí" : formatCurrency(orderData.shipping_fee)}</span>
+            </div>
+            <div className="flex justify-between pt-2 border-t border-gray-50 items-end">
+              <span className="text-xs text-gray-500 font-bold">Tổng thanh toán</span>
+              <span className="text-base font-bold text-[#8f0012]">
+                {formatCurrency(total)}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Cancellation Section */}
         {!cannotCancelStatuses.includes(orderData.status) && (
-           <button
-             onClick={() => setShowCancelModal(true)}
-             disabled={cancellingOrder}
-             className="w-full py-3.5 text-xs font-bold text-red-500 bg-red-50 rounded-xl active:bg-red-100 transition-colors flex items-center justify-center gap-2 border border-red-100"
-           >
-             <FaTimesCircle />
-             {cancellingOrder ? "Đang xử lý hủy đơn..." : "Hủy đơn hàng này"}
-           </button>
+          <button
+            onClick={() => setShowCancelModal(true)}
+            disabled={cancellingOrder}
+            className="w-full py-3.5 text-xs font-bold text-red-500 bg-red-50 rounded-xl active:bg-red-100 transition-colors flex items-center justify-center gap-2 border border-red-100"
+          >
+            <FaTimesCircle />
+            {cancellingOrder ? "Đang xử lý hủy đơn..." : "Hủy đơn hàng này"}
+          </button>
         )}
       </div>
 
       {/* Sticky Bottom Bar */}
-      <div 
+      <div
         className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 px-6 py-4 pb-safe flex flex-col gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-50 max-w-[768px] mx-auto"
         style={{ left: '50%', transform: 'translateX(-50%)' }}
       >
         {selectedMethod === "zalopay" && orderData.payment_status !== "paid" && orderData.status !== "cancelled" ? (
-          <button 
+          <button
             onClick={handleZaloPayment}
             disabled={loadingZaloPayment}
             className="w-full py-3.5 rounded-xl font-bold text-white bg-[#0088ff] flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-[0.98] transition-all text-xs"
@@ -380,7 +504,7 @@ const OrderSuccess: React.FC = () => {
             {loadingZaloPayment ? "Đang kết nối cổng ZaloPay..." : "Thanh toán qua Ví ZaloPay ngay"}
           </button>
         ) : (
-          <button 
+          <button
             onClick={() => navigate("/")}
             className="w-full py-3.5 rounded-xl font-bold text-white bg-[#8f0012] flex items-center justify-center gap-2 shadow-lg shadow-[#8f0012]/20 active:scale-[0.98] transition-all text-xs"
           >

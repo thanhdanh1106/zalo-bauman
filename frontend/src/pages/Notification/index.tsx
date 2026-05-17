@@ -66,6 +66,7 @@ const NotificationPage: React.FC = () => {
         setNotifications(prev => 
           prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n)
         );
+        window.dispatchEvent(new CustomEvent('notification-updated'));
       }
 
       // Handle Navigation based on notification type
@@ -87,6 +88,7 @@ const NotificationPage: React.FC = () => {
     try {
       await instance.post("/notifications/read-all");
       setNotifications(prev => prev.map(n => ({ ...n, read_at: new Date().toISOString() })));
+      window.dispatchEvent(new CustomEvent('notification-updated'));
     } catch (error) {
       console.error("Error marking all read:", error);
     }
@@ -138,6 +140,19 @@ const NotificationPage: React.FC = () => {
 
       {/* Content */}
       <Box className="px-4 py-4 space-y-4">
+        {!loading && notifications.length > 0 && (
+          <Box className="flex justify-between items-center pb-2 border-b border-gray-100">
+            <Text className="text-xs text-gray-400 font-semibold tracking-wider uppercase">Danh sách thông báo</Text>
+            <button 
+              onClick={handleMarkAllRead}
+              className="text-xs font-bold text-[#8f0012] hover:text-[#70000e] flex items-center gap-1 bg-[#8f0012]/5 px-3 py-1.5 rounded-full active:scale-95 transition-transform"
+            >
+              <span className="material-symbols-outlined text-[14px]">done_all</span>
+              <span>Đã đọc tất cả</span>
+            </button>
+          </Box>
+        )}
+
         {loading ? (
           <Box className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8f0012]"></div>
@@ -157,21 +172,18 @@ const NotificationPage: React.FC = () => {
                   {getIcon(notif.data.icon)}
                 </Box>
                 <Box className="flex-1 min-w-0">
-                  <Box className="flex justify-between items-start mb-1">
-                    <Text className={`text-sm font-bold truncate pr-4 ${!notif.read_at ? 'text-gray-900' : 'text-gray-600'}`}>
+                  <Box className="flex justify-between items-start mb-1 gap-2">
+                    <Text className={`text-xs font-bold pr-4 ${!notif.read_at ? 'text-gray-900' : 'text-gray-600'}`}>
                       {notif.data.title}
                     </Text>
-                    <Text className="text-[10px] text-gray-400 whitespace-nowrap">
+                    <Text className="text-[10px] text-gray-400 whitespace-nowrap shrink-0">
                       {dayjs(notif.created_at).fromNow()}
                     </Text>
                   </Box>
-                  <Text size="small" className={`line-clamp-2 leading-relaxed ${!notif.read_at ? 'text-gray-700 font-medium' : 'text-gray-500'}`}>
+                  <Text size="small" className={`leading-relaxed whitespace-pre-line ${!notif.read_at ? 'text-gray-700 font-medium' : 'text-gray-500'}`}>
                     {notif.data.message}
                   </Text>
                 </Box>
-                {!notif.read_at && (
-                  <div className="absolute right-4 bottom-4 w-2 h-2 bg-red-500 rounded-full"></div>
-                )}
               </Box>
             ))}
             

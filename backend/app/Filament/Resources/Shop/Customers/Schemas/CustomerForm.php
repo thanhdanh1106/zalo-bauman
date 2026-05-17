@@ -8,6 +8,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Awcodes\Curator\Components\Forms\CuratorPicker;
 
 class CustomerForm
 {
@@ -18,6 +19,7 @@ class CustomerForm
                 Section::make()
                     ->schema([
                         TextInput::make('name')
+                            ->label('Họ và tên')
                             ->maxLength(255)
                             ->required(),
 
@@ -29,10 +31,22 @@ class CustomerForm
                             ->unique(ignoreRecord: true),
 
                         TextInput::make('phone')
+                            ->label('Số điện thoại')
                             ->maxLength(255),
 
                         DatePicker::make('birthday')
+                            ->label('Ngày sinh')
                             ->maxDate('today'),
+
+                        TextInput::make('photo')
+                            ->label('Ảnh đại diện (Zalo URL)')
+                            ->helperText('Đường dẫn ảnh đại diện từ Zalo')
+                            ->maxLength(255),
+
+                        CuratorPicker::make('avatar_id')
+                            ->label('Ảnh đại diện (Thư viện)')
+                            ->relationship('avatar', 'id')
+                            ->helperText('Hoặc chọn ảnh đại diện từ thư viện media'),
                     ])
                     ->columns(2)
                     ->columnSpan(['lg' => 3]),

@@ -106,9 +106,11 @@ class SettingController extends Controller
                 'data' => [
                     'default_shipping_fee' => $settings->default_shipping_fee ?? 30000,
                     'free_shipping_threshold' => $settings->free_shipping_threshold ?? 500000,
+                    'enable_banking' => $settings->enable_banking ?? true,
                     'bank_name' => $settings->bank_name ?? 'Vietcombank',
                     'bank_account_number' => $settings->bank_account_number ?? '1029384756',
                     'bank_account_name' => $settings->bank_account_name ?? 'CÔNG TY TNHH NHÂN SÂM BAUMANN',
+                    'bank_transfer_description' => $settings->bank_transfer_description ?? 'Thanh toan don hang {order_number}',
                     'enable_cod' => $settings->enable_cod ?? true,
                     'cod_description' => $settings->cod_description ?? 'Thanh toán tiền mặt khi nhận hàng tại nhà.',
                     'zalopay_app_id' => $settings->zalopay_app_id ?? '2553',

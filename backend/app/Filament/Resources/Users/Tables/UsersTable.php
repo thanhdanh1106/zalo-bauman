@@ -21,10 +21,9 @@ class UsersTable
                 TextColumn::make('email')
                     ->label('Địa chỉ Email')
                     ->searchable(),
-                TextColumn::make('email_verified_at')
-                    ->label('Xác minh Email')
-                    ->dateTime()
-                    ->sortable(),
+                TextColumn::make('phone')
+                    ->label('Số điện thoại')
+                    ->searchable(),
                 TextColumn::make('referredBy.name')
                     ->label('Người giới thiệu')
                     ->searchable()

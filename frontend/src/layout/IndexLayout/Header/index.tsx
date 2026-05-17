@@ -28,6 +28,18 @@ const HomeHeader = () => {
 
     fetchSettings();
     fetchUnreadCount();
+
+    const handleNotificationUpdate = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('notification-updated', handleNotificationUpdate);
+    window.addEventListener('mark-all-read', handleNotificationUpdate);
+
+    return () => {
+      window.removeEventListener('notification-updated', handleNotificationUpdate);
+      window.removeEventListener('mark-all-read', handleNotificationUpdate);
+    };
   }, []);
 
   return (

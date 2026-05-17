@@ -70,6 +70,7 @@ class ZaloAuthController extends Controller
             }
 
             $isNewRegistration = false;
+            $phone = $request->input('phone') ?? $userInfo['phone'] ?? '';
             if (!$user) {
                 // Safe referral handling
                 $referredBy = $request->input('referred_by') ?? $request->input('ref') ?? $request->cookie('referral');
@@ -82,18 +83,62 @@ class ZaloAuthController extends Controller
                     'email' => $zaloId . '@zalo.me',
                     'password' => Hash::make(Str::random(24)),
                     'zalo_id' => $zaloId,
+                    'phone' => $phone,
                     'referred_by' => $referredBy,
                     'email_verified_at' => now(),
                 ]);
                 $isNewRegistration = true;
                 Log::info('New User created: ' . $user->id);
             } else {
-                $user->update(['name' => $name]);
+                $user->update([
+                    'name' => $name,
+                    'phone' => $request->input('phone') ?? $user->phone ?? $phone,
+                ]);
                 // If existing user doesn't have a referrer yet but logs in via a shared link, set it
                 $possibleRef = $request->input('referred_by') ?? $request->input('ref') ?? $request->cookie('referral');
                 if (is_numeric($possibleRef) && !$user->referred_by && $possibleRef != $user->id) {
                     $user->update(['referred_by' => $possibleRef]);
                     $isNewRegistration = true;
+                }
+            }
+
+            // Download Zalo Avatar if provided and user doesn't have an avatar yet
+            $avatarId = $user->avatar_id;
+            $zaloAvatarUrl = $userInfo['avatar'] ?? null;
+            if (!$avatarId && $zaloAvatarUrl) {
+                try {
+                    $imageContent = Http::timeout(10)->get($zaloAvatarUrl)->body();
+                    if ($imageContent) {
+                        $extension = 'jpg';
+                        $filename = 'zalo_avatar_' . $user->id . '_' . time() . '.' . $extension;
+                        $directory = 'avatars';
+                        $path = $directory . '/' . $filename;
+                        
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($path, $imageContent);
+                        
+                        $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($path);
+                        $size = file_exists($fullPath) ? filesize($fullPath) : strlen($imageContent);
+                        
+                        $media = \Awcodes\Curator\Models\Media::create([
+                            'disk' => 'public',
+                            'directory' => $directory,
+                            'name' => 'zalo_avatar_' . $user->id,
+                            'path' => $path,
+                            'width' => null,
+                            'height' => null,
+                            'size' => $size,
+                            'type' => 'image/jpeg',
+                            'ext' => $extension,
+                        ]);
+                        
+                        if ($media) {
+                            $user->update(['avatar_id' => $media->id]);
+                            $avatarId = $media->id;
+                            Log::info('Downloaded and saved Zalo avatar for User: ' . $user->id);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to download and save Zalo avatar: ' . $e->getMessage());
                 }
             }
 
@@ -119,12 +164,19 @@ class ZaloAuthController extends Controller
 
             // 3. Sync with Customer table (optional/non-fatal)
             try {
+                $customerData = [
+                    'name' => $user->name,
+                    'phone' => $user->phone ?? '',
+                    'avatar_id' => $avatarId,
+                ];
+
+                if ($zaloAvatarUrl) {
+                    $customerData['photo'] = $zaloAvatarUrl;
+                }
+
                 Customer::updateOrCreate(
                     ['email' => $user->email],
-                    [
-                        'name' => $user->name,
-                        'phone' => $request->input('phone', ''),
-                    ]
+                    $customerData
                 );
             } catch (\Exception $e) {
                 Log::warning('Customer sync failed: ' . $e->getMessage());

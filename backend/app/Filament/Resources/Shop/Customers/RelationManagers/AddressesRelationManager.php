@@ -28,17 +28,17 @@ class AddressesRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextInput::make('street'),
+                TextInput::make('street')
+                    ->label('Địa chỉ chi tiết (Số nhà, đường...)')
+                    ->required(),
 
-                TextInput::make('zip'),
+                TextInput::make('state')
+                    ->label('Phường/Xã')
+                    ->required(),
 
-                TextInput::make('city'),
-
-                TextInput::make('state'),
-
-                Select::make('country')
-                    ->options(CountryCode::class)
-                    ->searchable(),
+                TextInput::make('city')
+                    ->label('Tỉnh/TP')
+                    ->required(),
             ]);
     }
 
@@ -47,13 +47,14 @@ class AddressesRelationManager extends RelationManager
         return $table
             ->columns([
                 TextColumn::make('street')
+                    ->label('Địa chỉ chi tiết')
                     ->weight(FontWeight::Medium),
 
-                TextColumn::make('zip'),
+                TextColumn::make('state')
+                    ->label('Phường/Xã'),
 
-                TextColumn::make('city'),
-
-                TextColumn::make('country'),
+                TextColumn::make('city')
+                    ->label('Tỉnh/TP'),
             ])
             ->filters([
                 //

@@ -104,3 +104,22 @@
 .text-sm {
   font-size: 0.875rem;
 }
+/* Custom Zalo Popup Modal */
+.zalo-popup-modal .zaui-modal-content {
+  background-color: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  width: 90vw !important;
+  max-width: 400px !important;
+}
+
+.zalo-popup-modal .zaui-modal-header,
+.zalo-popup-modal .zaui-modal-footer {
+  display: none !important;
+}
+
+.zalo-popup-modal .zaui-modal-body {
+  padding: 0 !important;
+  overflow: visible !important;
+}

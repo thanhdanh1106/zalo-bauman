@@ -39,6 +39,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         'referred_by',
         'zalo_id',
         'email_verified_at',
+        'phone',
     ];
 
     /**
@@ -92,9 +93,9 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
     public function getAvatarUrlAttribute(): ?string
     {
         if ($this->avatar) {
-            return '/storage/' . $this->avatar->path;
+            return asset('storage/' . $this->avatar->path);
         }
-        return null;
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=8f0012&background=fdf2f2';
     }
 
     public function referredBy(): BelongsTo

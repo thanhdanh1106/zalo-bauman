@@ -58,15 +58,17 @@ const UserProfile = () => {
     }
   };
 
+  const avatarUrl = user?.avatar_url || userInfo?.avatar;
+
   return (
     <div className="bg-surface border border-[#eee] border border-[#eee] rounded-lg p-4 m-4">
       {/* User Info Header */}
       <div className="flex items-center gap-3 mb-4">
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center">
-          {userInfo?.avatar?.startsWith("http") ? (
+          {avatarUrl ? (
             <img
-              src={userInfo.avatar}
+              src={avatarUrl}
               alt="User Avatar"
               className="w-full h-full object-cover"
             />

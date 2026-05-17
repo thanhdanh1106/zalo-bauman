@@ -96,6 +96,7 @@ const Checkout: React.FC = () => {
     bank_name: "Vietcombank",
     bank_account_number: "1029384756",
     bank_account_name: "CÔNG TY TNHH NHÂN SÂM BAUMANN",
+    bank_transfer_description: "Thanh toan don hang {order_number}",
     enable_cod: true,
     enable_banking: true,
     cod_description: "Thanh toán tiền mặt khi nhận hàng tại nhà.",
@@ -107,7 +108,7 @@ const Checkout: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const pConfRes = await fetch(`${import.meta.env.VITE_API_URL || ""}/api/settings/payment`).then(r => r.json()).catch(() => null);
+      const pConfRes = await apiClient.get('/settings/payment').then(r => r.data).catch(() => null);
       if (pConfRes && !pConfRes.error && pConfRes.data) {
         setPaymentConfig((prev: any) => ({ ...prev, ...pConfRes.data }));
       }
@@ -318,40 +319,31 @@ const Checkout: React.FC = () => {
 
       // ── Luồng thanh toán qua Cổng Zalo (ZaloPay, ATM, Credit Card...) ──────────────────
       try {
-        const zaloItems = items.map(item => ({
-          id: item.id.toString(),
-          amount: Math.round(item.price * item.quantity)
-        }));
-
-        Payment.createOrder({
-          desc: `Thanh toán đơn hàng #${createdOrder.order_number}`,
-          item: zaloItems,
-          amount: Math.round(finalTotal),
-          // Link chặt chẽ với đơn hàng qua extradata
-          extradata: JSON.stringify({
+        const zaloOrderData = transformCartToZaloOrder(
+          items,
+          finalTotal,
+          `Thanh toán đơn hàng #${createdOrder.order_number}`,
+          {
             order_id: createdOrder.id,
             order_number: createdOrder.order_number
-          }),
-          success: async (res) => {
-            console.log("Thanh toán thành công:", res);
-            // Cập nhật trạng thái 'paid' ngay lập tức cho UI mượt mà
-            try {
-              await apiClient.post(`/orders/${createdOrder.id}/confirm-payment`);
-            } catch (e) {
-              console.error("Lỗi cập nhật trạng thái:", e);
-            }
-            clearAllItems();
-            navigate(`/payment-success?orderId=${createdOrder.order_number}`);
-          },
-          fail: (err) => {
-            console.warn("Thanh toán thất bại hoặc khách hủy:", err);
-            // Dẫn khách về trang chi tiết đơn hàng để họ có thể xem lại hoặc thử lại
-            clearAllItems();
-            navigate(`/order-success/${createdOrder.order_number}`);
           }
-        });
+        );
+
+        await createZaloOrder(zaloOrderData);
+        
+        // Cập nhật trạng thái 'paid' ngay lập tức cho UI mượt mà (Tùy chọn, ZaloPay thường dùng Webhook)
+        try {
+          await apiClient.post(`/orders/${createdOrder.id}/confirm-payment`);
+        } catch (e) {
+          console.error("Lỗi cập nhật trạng thái:", e);
+        }
+        
+        clearAllItems();
+        navigate(`/payment-success?orderId=${createdOrder.order_number}`);
       } catch (zaloErr: any) {
-        showMessage("error", "Không thể khởi tạo cổng thanh toán Zalo.");
+        console.warn("Thanh toán thất bại hoặc khách hủy:", zaloErr);
+        // Dẫn khách về trang chi tiết đơn hàng để họ có thể xem lại hoặc thử lại
+        clearAllItems();
         navigate(`/order-success/${createdOrder.order_number}`);
       }
     } catch (error) {
@@ -676,9 +668,9 @@ const Checkout: React.FC = () => {
                         {paymentMethod === method.id && method.id === "banking" && (
                           <div className="p-3 bg-[#f6f3f2] rounded-xl border border-gray-200 text-xs space-y-1 text-gray-700 animate-fade-in">
                             <div className="font-bold text-[#8f0012] mb-1 text-[11px]">Thông tin tài khoản (Chuyển khoản thủ công):</div>
-                            <div>• <span className="font-semibold">{paymentConfig.bank_name || "Vietcombank"}</span></div>
-                            <div>• <span className="font-mono font-bold text-[#8f0012]">{paymentConfig.bank_account_number || "1029384756"}</span></div>
-                            <div>• <span className="font-semibold uppercase">{paymentConfig.bank_account_name || "NHAN SAM BAUMANN"}</span></div>
+                            <div>• <span className="font-semibold">{paymentConfig.bank_name}</span></div>
+                            <div>• <span className="font-mono font-bold text-[#8f0012]">{paymentConfig.bank_account_number}</span></div>
+                            <div>• <span className="font-semibold uppercase">{paymentConfig.bank_account_name}</span></div>
                             <div className="text-[10px] text-gray-500 italic mt-1 leading-tight">Bạn hãy chuyển khoản đúng số tiền trên. Đơn hàng sẽ được xác nhận sau khi shop nhận được tiền.</div>
                           </div>
                         )}
@@ -953,7 +945,7 @@ const Checkout: React.FC = () => {
                 <div className="w-full bg-white flex justify-center">
                   <img
                     id="vietqr-image"
-                    src={`https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin || '970436'}-${paymentConfig.bank_account_number || '1029384756'}-${paymentConfig.vietqr_template || 'compact2'}.png?amount=${Math.round(finalTotal)}&addInfo=${encodeURIComponent((paymentConfig.bank_transfer_description || 'Thanh toan don hang {order_number}').replace('{order_number}', bankingOrder.order_number))}&accountName=${encodeURIComponent(paymentConfig.bank_account_name || 'CONG TY TNHH NHAN SAM BAUMANN')}`}
+                    src={`https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin || '970436'}-${paymentConfig.bank_account_number}-${paymentConfig.vietqr_template}.png?amount=${Math.round(finalTotal)}&addInfo=${encodeURIComponent(paymentConfig.bank_transfer_description.replace('{order_number}', bankingOrder.order_number))}&accountName=${encodeURIComponent(paymentConfig.bank_account_name)}`}
                     alt="VietQR Transfer"
                     className="w-full max-w-[280px] h-auto object-contain mx-auto"
                   />
@@ -961,7 +953,7 @@ const Checkout: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    const qrUrl = `https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin || '970436'}-${paymentConfig.bank_account_number || '1029384756'}-${paymentConfig.vietqr_template || 'compact2'}.png?amount=${Math.round(finalTotal)}&addInfo=${encodeURIComponent((paymentConfig.bank_transfer_description || 'Thanh toan don hang {order_number}').replace('{order_number}', bankingOrder.order_number))}&accountName=${encodeURIComponent(paymentConfig.bank_account_name || 'CONG TY TNHH NHAN SAM BAUMANN')}`;
+                    const qrUrl = `https://img.vietqr.io/image/${paymentConfig.vietqr_bank_bin || '970436'}-${paymentConfig.bank_account_number}-${paymentConfig.vietqr_template}.png?amount=${Math.round(finalTotal)}&addInfo=${encodeURIComponent(paymentConfig.bank_transfer_description.replace('{order_number}', bankingOrder.order_number))}&accountName=${encodeURIComponent(paymentConfig.bank_account_name)}`;
                     window.open(qrUrl, '_blank');
                   }}
                   className="text-[#8f0012] text-xs font-bold flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#8f0012]/5 active:scale-95 transition-all"
@@ -975,7 +967,7 @@ const Checkout: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400 shrink-0 mr-4">Nội dung chuyển:</span>
                   <span className="font-mono font-bold text-sm text-[#8f0012] select-all break-all text-right">
-                    {(paymentConfig.bank_transfer_description || 'Thanh toan don hang {order_number}').replace('{order_number}', bankingOrder.order_number)}
+                    {paymentConfig.bank_transfer_description.replace('{order_number}', bankingOrder.order_number)}
                   </span>
                 </div>
               </div>
