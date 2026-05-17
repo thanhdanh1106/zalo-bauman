@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
+        Schema::table('products', function (Blueprint $table): void {
             $table->boolean('is_sold_by_gram')->default(false)->after('price');
             $table->string('sales_unit')->nullable()->after('is_sold_by_gram');
             $table->integer('min_gram')->nullable()->after('sales_unit');
@@ -25,7 +25,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('products', function (Blueprint $table) {
+        Schema::table('products', function (Blueprint $table): void {
             $table->dropColumn(['is_sold_by_gram', 'sales_unit', 'min_gram', 'gram_step', 'gram_options']);
         });
     }

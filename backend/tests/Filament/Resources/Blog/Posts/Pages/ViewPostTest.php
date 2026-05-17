@@ -4,14 +4,14 @@ use App\Filament\Resources\Blog\Posts\Pages\ViewPost;
 use App\Models\Blog\Post;
 use Livewire\Livewire;
 
-it('can render the view page', function () {
+it('can render the view page', function (): void {
     $record = Post::factory()->create();
 
     Livewire::test(ViewPost::class, ['record' => $record->getRouteKey()])
         ->assertOk();
 });
 
-it('can quick publish a draft post', function () {
+it('can quick publish a draft post', function (): void {
     $record = Post::factory()->create(['published_at' => null]);
 
     Livewire::test(ViewPost::class, ['record' => $record->getRouteKey()])
@@ -22,14 +22,14 @@ it('can quick publish a draft post', function () {
     expect($record->published_at)->not->toBeNull();
 });
 
-it('quick publish is hidden for published posts', function () {
+it('quick publish is hidden for published posts', function (): void {
     $record = Post::factory()->create(['published_at' => now()->subDay()]);
 
     Livewire::test(ViewPost::class, ['record' => $record->getRouteKey()])
         ->assertActionHidden('quick_publish');
 });
 
-it('can unpublish a published post', function () {
+it('can unpublish a published post', function (): void {
     $record = Post::factory()->create(['published_at' => now()->subDay()]);
 
     Livewire::test(ViewPost::class, ['record' => $record->getRouteKey()])
@@ -40,7 +40,7 @@ it('can unpublish a published post', function () {
     expect($record->published_at)->toBeNull();
 });
 
-it('unpublish is hidden for draft posts', function () {
+it('unpublish is hidden for draft posts', function (): void {
     $record = Post::factory()->create(['published_at' => null]);
 
     Livewire::test(ViewPost::class, ['record' => $record->getRouteKey()])

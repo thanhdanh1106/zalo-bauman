@@ -8,7 +8,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the comments page', function () {
+it('can render the comments page', function (): void {
     $post = Post::factory()->create();
     $customer = Customer::factory()->create();
     $post->comments()->create([
@@ -22,7 +22,7 @@ it('can render the comments page', function () {
         ->assertOk();
 });
 
-it('can create a comment', function () {
+it('can create a comment', function (): void {
     $post = Post::factory()->create();
     $customer = Customer::factory()->create();
 
@@ -43,7 +43,7 @@ it('can create a comment', function () {
     ]);
 });
 
-it('can view a comment', function () {
+it('can view a comment', function (): void {
     $post = Post::factory()->create();
     $customer = Customer::factory()->create();
     $comment = $post->comments()->create([
@@ -58,7 +58,7 @@ it('can view a comment', function () {
         ->assertOk();
 });
 
-it('can edit a comment', function () {
+it('can edit a comment', function (): void {
     $post = Post::factory()->create();
     $customer = Customer::factory()->create();
     $comment = $post->comments()->create([
@@ -80,7 +80,7 @@ it('can edit a comment', function () {
     ]);
 });
 
-it('does not actually delete a comment', function () {
+it('does not actually delete a comment', function (): void {
     $post = Post::factory()->create();
     $customer = Customer::factory()->create();
     $comment = $post->comments()->create([

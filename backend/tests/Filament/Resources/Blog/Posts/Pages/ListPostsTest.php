@@ -7,7 +7,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = Post::factory()->count(3)->create();
 
     Livewire::test(ListPosts::class)
@@ -15,7 +15,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can toggle publish on a draft post', function () {
+it('can toggle publish on a draft post', function (): void {
     $record = Post::factory()->create(['published_at' => null]);
 
     Livewire::test(ListPosts::class)
@@ -26,7 +26,7 @@ it('can toggle publish on a draft post', function () {
     expect($record->published_at)->not->toBeNull();
 });
 
-it('can toggle publish on a published post', function () {
+it('can toggle publish on a published post', function (): void {
     $record = Post::factory()->create(['published_at' => now()->subDay()]);
 
     Livewire::test(ListPosts::class)
@@ -37,7 +37,7 @@ it('can toggle publish on a published post', function () {
     expect($record->published_at)->toBeNull();
 });
 
-it('can delete a post', function () {
+it('can delete a post', function (): void {
     $record = Post::factory()->create();
 
     Livewire::test(ListPosts::class)
@@ -45,7 +45,7 @@ it('can delete a post', function () {
         ->assertNotified();
 });
 
-it('can bulk delete posts', function () {
+it('can bulk delete posts', function (): void {
     $records = Post::factory()->count(3)->create();
 
     Livewire::test(ListPosts::class)
@@ -54,7 +54,7 @@ it('can bulk delete posts', function () {
         ->assertNotified();
 });
 
-it('can filter posts by published date range', function () {
+it('can filter posts by published date range', function (): void {
     $oldPost = Post::factory()->create(['published_at' => now()->subMonths(3)]);
     $recentPost = Post::factory()->create(['published_at' => now()->subDay()]);
 

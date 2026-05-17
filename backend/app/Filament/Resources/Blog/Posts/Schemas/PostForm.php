@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Blog\Posts\Schemas;
 
+use Filament\Schemas\Components\Group;
+use RalphJSmit\Filament\SEO\SEO;
 use App\Models\Blog\Post;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\RichEditor;
@@ -21,7 +23,7 @@ class PostForm
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
                         Section::make('Nội dung bài viết')
                             ->schema([
@@ -76,7 +78,7 @@ class PostForm
                     ])
                     ->columnSpan(['lg' => 3]),
 
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
                         Section::make('Trạng thái & Phân loại')
                             ->schema([
@@ -116,7 +118,7 @@ class PostForm
 
                         Section::make('SEO')
                             ->schema([
-                                \RalphJSmit\Filament\SEO\SEO::make(),
+                                SEO::make(),
                             ])
                             ->collapsible(),
                     ])

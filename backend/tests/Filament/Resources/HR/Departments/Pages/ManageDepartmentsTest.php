@@ -11,7 +11,7 @@ use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the manage page', function () {
+it('can render the manage page', function (): void {
     $records = Department::factory()->count(3)->create();
 
     Livewire::test(ManageDepartments::class)
@@ -19,7 +19,7 @@ it('can render the manage page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $data = Department::factory()->make();
 
     Livewire::test(ManageDepartments::class)
@@ -31,7 +31,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(Department::class, ['name' => $data->name]);
 });
 
-it('can edit a record', function () {
+it('can edit a record', function (): void {
     $record = Department::factory()->create();
     $newData = Department::factory()->make();
 
@@ -45,7 +45,7 @@ it('can edit a record', function () {
     $this->assertDatabaseHas(Department::class, ['id' => $record->id, 'name' => $newData->name]);
 });
 
-it('validates create action data', function (array $data, array $errors) {
+it('validates create action data', function (array $data, array $errors): void {
     $validData = Department::factory()->make();
 
     Livewire::test(ManageDepartments::class)
@@ -67,7 +67,7 @@ it('validates create action data', function (array $data, array $errors) {
     '`headcount_limit` must not be negative' => [['headcount_limit' => -1], ['headcount_limit' => 'min']],
 ]);
 
-it('validates edit action data', function (array $data, array $errors) {
+it('validates edit action data', function (array $data, array $errors): void {
     $record = Department::factory()->create();
     $newData = Department::factory()->make();
 
@@ -90,7 +90,7 @@ it('validates edit action data', function (array $data, array $errors) {
     '`headcount_limit` must not be negative' => [['headcount_limit' => -1], ['headcount_limit' => 'min']],
 ]);
 
-it('can adjust department budget', function () {
+it('can adjust department budget', function (): void {
     $record = Department::factory()->create(['budget' => 100000]);
 
     Livewire::test(ManageDepartments::class)
@@ -101,7 +101,7 @@ it('can adjust department budget', function () {
     $this->assertDatabaseHas(Department::class, ['id' => $record->id, 'budget' => 50000]);
 });
 
-it('can toggle department active status', function () {
+it('can toggle department active status', function (): void {
     $record = Department::factory()->create(['is_active' => true]);
 
     Livewire::test(ManageDepartments::class)
@@ -110,7 +110,7 @@ it('can toggle department active status', function () {
     $this->assertDatabaseHas(Department::class, ['id' => $record->id, 'is_active' => false]);
 });
 
-it('can replicate a department', function () {
+it('can replicate a department', function (): void {
     $record = Department::factory()->create();
 
     Livewire::test(ManageDepartments::class)
@@ -119,7 +119,7 @@ it('can replicate a department', function () {
     expect(Department::where('name', $record->name)->count())->toBe(2);
 });
 
-it('can delete a department', function () {
+it('can delete a department', function (): void {
     $record = Department::factory()->create();
 
     Livewire::test(ManageDepartments::class)
@@ -127,7 +127,7 @@ it('can delete a department', function () {
         ->assertNotified();
 });
 
-it('can bulk delete departments', function () {
+it('can bulk delete departments', function (): void {
     $records = Department::factory()->count(3)->create();
 
     Livewire::test(ManageDepartments::class)

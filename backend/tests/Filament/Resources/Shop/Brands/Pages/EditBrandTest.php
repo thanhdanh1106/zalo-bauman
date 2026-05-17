@@ -5,14 +5,14 @@ use App\Models\Shop\Brand;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the edit page', function () {
+it('can render the edit page', function (): void {
     $record = Brand::factory()->create();
 
     Livewire::test(EditBrand::class, ['record' => $record->getRouteKey()])
         ->assertOk();
 });
 
-it('can update a record', function () {
+it('can update a record', function (): void {
     $record = Brand::factory()->create();
     $newData = Brand::factory()->make();
 
@@ -30,21 +30,21 @@ it('can update a record', function () {
     ]);
 });
 
-it('shows visit website action when brand has website', function () {
+it('shows visit website action when brand has website', function (): void {
     $record = Brand::factory()->create(['website' => 'https://example.com']);
 
     Livewire::test(EditBrand::class, ['record' => $record->getRouteKey()])
         ->assertActionVisible('visit_website');
 });
 
-it('hides visit website action when brand has no website', function () {
+it('hides visit website action when brand has no website', function (): void {
     $record = Brand::factory()->create(['website' => null]);
 
     Livewire::test(EditBrand::class, ['record' => $record->getRouteKey()])
         ->assertActionHidden('visit_website');
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $record = Brand::factory()->create();
     $newData = Brand::factory()->make();
 

@@ -7,7 +7,7 @@ use App\Models\Shop\OrderItem;
 use App\Models\Shop\Product;
 use Livewire\Livewire;
 
-it('renders the top products by revenue widget', function () {
+it('renders the top products by revenue widget', function (): void {
     $customer = Customer::factory()->create();
     $products = Product::factory()->count(5)->create();
     $orders = Order::factory()->count(3)->create([

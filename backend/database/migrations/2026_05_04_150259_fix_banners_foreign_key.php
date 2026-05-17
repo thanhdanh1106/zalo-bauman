@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('banners', function (Blueprint $table) {
+        Schema::table('banners', function (Blueprint $table): void {
             $table->dropForeign(['image_id']);
             $table->foreign('image_id')->references('id')->on('curator')->nullOnDelete();
         });
@@ -22,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('banners', function (Blueprint $table) {
+        Schema::table('banners', function (Blueprint $table): void {
             $table->dropForeign(['image_id']);
             $table->foreign('image_id')->references('id')->on('media')->nullOnDelete();
         });

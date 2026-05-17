@@ -4,7 +4,7 @@ use App\Filament\Widgets\ProductMarginAnalysisChart;
 use App\Models\Shop\Product;
 use Livewire\Livewire;
 
-it('renders the product margin analysis widget', function () {
+it('renders the product margin analysis widget', function (): void {
     // Products with both price and cost set (should appear)
     Product::factory()->count(5)->create([
         'price' => fake()->randomFloat(2, 20, 200),

@@ -14,7 +14,7 @@ class PromotionController extends Controller
         $promotions = Promotion::with('image')
             ->whereNull('user_id')
             ->where('is_visible', true)
-            ->where(function ($query) {
+            ->where(function ($query): void {
                 $query->whereNull('end_date')
                     ->orWhere('end_date', '>=', now());
             })

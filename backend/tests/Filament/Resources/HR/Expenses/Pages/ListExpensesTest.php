@@ -9,7 +9,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = Expense::factory()->for(Employee::factory(), 'employee')->count(3)->create();
 
     Livewire::test(ListExpenses::class)
@@ -17,7 +17,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can approve a submitted expense', function () {
+it('can approve a submitted expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Submitted,
         'total_amount' => 500,
@@ -32,7 +32,7 @@ it('can approve a submitted expense', function () {
     expect($record->approved_at)->not->toBeNull();
 });
 
-it('approve is hidden for non-submitted expenses', function () {
+it('approve is hidden for non-submitted expenses', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Draft,
     ]);
@@ -41,7 +41,7 @@ it('approve is hidden for non-submitted expenses', function () {
         ->assertActionHidden(TestAction::make('approve')->table($record));
 });
 
-it('can reject a submitted expense', function () {
+it('can reject a submitted expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Submitted,
         'total_amount' => 500,
@@ -58,7 +58,7 @@ it('can reject a submitted expense', function () {
     expect($record->notes)->toBe('Missing receipts');
 });
 
-it('reject is hidden for non-submitted expenses', function () {
+it('reject is hidden for non-submitted expenses', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Draft,
     ]);
@@ -67,7 +67,7 @@ it('reject is hidden for non-submitted expenses', function () {
         ->assertActionHidden(TestAction::make('reject')->table($record));
 });
 
-it('can submit a draft expense', function () {
+it('can submit a draft expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Draft,
         'total_amount' => 500,
@@ -82,7 +82,7 @@ it('can submit a draft expense', function () {
     expect($record->submitted_at)->not->toBeNull();
 });
 
-it('submit is hidden for non-draft expenses', function () {
+it('submit is hidden for non-draft expenses', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Submitted,
     ]);
@@ -91,7 +91,7 @@ it('submit is hidden for non-draft expenses', function () {
         ->assertActionHidden(TestAction::make('submit')->table($record));
 });
 
-it('cannot submit an expense with zero amount', function () {
+it('cannot submit an expense with zero amount', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Draft,
         'total_amount' => 0,
@@ -104,7 +104,7 @@ it('cannot submit an expense with zero amount', function () {
     expect($record->status)->toBe(ExpenseStatus::Draft);
 });
 
-it('can reimburse an approved expense', function () {
+it('can reimburse an approved expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Approved,
         'total_amount' => 500,
@@ -118,7 +118,7 @@ it('can reimburse an approved expense', function () {
     expect($record->status)->toBe(ExpenseStatus::Reimbursed);
 });
 
-it('reimburse is hidden for non-approved expenses', function () {
+it('reimburse is hidden for non-approved expenses', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Draft,
     ]);
@@ -127,7 +127,7 @@ it('reimburse is hidden for non-approved expenses', function () {
         ->assertActionHidden(TestAction::make('reimburse')->table($record));
 });
 
-it('can flag an expense', function () {
+it('can flag an expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Submitted,
         'total_amount' => 500,
@@ -144,7 +144,7 @@ it('can flag an expense', function () {
     expect($record->notes)->toBe('Suspicious amount');
 });
 
-it('can delete an expense', function () {
+it('can delete an expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create();
 
     Livewire::test(ListExpenses::class)
@@ -152,7 +152,7 @@ it('can delete an expense', function () {
         ->assertNotified();
 });
 
-it('can bulk delete expenses', function () {
+it('can bulk delete expenses', function (): void {
     $records = Expense::factory()->for(Employee::factory(), 'employee')->count(3)->create();
 
     Livewire::test(ListExpenses::class)

@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\ContactForms\Api;
 
+use App\Filament\Resources\ContactForms\Api\Handlers\PaginationHandler;
+use App\Filament\Resources\ContactForms\Api\Handlers\CreateHandler;
+use App\Filament\Resources\ContactForms\Api\Handlers\DetailHandler;
 use App\Filament\Resources\ContactForms\ContactFormResource;
 use Rupadana\ApiService\ApiService;
 
@@ -12,9 +15,9 @@ class ContactFormApiService extends ApiService
     public static function handlers(): array
     {
         return [
-            Handlers\PaginationHandler::class,
-            Handlers\CreateHandler::class,
-            Handlers\DetailHandler::class,
+            PaginationHandler::class,
+            CreateHandler::class,
+            DetailHandler::class,
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Shop\Promotions\Schemas;
 
+use Filament\Schemas\Components\Group;
 use App\Models\Promotion;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\RichEditor;
@@ -21,7 +22,7 @@ class PromotionForm
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
                         Section::make('Thông tin khuyến mãi')
                             ->schema([
@@ -81,7 +82,7 @@ class PromotionForm
                     ])
                     ->columnSpan(['lg' => 3]),
 
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
                         Section::make('Trạng thái & Cấu hình')
                             ->schema([

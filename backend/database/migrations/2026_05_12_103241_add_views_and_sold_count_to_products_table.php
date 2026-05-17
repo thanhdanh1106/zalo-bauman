@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
+        Schema::table('products', function (Blueprint $table): void {
             if (!Schema::hasColumn('products', 'views')) {
                 $table->unsignedBigInteger('views')->default(0)->after('description');
             }
@@ -26,7 +26,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('products', function (Blueprint $table) {
+        Schema::table('products', function (Blueprint $table): void {
             if (Schema::hasColumn('products', 'views')) {
                 $table->dropColumn('views');
             }

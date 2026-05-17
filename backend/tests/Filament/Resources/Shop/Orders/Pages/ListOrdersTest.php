@@ -8,7 +8,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = Order::factory()->count(3)->create();
 
     Livewire::test(ListOrders::class)
@@ -16,7 +16,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can process a new order', function () {
+it('can process a new order', function (): void {
     $record = Order::factory()->create(['status' => OrderStatus::New]);
 
     Livewire::test(ListOrders::class)
@@ -26,14 +26,14 @@ it('can process a new order', function () {
     $this->assertDatabaseHas(Order::class, ['id' => $record->id, 'status' => OrderStatus::Processing]);
 });
 
-it('process is hidden for non-new orders', function () {
+it('process is hidden for non-new orders', function (): void {
     $record = Order::factory()->create(['status' => OrderStatus::Processing]);
 
     Livewire::test(ListOrders::class)
         ->assertActionHidden(TestAction::make('process')->table($record));
 });
 
-it('can ship a processing order', function () {
+it('can ship a processing order', function (): void {
     $record = Order::factory()->create(['status' => OrderStatus::Processing]);
 
     Livewire::test(ListOrders::class)
@@ -45,14 +45,14 @@ it('can ship a processing order', function () {
     $this->assertDatabaseHas(Order::class, ['id' => $record->id, 'status' => OrderStatus::Shipped]);
 });
 
-it('ship is hidden for non-processing orders', function () {
+it('ship is hidden for non-processing orders', function (): void {
     $record = Order::factory()->create(['status' => OrderStatus::New]);
 
     Livewire::test(ListOrders::class)
         ->assertActionHidden(TestAction::make('ship')->table($record));
 });
 
-it('can deliver a shipped order', function () {
+it('can deliver a shipped order', function (): void {
     $record = Order::factory()->create(['status' => OrderStatus::Shipped]);
 
     Livewire::test(ListOrders::class)
@@ -62,14 +62,14 @@ it('can deliver a shipped order', function () {
     $this->assertDatabaseHas(Order::class, ['id' => $record->id, 'status' => OrderStatus::Delivered]);
 });
 
-it('deliver is hidden for non-shipped orders', function () {
+it('deliver is hidden for non-shipped orders', function (): void {
     $record = Order::factory()->create(['status' => OrderStatus::New]);
 
     Livewire::test(ListOrders::class)
         ->assertActionHidden(TestAction::make('deliver')->table($record));
 });
 
-it('can cancel an order', function () {
+it('can cancel an order', function (): void {
     $record = Order::factory()->create(['status' => OrderStatus::New]);
 
     Livewire::test(ListOrders::class)
@@ -79,14 +79,14 @@ it('can cancel an order', function () {
     $this->assertDatabaseHas(Order::class, ['id' => $record->id, 'status' => OrderStatus::Cancelled]);
 });
 
-it('cancel is hidden for delivered orders', function () {
+it('cancel is hidden for delivered orders', function (): void {
     $record = Order::factory()->create(['status' => OrderStatus::Delivered]);
 
     Livewire::test(ListOrders::class)
         ->assertActionHidden(TestAction::make('cancel')->table($record));
 });
 
-it('cannot cancel a shipped order', function () {
+it('cannot cancel a shipped order', function (): void {
     $record = Order::factory()->create(['status' => OrderStatus::Shipped]);
 
     Livewire::test(ListOrders::class)
@@ -96,7 +96,7 @@ it('cannot cancel a shipped order', function () {
     expect($record->status)->toBe(OrderStatus::Shipped);
 });
 
-it('saves shipping notes when shipping an order', function () {
+it('saves shipping notes when shipping an order', function (): void {
     $record = Order::factory()->create(['status' => OrderStatus::Processing]);
 
     Livewire::test(ListOrders::class)
@@ -111,7 +111,7 @@ it('saves shipping notes when shipping an order', function () {
     ]);
 });
 
-it('can delete an order', function () {
+it('can delete an order', function (): void {
     $record = Order::factory()->create();
 
     Livewire::test(ListOrders::class)
@@ -119,7 +119,7 @@ it('can delete an order', function () {
         ->assertNotified();
 });
 
-it('can bulk delete orders', function () {
+it('can bulk delete orders', function (): void {
     $records = Order::factory()->count(3)->create();
 
     Livewire::test(ListOrders::class)
@@ -128,7 +128,7 @@ it('can bulk delete orders', function () {
         ->assertNotified();
 });
 
-it('can filter trashed orders', function () {
+it('can filter trashed orders', function (): void {
     $activeOrder = Order::factory()->create();
     $trashedOrder = Order::factory()->create();
     $trashedOrder->delete();
@@ -140,7 +140,7 @@ it('can filter trashed orders', function () {
         ->assertCanSeeTableRecords([$trashedOrder]);
 });
 
-it('can filter orders by created date range', function () {
+it('can filter orders by created date range', function (): void {
     $oldOrder = Order::factory()->create(['created_at' => now()->subMonths(3)]);
     $recentOrder = Order::factory()->create(['created_at' => now()->subDay()]);
 

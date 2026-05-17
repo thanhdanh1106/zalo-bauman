@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use Throwable;
+use Illuminate\Support\Facades\Storage;
+use Awcodes\Curator\Models\Media;
+use App\Settings\MembershipSettings;
+use Exception;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Shop\Customer;
@@ -48,7 +53,7 @@ class ZaloAuthController extends Controller
                     $zaloId = $zaloData['id'] ?? null;
                     $name = !empty($zaloData['name']) ? $zaloData['name'] : $name;
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::warning('Zalo Graph API failed (SSL/Network): ' . $e->getMessage());
             }
 
@@ -114,12 +119,12 @@ class ZaloAuthController extends Controller
                         $directory = 'avatars';
                         $path = $directory . '/' . $filename;
                         
-                        \Illuminate\Support\Facades\Storage::disk('public')->put($path, $imageContent);
+                        Storage::disk('public')->put($path, $imageContent);
                         
-                        $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($path);
+                        $fullPath = Storage::disk('public')->path($path);
                         $size = file_exists($fullPath) ? filesize($fullPath) : strlen($imageContent);
                         
-                        $media = \Awcodes\Curator\Models\Media::create([
+                        $media = Media::create([
                             'disk' => 'public',
                             'directory' => $directory,
                             'name' => 'zalo_avatar_' . $user->id,
@@ -137,7 +142,7 @@ class ZaloAuthController extends Controller
                             Log::info('Downloaded and saved Zalo avatar for User: ' . $user->id);
                         }
                     }
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     Log::warning('Failed to download and save Zalo avatar: ' . $e->getMessage());
                 }
             }
@@ -147,7 +152,7 @@ class ZaloAuthController extends Controller
                 try {
                     $referrerUser = User::find($user->referred_by);
                     if ($referrerUser && $referrerUser->id !== $user->id) {
-                        $settings = app(\App\Settings\MembershipSettings::class);
+                        $settings = app(MembershipSettings::class);
                         $regPoints = $settings->affiliate_register_points ?? 50;
                         if ($regPoints > 0) {
                             $referrerUser->deposit($regPoints, [
@@ -157,7 +162,7 @@ class ZaloAuthController extends Controller
                             ]);
                         }
                     }
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     Log::warning('Affiliate registration reward deposit failed: ' . $e->getMessage());
                 }
             }
@@ -178,7 +183,7 @@ class ZaloAuthController extends Controller
                     ['email' => $user->email],
                     $customerData
                 );
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::warning('Customer sync failed: ' . $e->getMessage());
             }
 
@@ -197,7 +202,7 @@ class ZaloAuthController extends Controller
                 'user' => $user
             ]);
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('FATAL ERROR IN ZALO LOGIN: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine()

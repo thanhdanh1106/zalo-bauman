@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('addresses', function (Blueprint $table) {
+        Schema::table('addresses', function (Blueprint $table): void {
             $table->string('name')->nullable()->after('id');
             $table->string('phone')->nullable()->after('name');
             $table->string('type')->nullable()->default('home')->after('zip');
@@ -24,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('addresses', function (Blueprint $table) {
+        Schema::table('addresses', function (Blueprint $table): void {
             $table->dropColumn(['name', 'phone', 'type', 'is_default']);
         });
     }

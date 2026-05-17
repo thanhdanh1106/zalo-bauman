@@ -5,12 +5,12 @@ use App\Models\Shop\ProductCategory;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreateCategory::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $data = ProductCategory::factory()->make();
 
     Livewire::test(CreateCategory::class)
@@ -24,7 +24,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(ProductCategory::class, ['name' => $data->name]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $newData = ProductCategory::factory()->make();
 
     Livewire::test(CreateCategory::class)

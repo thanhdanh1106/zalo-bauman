@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Shop\Products\RelationManagers;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
@@ -164,7 +167,7 @@ class VariantsRelationManager extends RelationManager
             ->recordTitleAttribute('weight_value')
             ->defaultSort('position')
             ->columns([
-                Tables\Columns\TextColumn::make('weight_value')
+                TextColumn::make('weight_value')
                     ->label('Biến thể')
                     ->formatStateUsing(function ($state, $record) {
                         if (! $state) return '—';
@@ -176,24 +179,24 @@ class VariantsRelationManager extends RelationManager
                     ->color('info')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('weight_unit')
+                TextColumn::make('weight_unit')
                     ->label('Đơn vị')
                     ->formatStateUsing(fn ($state) => self::WEIGHT_UNITS[$state] ?? $state)
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('sku')
+                TextColumn::make('sku')
                     ->label('SKU')
                     ->searchable()
                     ->placeholder('—')
                     ->copyable(),
 
-                Tables\Columns\TextColumn::make('price')
+                TextColumn::make('price')
                     ->label('Giá gốc')
                     ->money('VND')
                     ->sortable()
                     ->color(fn ($record) => $record->sale_price ? 'gray' : 'success'),
 
-                Tables\Columns\TextColumn::make('sale_price')
+                TextColumn::make('sale_price')
                     ->label('Giá KM')
                     ->money('VND')
                     ->placeholder('—')
@@ -201,21 +204,21 @@ class VariantsRelationManager extends RelationManager
                     ->badge()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('old_price')
+                TextColumn::make('old_price')
                     ->label('Giá so sánh')
                     ->money('VND')
                     ->placeholder('—')
                     ->color('gray')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('cost')
+                TextColumn::make('cost')
                     ->label('Giá vốn')
                     ->money('VND')
                     ->placeholder('—')
                     ->color('warning')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('qty')
+                TextColumn::make('qty')
                     ->label('Tồn kho')
                     ->badge()
                     ->color(fn ($state) => match (true) {
@@ -225,18 +228,18 @@ class VariantsRelationManager extends RelationManager
                     })
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('is_visible')
+                IconColumn::make('is_visible')
                     ->label('Hiển thị')
                     ->boolean(),
 
-                Tables\Columns\TextColumn::make('position')
+                TextColumn::make('position')
                     ->label('Thứ tự')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->reorderable('position')
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_visible')
+                TernaryFilter::make('is_visible')
                     ->label('Hiển thị'),
             ])
             ->headerActions([

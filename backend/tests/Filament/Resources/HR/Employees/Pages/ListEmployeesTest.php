@@ -9,7 +9,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = Employee::factory()->count(3)->create();
 
     Livewire::test(ListEmployees::class)
@@ -17,7 +17,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can view employee profile', function () {
+it('can view employee profile', function (): void {
     $record = Employee::factory()->create();
 
     Livewire::test(ListEmployees::class)
@@ -25,7 +25,7 @@ it('can view employee profile', function () {
         ->assertOk();
 });
 
-it('can toggle employee active status', function () {
+it('can toggle employee active status', function (): void {
     $record = Employee::factory()->create(['is_active' => true]);
 
     Livewire::test(ListEmployees::class)
@@ -34,7 +34,7 @@ it('can toggle employee active status', function () {
     $this->assertDatabaseHas(Employee::class, ['id' => $record->id, 'is_active' => false]);
 });
 
-it('can change employee department', function () {
+it('can change employee department', function (): void {
     $record = Employee::factory()->create();
     $newDepartment = Department::factory()->create();
 
@@ -46,7 +46,7 @@ it('can change employee department', function () {
     $this->assertDatabaseHas(Employee::class, ['id' => $record->id, 'department_id' => $newDepartment->id]);
 });
 
-it('can delete an employee', function () {
+it('can delete an employee', function (): void {
     $record = Employee::factory()->create();
 
     Livewire::test(ListEmployees::class)
@@ -54,7 +54,7 @@ it('can delete an employee', function () {
         ->assertNotified();
 });
 
-it('can bulk change department', function () {
+it('can bulk change department', function (): void {
     $records = Employee::factory()->count(3)->create();
     $newDepartment = Department::factory()->create();
 
@@ -69,7 +69,7 @@ it('can bulk change department', function () {
     }
 });
 
-it('can bulk toggle active', function () {
+it('can bulk toggle active', function (): void {
     $records = Employee::factory()->count(3)->create(['is_active' => true]);
 
     Livewire::test(ListEmployees::class)
@@ -83,7 +83,7 @@ it('can bulk toggle active', function () {
     }
 });
 
-it('can bulk delete employees', function () {
+it('can bulk delete employees', function (): void {
     $records = Employee::factory()->count(3)->create();
 
     Livewire::test(ListEmployees::class)
@@ -92,7 +92,7 @@ it('can bulk delete employees', function () {
         ->assertNotified();
 });
 
-it('can filter by employment type', function () {
+it('can filter by employment type', function (): void {
     $fullTime = Employee::factory()->create(['employment_type' => EmploymentType::FullTime]);
     $partTime = Employee::factory()->create(['employment_type' => EmploymentType::PartTime]);
 
@@ -102,7 +102,7 @@ it('can filter by employment type', function () {
         ->assertCanNotSeeTableRecords([$partTime]);
 });
 
-it('can filter by department', function () {
+it('can filter by department', function (): void {
     $dept1 = Department::factory()->create();
     $dept2 = Department::factory()->create();
     $employee1 = Employee::factory()->create(['department_id' => $dept1->id]);
@@ -114,7 +114,7 @@ it('can filter by department', function () {
         ->assertCanNotSeeTableRecords([$employee2]);
 });
 
-it('can filter by active status', function () {
+it('can filter by active status', function (): void {
     $active = Employee::factory()->create(['is_active' => true]);
     $inactive = Employee::factory()->create(['is_active' => false]);
 
@@ -124,7 +124,7 @@ it('can filter by active status', function () {
         ->assertCanNotSeeTableRecords([$inactive]);
 });
 
-it('can filter trashed employees', function () {
+it('can filter trashed employees', function (): void {
     $activeEmployee = Employee::factory()->create();
     $trashedEmployee = Employee::factory()->create();
     $trashedEmployee->delete();

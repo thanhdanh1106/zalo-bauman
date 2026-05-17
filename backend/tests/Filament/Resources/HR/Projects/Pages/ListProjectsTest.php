@@ -10,7 +10,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = Project::factory()->count(3)->create();
 
     Livewire::test(ListProjects::class)
@@ -18,7 +18,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can change project status', function () {
+it('can change project status', function (): void {
     $record = Project::factory()->create(['status' => ProjectStatus::Planning]);
 
     Livewire::test(ListProjects::class)
@@ -29,7 +29,7 @@ it('can change project status', function () {
     $this->assertDatabaseHas(Project::class, ['id' => $record->id, 'status' => ProjectStatus::Active]);
 });
 
-it('can put active project on hold', function () {
+it('can put active project on hold', function (): void {
     $record = Project::factory()->create(['status' => ProjectStatus::Active]);
 
     Livewire::test(ListProjects::class)
@@ -39,14 +39,14 @@ it('can put active project on hold', function () {
     $this->assertDatabaseHas(Project::class, ['id' => $record->id, 'status' => ProjectStatus::OnHold]);
 });
 
-it('put on hold is hidden for non-active projects', function () {
+it('put on hold is hidden for non-active projects', function (): void {
     $record = Project::factory()->create(['status' => ProjectStatus::Planning]);
 
     Livewire::test(ListProjects::class)
         ->assertActionHidden(TestAction::make('put_on_hold')->table($record));
 });
 
-it('can resume a project on hold', function () {
+it('can resume a project on hold', function (): void {
     $record = Project::factory()->create(['status' => ProjectStatus::OnHold]);
 
     Livewire::test(ListProjects::class)
@@ -56,14 +56,14 @@ it('can resume a project on hold', function () {
     $this->assertDatabaseHas(Project::class, ['id' => $record->id, 'status' => ProjectStatus::Active]);
 });
 
-it('resume is hidden for non-on-hold projects', function () {
+it('resume is hidden for non-on-hold projects', function (): void {
     $record = Project::factory()->create(['status' => ProjectStatus::Active]);
 
     Livewire::test(ListProjects::class)
         ->assertActionHidden(TestAction::make('resume')->table($record));
 });
 
-it('can complete a project', function () {
+it('can complete a project', function (): void {
     $record = Project::factory()->create(['status' => ProjectStatus::Active]);
 
     Livewire::test(ListProjects::class)
@@ -75,14 +75,14 @@ it('can complete a project', function () {
     expect($record->end_date)->not->toBeNull();
 });
 
-it('complete is hidden for completed projects', function () {
+it('complete is hidden for completed projects', function (): void {
     $record = Project::factory()->create(['status' => ProjectStatus::Completed]);
 
     Livewire::test(ListProjects::class)
         ->assertActionHidden(TestAction::make('complete')->table($record));
 });
 
-it('can delete a project', function () {
+it('can delete a project', function (): void {
     $record = Project::factory()->create();
 
     Livewire::test(ListProjects::class)
@@ -90,7 +90,7 @@ it('can delete a project', function () {
         ->assertNotified();
 });
 
-it('can bulk delete projects', function () {
+it('can bulk delete projects', function (): void {
     $records = Project::factory()->count(3)->create();
 
     Livewire::test(ListProjects::class)
@@ -99,7 +99,7 @@ it('can bulk delete projects', function () {
         ->assertNotified();
 });
 
-it('can filter by status', function () {
+it('can filter by status', function (): void {
     $active = Project::factory()->create(['status' => ProjectStatus::Active]);
     $planning = Project::factory()->create(['status' => ProjectStatus::Planning]);
 
@@ -109,7 +109,7 @@ it('can filter by status', function () {
         ->assertCanNotSeeTableRecords([$planning]);
 });
 
-it('can filter by priority', function () {
+it('can filter by priority', function (): void {
     $high = Project::factory()->create(['priority' => TaskPriority::High]);
     $low = Project::factory()->create(['priority' => TaskPriority::Low]);
 
@@ -119,7 +119,7 @@ it('can filter by priority', function () {
         ->assertCanNotSeeTableRecords([$low]);
 });
 
-it('can filter by department', function () {
+it('can filter by department', function (): void {
     $dept1 = Department::factory()->create();
     $dept2 = Department::factory()->create();
     $project1 = Project::factory()->create(['department_id' => $dept1->id]);
@@ -131,7 +131,7 @@ it('can filter by department', function () {
         ->assertCanNotSeeTableRecords([$project2]);
 });
 
-it('can filter trashed projects', function () {
+it('can filter trashed projects', function (): void {
     $activeProject = Project::factory()->create();
     $trashedProject = Project::factory()->create();
     $trashedProject->delete();

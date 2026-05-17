@@ -5,14 +5,14 @@ use App\Models\Shop\Customer;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the edit page', function () {
+it('can render the edit page', function (): void {
     $record = Customer::factory()->create();
 
     Livewire::test(EditCustomer::class, ['record' => $record->getRouteKey()])
         ->assertOk();
 });
 
-it('can update a record', function () {
+it('can update a record', function (): void {
     $record = Customer::factory()->create();
     $newData = Customer::factory()->make();
 
@@ -30,7 +30,7 @@ it('can update a record', function () {
     ]);
 });
 
-it('can send email from edit page', function () {
+it('can send email from edit page', function (): void {
     $record = Customer::factory()->create();
 
     Livewire::test(EditCustomer::class, ['record' => $record->getRouteKey()])
@@ -42,7 +42,7 @@ it('can send email from edit page', function () {
         ->assertNotified("Email sent to {$record->name}");
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $record = Customer::factory()->create();
     $newData = Customer::factory()->make();
 

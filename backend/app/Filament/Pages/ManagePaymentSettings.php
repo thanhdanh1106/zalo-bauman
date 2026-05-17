@@ -2,6 +2,9 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Schemas\Components\Section;
+use Illuminate\Support\Facades\Http;
+use Exception;
 use App\Settings\PaymentSettings;
 use BackedEnum;
 use Filament\Forms\Components\Select;
@@ -28,7 +31,7 @@ class ManagePaymentSettings extends SettingsPage
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Cấu hình Vận chuyển')
+                Section::make('Cấu hình Vận chuyển')
                     ->description('Thiết lập biểu phí giao hàng chuẩn và điều kiện tự động miễn phí vận chuyển cho các đơn hàng đạt mốc.')
                     ->icon(Heroicon::OutlinedTruck)
                     ->schema([
@@ -44,7 +47,7 @@ class ManagePaymentSettings extends SettingsPage
                             ->helperText('Đơn hàng có tổng tiền hàng đạt hoặc vượt ngưỡng này sẽ được hệ thống gán phí ship = 0đ tự động trên giao diện thanh toán.'),
                     ])->columns(1),
 
-                \Filament\Schemas\Components\Section::make('Phương thức Thanh toán Tiền mặt (COD)')
+                Section::make('Phương thức Thanh toán Tiền mặt (COD)')
                     ->schema([
                         Toggle::make('enable_cod')
                             ->label('Kích hoạt phương thức Thanh toán khi nhận hàng (COD)'),
@@ -54,7 +57,7 @@ class ManagePaymentSettings extends SettingsPage
                             ->columnSpanFull(),
                     ])->columns(1),
 
-                \Filament\Schemas\Components\Section::make('Cấu hình Chuyển khoản Ngân hàng')
+                Section::make('Cấu hình Chuyển khoản Ngân hàng')
                     ->description('Thông tin tài khoản nhận tiền hiển thị tại bước Thanh toán để khách hàng quét mã hoặc sao chép chuyển khoản.')
                     ->schema([
                         Toggle::make('enable_banking')
@@ -74,7 +77,7 @@ class ManagePaymentSettings extends SettingsPage
                             ->helperText('Sử dụng {order_number} để hệ thống tự điền mã đơn hàng thực tế. Ví dụ: "Thanh toan {order_number}"'),
                     ])->columns(1),
 
-                \Filament\Schemas\Components\Section::make('Cấu hình VietQR (Tạo mã QR chuyển khoản)')
+                Section::make('Cấu hình VietQR (Tạo mã QR chuyển khoản)')
                     ->description('Thiết lập thông tin bắt buộc để tạo mã VietQR chính xác theo chuẩn ngân hàng Việt Nam.')
                     ->schema([
                         Toggle::make('vietqr_enabled')
@@ -83,13 +86,13 @@ class ManagePaymentSettings extends SettingsPage
                             ->label('Chọn Ngân hàng nhận tiền')
                             ->options(function () {
                                 try {
-                                    $response = \Illuminate\Support\Facades\Http::get('https://api.vietqr.io/v2/banks');
+                                    $response = Http::get('https://api.vietqr.io/v2/banks');
                                     if ($response->successful()) {
                                         return collect($response->json()['data'])->mapWithKeys(function ($bank) {
                                             return [$bank['bin'] => "{$bank['shortName']} - {$bank['name']}"];
                                         })->toArray();
                                     }
-                                } catch (\Exception $e) {
+                                } catch (Exception $e) {
                                     return [
                                         '970436' => 'Vietcombank',
                                         '970422' => 'MB Bank',
@@ -112,7 +115,7 @@ class ManagePaymentSettings extends SettingsPage
                             ->default('compact2'),
                     ])->columns(1),
 
-                \Filament\Schemas\Components\Section::make('Cổng thanh toán ZaloPay Gateway (Tự động xác thực)')
+                Section::make('Cổng thanh toán ZaloPay Gateway (Tự động xác thực)')
                     ->description('Các mã khóa bí mật kết nối với hệ sinh thái ZaloPay Merchant để sinh chữ ký và tự động cập nhật trạng thái đơn hàng.')
                     ->schema([
                         TextInput::make('zalopay_app_id')

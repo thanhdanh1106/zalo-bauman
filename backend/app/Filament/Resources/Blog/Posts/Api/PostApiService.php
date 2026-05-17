@@ -2,6 +2,10 @@
 
 namespace App\Filament\Resources\Blog\Posts\Api;
 
+use App\Filament\Resources\Blog\Posts\Api\Handlers\CreateHandler;
+use App\Filament\Resources\Blog\Posts\Api\Handlers\DetailHandler;
+use App\Filament\Resources\Blog\Posts\Api\Handlers\UpdateHandler;
+use App\Filament\Resources\Blog\Posts\Api\Handlers\DeleteHandler;
 use App\Filament\Resources\Blog\Posts\PostResource;
 use Rupadana\ApiService\ApiService;
 use App\Filament\Resources\Blog\Posts\Api\Handlers\PaginationHandler;
@@ -13,11 +17,11 @@ class PostApiService extends ApiService
     public static function handlers(): array
     {
         return [
-            Handlers\PaginationHandler::class,
-            Handlers\CreateHandler::class,
-            Handlers\DetailHandler::class,
-            Handlers\UpdateHandler::class,
-            Handlers\DeleteHandler::class,
+            PaginationHandler::class,
+            CreateHandler::class,
+            DetailHandler::class,
+            UpdateHandler::class,
+            DeleteHandler::class,
         ];
     }
 }

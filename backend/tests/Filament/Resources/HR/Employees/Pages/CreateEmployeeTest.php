@@ -5,12 +5,12 @@ use App\Models\HR\Employee;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreateEmployee::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $data = Employee::factory()->make();
 
     Livewire::test(CreateEmployee::class)
@@ -29,7 +29,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(Employee::class, ['email' => $data->email]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $newData = Employee::factory()->make();
 
     Livewire::test(CreateEmployee::class)

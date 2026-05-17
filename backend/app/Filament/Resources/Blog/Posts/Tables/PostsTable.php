@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Blog\Posts\Tables;
 
+use Awcodes\Curator\Components\Tables\CuratorColumn;
 use App\Models\Blog\Post;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -27,7 +28,7 @@ class PostsTable
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
-                \Awcodes\Curator\Components\Tables\CuratorColumn::make('image_id')
+                CuratorColumn::make('image_id')
                     ->label('Hình ảnh')
                     ->size(40),
 

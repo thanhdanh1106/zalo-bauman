@@ -2,6 +2,10 @@
 
 namespace App\Filament\Resources\Blog\Posts\Pages;
 
+use Filament\Actions\ImportAction;
+use App\Filament\Imports\Blog\PostImporter;
+use Filament\Actions\ExportAction;
+use App\Filament\Exports\Blog\PostExporter;
 use App\Filament\Resources\Blog\Posts\PostResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
@@ -13,11 +17,11 @@ class ListPosts extends ListRecords
     public function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\ImportAction::make()
+            ImportAction::make()
                 ->color('warning')
-                ->importer(\App\Filament\Imports\Blog\PostImporter::class),
-            \Filament\Actions\ExportAction::make()
-                ->exporter(\App\Filament\Exports\Blog\PostExporter::class),
+                ->importer(PostImporter::class),
+            ExportAction::make()
+                ->exporter(PostExporter::class),
             CreateAction::make(),
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Rupadana\ApiService\ApiServicePlugin;
 use App\Filament\App\Pages\RegisterTeam;
 use App\Filament\Pages\Auth\Login;
 use App\Models\Team;
@@ -35,7 +36,7 @@ class AppPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\\Filament\\App\\Pages')
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\\Filament\\App\\Widgets')
             ->plugins([
-                \Rupadana\ApiService\ApiServicePlugin::make(),
+                ApiServicePlugin::make(),
             ])
             ->middleware([
                 EncryptCookies::class,

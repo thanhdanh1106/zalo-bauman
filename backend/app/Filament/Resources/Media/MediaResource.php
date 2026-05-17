@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Media;
 
+use Filament\Tables\Table;
+use Awcodes\Curator\Resources\Media\Pages\CreateMedia;
+use Awcodes\Curator\Resources\Media\Pages\EditMedia;
 use App\Filament\Exports\Media\MediaExporter;
 use App\Filament\Imports\Media\MediaImporter;
 use App\Filament\Resources\Media\Pages\ListMedia;
@@ -11,7 +14,7 @@ use Waad\FilamentImportWizard\Actions\ImportAction;
 
 class MediaResource extends CuratorMediaResource
 {
-    public static function table(\Filament\Tables\Table $table): \Filament\Tables\Table
+    public static function table(Table $table): Table
     {
         return parent::table($table)
             ->contentGrid(fn ($livewire) => $livewire->layoutView === 'grid' ? [
@@ -25,8 +28,8 @@ class MediaResource extends CuratorMediaResource
     {
         return [
             'index' => ListMedia::route('/'),
-            'create' => \Awcodes\Curator\Resources\Media\Pages\CreateMedia::route('/create'),
-            'edit' => \Awcodes\Curator\Resources\Media\Pages\EditMedia::route('/{record}/edit'),
+            'create' => CreateMedia::route('/create'),
+            'edit' => EditMedia::route('/{record}/edit'),
         ];
     }
 }

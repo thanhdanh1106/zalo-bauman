@@ -8,7 +8,7 @@ use App\Models\Shop\OrderItem;
 use App\Models\Shop\Product;
 use Livewire\Livewire;
 
-it('renders the shop KPIs widget', function () {
+it('renders the shop KPIs widget', function (): void {
     $customers = Customer::factory()->count(5)->create();
 
     $products = Product::factory()->count(3)->create();

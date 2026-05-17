@@ -2,6 +2,9 @@
 
 namespace App\Models\Blog;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\NewPostNotification;
 use App\Models\Comment;
 use Database\Factories\Blog\PostFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,18 +27,18 @@ class Post extends Model implements HasMedia
 
     protected static function booted()
     {
-        static::created(function ($post) {
+        static::created(function ($post): void {
             if ($post->is_visible) {
-                $users = \App\Models\User::all();
-                \Illuminate\Support\Facades\Notification::send($users, new \App\Notifications\NewPostNotification($post));
+                $users = User::all();
+                Notification::send($users, new NewPostNotification($post));
             }
         });
 
-        static::updated(function ($post) {
+        static::updated(function ($post): void {
             // If post was just made visible, notify
             if ($post->wasChanged('is_visible') && $post->is_visible) {
-                $users = \App\Models\User::all();
-                \Illuminate\Support\Facades\Notification::send($users, new \App\Notifications\NewPostNotification($post));
+                $users = User::all();
+                Notification::send($users, new NewPostNotification($post));
             }
         });
     }

@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Rupadana\ApiService\ApiServicePlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -41,7 +42,7 @@ class CtvPanelProvider extends PanelProvider
                 FilamentInfoWidget::class,
             ])
             ->plugins([
-                \Rupadana\ApiService\ApiServicePlugin::make(),
+                ApiServicePlugin::make(),
             ])
             ->middleware([
                 EncryptCookies::class,

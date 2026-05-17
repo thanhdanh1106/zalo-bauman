@@ -2,6 +2,11 @@
 
 namespace App\Filament\Imports\Blog;
 
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Awcodes\Curator\Models\Media;
+use Exception;
 use App\Models\Blog\Post;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
@@ -48,18 +53,18 @@ class PostImporter extends Importer
 
         if ($imageUrl && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
             try {
-                $response = \Illuminate\Support\Facades\Http::get($imageUrl);
+                $response = Http::get($imageUrl);
                 if ($response->successful()) {
                     $contents = $response->body();
                     $filename = basename(parse_url($imageUrl, PHP_URL_PATH));
                     if (empty($filename)) {
-                        $filename = \Illuminate\Support\Str::random(10) . '.jpg';
+                        $filename = Str::random(10) . '.jpg';
                     }
                     
-                    $path = 'curator/' . \Illuminate\Support\Str::random(40) . '_' . $filename;
-                    \Illuminate\Support\Facades\Storage::disk('public')->put($path, $contents);
+                    $path = 'curator/' . Str::random(40) . '_' . $filename;
+                    Storage::disk('public')->put($path, $contents);
 
-                    $media = \Awcodes\Curator\Models\Media::create([
+                    $media = Media::create([
                         'disk' => 'public',
                         'directory' => 'curator',
                         'filename' => pathinfo($filename, PATHINFO_FILENAME),
@@ -73,7 +78,7 @@ class PostImporter extends Importer
 
                     $this->record->image_id = $media->id;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Silent fail or log
             }
         }

@@ -9,12 +9,12 @@ use App\Models\Shop\Product;
 use Filament\Forms\Components\Repeater;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreateOrder::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $undoRepeaterFake = Repeater::fake();
 
     $customer = Customer::factory()->create();
@@ -42,7 +42,7 @@ it('can create a record', function () {
     $undoRepeaterFake();
 });
 
-it('sends database notification after order creation', function () {
+it('sends database notification after order creation', function (): void {
     $undoRepeaterFake = Repeater::fake();
 
     $customer = Customer::factory()->create();
@@ -72,7 +72,7 @@ it('sends database notification after order creation', function () {
     $undoRepeaterFake();
 });
 
-it('validates order item numeric fields', function (array $itemData, array $errors) {
+it('validates order item numeric fields', function (array $itemData, array $errors): void {
     $undoRepeaterFake = Repeater::fake();
 
     $customer = Customer::factory()->create();
@@ -102,7 +102,7 @@ it('validates order item numeric fields', function (array $itemData, array $erro
     '`qty` must be an integer' => [['qty' => 1.5], ['items.0.qty' => 'integer']],
 ]);
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $customer = Customer::factory()->create();
 
     Livewire::test(CreateOrder::class)

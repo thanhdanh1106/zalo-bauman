@@ -10,14 +10,14 @@ use Filament\Actions\ReplicateAction;
 use Filament\Forms\Components\Repeater;
 use Livewire\Livewire;
 
-it('can render the edit page', function () {
+it('can render the edit page', function (): void {
     $record = Order::factory()->create();
 
     Livewire::test(EditOrder::class, ['record' => $record->getRouteKey()])
         ->assertOk();
 });
 
-it('can update a record', function () {
+it('can update a record', function (): void {
     $undoRepeaterFake = Repeater::fake();
 
     $customer = Customer::factory()->create();
@@ -46,7 +46,7 @@ it('can update a record', function () {
     $undoRepeaterFake();
 });
 
-it('can replicate an order with new number and reset status', function () {
+it('can replicate an order with new number and reset status', function (): void {
     $undoRepeaterFake = Repeater::fake();
 
     $customer = Customer::factory()->create();
@@ -76,7 +76,7 @@ it('can replicate an order with new number and reset status', function () {
     $undoRepeaterFake();
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $customer = Customer::factory()->create();
     $product = Product::factory()->create();
     $record = Order::factory()->create(['customer_id' => $customer->id, 'currency' => CurrencyCode::Usd->value]);
@@ -100,7 +100,7 @@ it('validates the form data', function (array $data, array $errors) {
     '`currency` is required' => [['currency' => null], ['currency' => 'required']],
 ]);
 
-it('validates order item numeric fields', function (array $itemData, array $errors) {
+it('validates order item numeric fields', function (array $itemData, array $errors): void {
     $undoRepeaterFake = Repeater::fake();
 
     $customer = Customer::factory()->create();

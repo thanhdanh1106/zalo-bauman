@@ -16,7 +16,7 @@ return new class extends SettingsMigration
             $this->migrator->add('general.facebook_url', '');
             $this->migrator->add('general.youtube_url', '');
             $this->migrator->add('general.zalo_url', '');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Ignore if already exists
         }
     }

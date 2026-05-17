@@ -9,7 +9,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = LeaveRequest::factory()->for(Employee::factory(), 'employee')->count(3)->create();
 
     Livewire::test(ListLeaveRequests::class)
@@ -17,7 +17,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can approve a pending leave request', function () {
+it('can approve a pending leave request', function (): void {
     $record = LeaveRequest::factory()->for(Employee::factory(), 'employee')->create([
         'status' => LeaveStatus::Pending,
     ]);
@@ -31,7 +31,7 @@ it('can approve a pending leave request', function () {
     expect($record->reviewed_at)->not->toBeNull();
 });
 
-it('approve is hidden for non-pending requests', function () {
+it('approve is hidden for non-pending requests', function (): void {
     $record = LeaveRequest::factory()->for(Employee::factory(), 'employee')->create([
         'status' => LeaveStatus::Approved,
     ]);
@@ -40,7 +40,7 @@ it('approve is hidden for non-pending requests', function () {
         ->assertActionHidden(TestAction::make('approve')->table($record));
 });
 
-it('can reject a pending leave request', function () {
+it('can reject a pending leave request', function (): void {
     $record = LeaveRequest::factory()->for(Employee::factory(), 'employee')->create([
         'status' => LeaveStatus::Pending,
     ]);
@@ -57,7 +57,7 @@ it('can reject a pending leave request', function () {
     expect($record->reviewed_at)->not->toBeNull();
 });
 
-it('reject is hidden for non-pending requests', function () {
+it('reject is hidden for non-pending requests', function (): void {
     $record = LeaveRequest::factory()->for(Employee::factory(), 'employee')->create([
         'status' => LeaveStatus::Approved,
     ]);
@@ -66,7 +66,7 @@ it('reject is hidden for non-pending requests', function () {
         ->assertActionHidden(TestAction::make('reject')->table($record));
 });
 
-it('can delete a leave request', function () {
+it('can delete a leave request', function (): void {
     $record = LeaveRequest::factory()->for(Employee::factory(), 'employee')->create();
 
     Livewire::test(ListLeaveRequests::class)
@@ -74,7 +74,7 @@ it('can delete a leave request', function () {
         ->assertNotified();
 });
 
-it('can bulk approve leave requests', function () {
+it('can bulk approve leave requests', function (): void {
     $records = LeaveRequest::factory()->for(Employee::factory(), 'employee')->count(3)->create([
         'status' => LeaveStatus::Pending,
     ]);
@@ -89,7 +89,7 @@ it('can bulk approve leave requests', function () {
     }
 });
 
-it('can bulk reject leave requests', function () {
+it('can bulk reject leave requests', function (): void {
     $records = LeaveRequest::factory()->for(Employee::factory(), 'employee')->count(3)->create([
         'status' => LeaveStatus::Pending,
     ]);
@@ -106,7 +106,7 @@ it('can bulk reject leave requests', function () {
     }
 });
 
-it('can bulk delete leave requests', function () {
+it('can bulk delete leave requests', function (): void {
     $records = LeaveRequest::factory()->for(Employee::factory(), 'employee')->count(3)->create();
 
     Livewire::test(ListLeaveRequests::class)

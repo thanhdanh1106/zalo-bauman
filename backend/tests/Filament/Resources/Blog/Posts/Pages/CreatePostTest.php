@@ -7,12 +7,12 @@ use App\Models\Blog\PostCategory;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreatePost::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $data = Post::factory()->make();
     $author = Author::factory()->create();
     $category = PostCategory::factory()->create();
@@ -31,7 +31,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(Post::class, ['title' => $data->title]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $author = Author::factory()->create();
     $category = PostCategory::factory()->create();
     $newData = Post::factory()->make();

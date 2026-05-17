@@ -7,7 +7,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = Product::factory()->count(3)->create();
 
     Livewire::test(ListProducts::class)
@@ -15,7 +15,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can toggle product visibility', function () {
+it('can toggle product visibility', function (): void {
     $record = Product::factory()->create(['is_visible' => true]);
 
     Livewire::test(ListProducts::class)
@@ -24,7 +24,7 @@ it('can toggle product visibility', function () {
     $this->assertDatabaseHas(Product::class, ['id' => $record->id, 'is_visible' => false]);
 });
 
-it('can adjust product price', function () {
+it('can adjust product price', function (): void {
     $record = Product::factory()->create(['price' => 100, 'old_price' => 150]);
 
     Livewire::test(ListProducts::class)
@@ -40,7 +40,7 @@ it('can adjust product price', function () {
     ]);
 });
 
-it('can adjust product stock', function () {
+it('can adjust product stock', function (): void {
     $record = Product::factory()->create(['qty' => 10]);
 
     Livewire::test(ListProducts::class)
@@ -51,7 +51,7 @@ it('can adjust product stock', function () {
     $this->assertDatabaseHas(Product::class, ['id' => $record->id, 'qty' => 100]);
 });
 
-it('can delete a product', function () {
+it('can delete a product', function (): void {
     $record = Product::factory()->create();
 
     Livewire::test(ListProducts::class)
@@ -59,7 +59,7 @@ it('can delete a product', function () {
         ->assertNotified();
 });
 
-it('can bulk toggle visibility', function () {
+it('can bulk toggle visibility', function (): void {
     $records = Product::factory()->count(3)->create(['is_visible' => true]);
 
     Livewire::test(ListProducts::class)
@@ -73,7 +73,7 @@ it('can bulk toggle visibility', function () {
     }
 });
 
-it('can bulk delete products', function () {
+it('can bulk delete products', function (): void {
     $records = Product::factory()->count(3)->create();
 
     Livewire::test(ListProducts::class)
@@ -82,7 +82,7 @@ it('can bulk delete products', function () {
         ->assertNotified();
 });
 
-it('has query builder filter', function () {
+it('has query builder filter', function (): void {
     Livewire::test(ListProducts::class)
         ->assertTableFilterExists('queryBuilder');
 });

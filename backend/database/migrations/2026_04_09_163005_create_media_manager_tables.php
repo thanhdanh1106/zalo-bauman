@@ -8,14 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('media_folders', function (Blueprint $table) {
+        Schema::create('media_folders', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->foreignId('parent_id')->nullable()->constrained('media_folders')->nullOnDelete();
             $table->timestamps();
         });
 
-        Schema::create('media_files', function (Blueprint $table) {
+        Schema::create('media_files', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('uploaded_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('folder_id')->nullable()->constrained('media_folders')->nullOnDelete();
@@ -30,19 +30,19 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('media_tags', function (Blueprint $blueprint) {
+        Schema::create('media_tags', function (Blueprint $blueprint): void {
             $blueprint->id();
             $blueprint->string('name');
             $blueprint->string('slug')->unique();
             $blueprint->timestamps();
         });
 
-        Schema::create('media_taggables', function (Blueprint $blueprint) {
+        Schema::create('media_taggables', function (Blueprint $blueprint): void {
             $blueprint->foreignId('tag_id')->constrained('media_tags')->cascadeOnDelete();
             $blueprint->morphs('taggable');
         });
 
-        Schema::create('media_attachments', function (Blueprint $table) {
+        Schema::create('media_attachments', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('media_file_id')->constrained('media_files')->cascadeOnDelete();
             $table->morphs('attachable');

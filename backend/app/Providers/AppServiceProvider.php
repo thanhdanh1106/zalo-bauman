@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use App\Observers\UserObserver;
+use App\Models\Shop\Order;
+use App\Observers\OrderObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -27,8 +31,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        \App\Models\User::observe(\App\Observers\UserObserver::class);
-        \App\Models\Shop\Order::observe(\App\Observers\OrderObserver::class);
+        User::observe(UserObserver::class);
+        Order::observe(OrderObserver::class);
         Model::unguard();
 
         if (app()->environment('production')) {

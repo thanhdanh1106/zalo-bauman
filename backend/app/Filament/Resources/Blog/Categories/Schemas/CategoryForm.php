@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Blog\Categories\Schemas;
 
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
 use App\Models\Blog\PostCategory;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
@@ -17,9 +19,9 @@ class CategoryForm
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
-                        \Filament\Schemas\Components\Section::make('Thông tin danh mục')
+                        Section::make('Thông tin danh mục')
                             ->schema([
                                 TextInput::make('name')
                                     ->label('Tên danh mục')
@@ -47,9 +49,9 @@ class CategoryForm
                     ])
                     ->columnSpan(['lg' => 3]),
 
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
-                        \Filament\Schemas\Components\Section::make('Trạng thái & Hình ảnh')
+                        Section::make('Trạng thái & Hình ảnh')
                             ->schema([
                                 Toggle::make('is_visible')
                                     ->label('Hiển thị')

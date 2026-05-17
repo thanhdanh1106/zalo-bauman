@@ -6,7 +6,7 @@ use App\Models\HR\Employee;
 use App\Models\HR\LeaveRequest;
 use Livewire\Livewire;
 
-it('can render the view page', function () {
+it('can render the view page', function (): void {
     $employee = Employee::factory()->create();
     $record = LeaveRequest::factory()->create(['employee_id' => $employee->id]);
 
@@ -14,7 +14,7 @@ it('can render the view page', function () {
         ->assertOk();
 });
 
-it('can approve a pending leave request', function () {
+it('can approve a pending leave request', function (): void {
     $employee = Employee::factory()->create();
     $record = LeaveRequest::factory()->create([
         'employee_id' => $employee->id,
@@ -30,7 +30,7 @@ it('can approve a pending leave request', function () {
     expect($record->reviewed_at)->not->toBeNull();
 });
 
-it('approve is hidden for non-pending requests', function () {
+it('approve is hidden for non-pending requests', function (): void {
     $employee = Employee::factory()->create();
     $record = LeaveRequest::factory()->create([
         'employee_id' => $employee->id,
@@ -41,7 +41,7 @@ it('approve is hidden for non-pending requests', function () {
         ->assertActionHidden('approve');
 });
 
-it('can reject a pending leave request', function () {
+it('can reject a pending leave request', function (): void {
     $employee = Employee::factory()->create();
     $record = LeaveRequest::factory()->create([
         'employee_id' => $employee->id,
@@ -59,7 +59,7 @@ it('can reject a pending leave request', function () {
     expect($record->reviewer_notes)->toBe('Team is understaffed');
 });
 
-it('reject is hidden for non-pending requests', function () {
+it('reject is hidden for non-pending requests', function (): void {
     $employee = Employee::factory()->create();
     $record = LeaveRequest::factory()->create([
         'employee_id' => $employee->id,

@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('product_categories', function (Blueprint $table) {
+        Schema::table('product_categories', function (Blueprint $table): void {
             $table->unsignedBigInteger('image_id')->nullable()->after('slug');
             $table->foreign('image_id')->references('id')->on('curator')->nullOnDelete();
         });
 
-        Schema::table('post_categories', function (Blueprint $table) {
+        Schema::table('post_categories', function (Blueprint $table): void {
             $table->unsignedBigInteger('image_id')->nullable()->after('slug');
             $table->foreign('image_id')->references('id')->on('curator')->nullOnDelete();
         });
@@ -27,12 +27,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('product_categories', function (Blueprint $table) {
+        Schema::table('product_categories', function (Blueprint $table): void {
             $table->dropForeign(['image_id']);
             $table->dropColumn('image_id');
         });
 
-        Schema::table('post_categories', function (Blueprint $table) {
+        Schema::table('post_categories', function (Blueprint $table): void {
             $table->dropForeign(['image_id']);
             $table->dropColumn('image_id');
         });

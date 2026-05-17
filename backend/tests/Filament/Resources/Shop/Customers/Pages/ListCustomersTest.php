@@ -7,7 +7,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = Customer::factory()->count(3)->create();
 
     Livewire::test(ListCustomers::class)
@@ -15,7 +15,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can render the country column for customers with addresses', function () {
+it('can render the country column for customers with addresses', function (): void {
     $customer = Customer::factory()->create();
     $address = Address::factory()->create();
     $customer->addresses()->attach($address);
@@ -25,7 +25,7 @@ it('can render the country column for customers with addresses', function () {
         ->assertCanSeeTableRecords([$customer]);
 });
 
-it('can send email to customer', function () {
+it('can send email to customer', function (): void {
     $record = Customer::factory()->create();
 
     Livewire::test(ListCustomers::class)
@@ -36,7 +36,7 @@ it('can send email to customer', function () {
         ->assertNotified();
 });
 
-it('can bulk delete customers', function () {
+it('can bulk delete customers', function (): void {
     $records = Customer::factory()->count(3)->create();
 
     Livewire::test(ListCustomers::class)
@@ -45,7 +45,7 @@ it('can bulk delete customers', function () {
         ->assertNotified();
 });
 
-it('can filter trashed customers', function () {
+it('can filter trashed customers', function (): void {
     $activeCustomer = Customer::factory()->create();
     $trashedCustomer = Customer::factory()->create();
     $trashedCustomer->delete();

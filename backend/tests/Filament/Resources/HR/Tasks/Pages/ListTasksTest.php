@@ -12,7 +12,7 @@ use Filament\Actions\ReplicateAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = Task::factory()->for(Project::factory(), 'project')->count(3)->create();
 
     Livewire::test(ListTasks::class)
@@ -20,7 +20,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can start a backlog task', function () {
+it('can start a backlog task', function (): void {
     $record = Task::factory()->for(Project::factory(), 'project')->create([
         'status' => TaskStatus::Backlog,
     ]);
@@ -32,7 +32,7 @@ it('can start a backlog task', function () {
     $this->assertDatabaseHas(Task::class, ['id' => $record->id, 'status' => TaskStatus::InProgress]);
 });
 
-it('start is hidden for in-progress tasks', function () {
+it('start is hidden for in-progress tasks', function (): void {
     $record = Task::factory()->for(Project::factory(), 'project')->create([
         'status' => TaskStatus::InProgress,
     ]);
@@ -41,7 +41,7 @@ it('start is hidden for in-progress tasks', function () {
         ->assertActionHidden(TestAction::make('start')->table($record));
 });
 
-it('can send task to review', function () {
+it('can send task to review', function (): void {
     $record = Task::factory()->for(Project::factory(), 'project')->create([
         'status' => TaskStatus::InProgress,
     ]);
@@ -53,7 +53,7 @@ it('can send task to review', function () {
     $this->assertDatabaseHas(Task::class, ['id' => $record->id, 'status' => TaskStatus::InReview]);
 });
 
-it('send to review is hidden for non-in-progress tasks', function () {
+it('send to review is hidden for non-in-progress tasks', function (): void {
     $record = Task::factory()->for(Project::factory(), 'project')->create([
         'status' => TaskStatus::Backlog,
     ]);
@@ -62,7 +62,7 @@ it('send to review is hidden for non-in-progress tasks', function () {
         ->assertActionHidden(TestAction::make('send_to_review')->table($record));
 });
 
-it('can complete a task', function () {
+it('can complete a task', function (): void {
     $record = Task::factory()->for(Project::factory(), 'project')->create([
         'status' => TaskStatus::InProgress,
     ]);
@@ -79,7 +79,7 @@ it('can complete a task', function () {
     expect((float) $record->actual_hours)->toBe(5.0);
 });
 
-it('complete is hidden for completed tasks', function () {
+it('complete is hidden for completed tasks', function (): void {
     $record = Task::factory()->for(Project::factory(), 'project')->create([
         'status' => TaskStatus::Completed,
     ]);
@@ -88,7 +88,7 @@ it('complete is hidden for completed tasks', function () {
         ->assertActionHidden(TestAction::make('complete')->table($record));
 });
 
-it('can assign a task', function () {
+it('can assign a task', function (): void {
     $record = Task::factory()->for(Project::factory(), 'project')->create();
     $employee = Employee::factory()->create();
 
@@ -100,7 +100,7 @@ it('can assign a task', function () {
     $this->assertDatabaseHas(Task::class, ['id' => $record->id, 'assigned_to' => $employee->id]);
 });
 
-it('can set task priority', function () {
+it('can set task priority', function (): void {
     $record = Task::factory()->for(Project::factory(), 'project')->create([
         'priority' => TaskPriority::Low,
     ]);
@@ -113,7 +113,7 @@ it('can set task priority', function () {
     $this->assertDatabaseHas(Task::class, ['id' => $record->id, 'priority' => TaskPriority::High]);
 });
 
-it('can replicate a task', function () {
+it('can replicate a task', function (): void {
     $record = Task::factory()->for(Project::factory(), 'project')->create();
 
     Livewire::test(ListTasks::class)
@@ -122,7 +122,7 @@ it('can replicate a task', function () {
     expect(Task::where('title', $record->title)->count())->toBe(2);
 });
 
-it('can delete a task', function () {
+it('can delete a task', function (): void {
     $record = Task::factory()->for(Project::factory(), 'project')->create();
 
     Livewire::test(ListTasks::class)
@@ -130,7 +130,7 @@ it('can delete a task', function () {
         ->assertNotified();
 });
 
-it('can bulk set status', function () {
+it('can bulk set status', function (): void {
     $records = Task::factory()->for(Project::factory(), 'project')->count(3)->create([
         'status' => TaskStatus::Backlog,
     ]);
@@ -147,7 +147,7 @@ it('can bulk set status', function () {
     }
 });
 
-it('can bulk assign tasks', function () {
+it('can bulk assign tasks', function (): void {
     $records = Task::factory()->for(Project::factory(), 'project')->count(3)->create();
     $employee = Employee::factory()->create();
 
@@ -162,7 +162,7 @@ it('can bulk assign tasks', function () {
     }
 });
 
-it('can bulk delete tasks', function () {
+it('can bulk delete tasks', function (): void {
     $records = Task::factory()->for(Project::factory(), 'project')->count(3)->create();
 
     Livewire::test(ListTasks::class)
@@ -171,7 +171,7 @@ it('can bulk delete tasks', function () {
         ->assertNotified();
 });
 
-it('can filter by status', function () {
+it('can filter by status', function (): void {
     $project = Project::factory()->create();
     $backlog = Task::factory()->create(['project_id' => $project->id, 'status' => TaskStatus::Backlog]);
     $inProgress = Task::factory()->create(['project_id' => $project->id, 'status' => TaskStatus::InProgress]);
@@ -182,7 +182,7 @@ it('can filter by status', function () {
         ->assertCanNotSeeTableRecords([$inProgress]);
 });
 
-it('can filter by priority', function () {
+it('can filter by priority', function (): void {
     $project = Project::factory()->create();
     $high = Task::factory()->create(['project_id' => $project->id, 'priority' => TaskPriority::High]);
     $low = Task::factory()->create(['project_id' => $project->id, 'priority' => TaskPriority::Low]);
@@ -193,7 +193,7 @@ it('can filter by priority', function () {
         ->assertCanNotSeeTableRecords([$low]);
 });
 
-it('can filter by project', function () {
+it('can filter by project', function (): void {
     $project1 = Project::factory()->create();
     $project2 = Project::factory()->create();
     $task1 = Task::factory()->create(['project_id' => $project1->id]);
@@ -205,7 +205,7 @@ it('can filter by project', function () {
         ->assertCanNotSeeTableRecords([$task2]);
 });
 
-it('can filter by assignee', function () {
+it('can filter by assignee', function (): void {
     $project = Project::factory()->create();
     $employee1 = Employee::factory()->create();
     $employee2 = Employee::factory()->create();

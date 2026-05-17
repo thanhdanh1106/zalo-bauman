@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Api\MiniApp\Account;
 
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\Shop\Customer;
+use Throwable;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Promotion;
@@ -135,7 +139,7 @@ class MemberController extends Controller
         $user = $request->user();
         $promotions = Promotion::where('user_id', $user->id)
             ->where('is_visible', true)
-            ->where(function ($query) {
+            ->where(function ($query): void {
                 $query->whereNull('end_date')
                     ->orWhere('end_date', '>=', now());
             })
@@ -241,7 +245,7 @@ class MemberController extends Controller
         $user = $request->user();
         $link = 'https://zalo.me/s/' . env('ZALO_APP_ID', '347006313594163523') . '/?ref=' . $user->id;
         
-        $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(300)
+        $qrCode = QrCode::size(300)
             ->format('svg')
             ->generate($link);
 
@@ -281,9 +285,9 @@ class MemberController extends Controller
 
         // Sync with Customer table
         try {
-            \App\Models\Shop\Customer::where('email', $user->email)->update(['avatar_id' => $media->id]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Customer uploadAvatar sync failed: ' . $e->getMessage());
+            Customer::where('email', $user->email)->update(['avatar_id' => $media->id]);
+        } catch (Throwable $e) {
+            Log::warning('Customer uploadAvatar sync failed: ' . $e->getMessage());
         }
 
         return response()->json([

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Shop\Orders;
 
+use App\Filament\Resources\Shop\Orders\Api\Transformers\OrderTransformer;
+use App\Filament\Resources\Shop\Orders\Api\Handlers\PaginationHandler;
 use App\Filament\Resources\Shop\Orders\Pages\CreateOrder;
 use App\Filament\Resources\Shop\Orders\Pages\EditOrder;
 use App\Filament\Resources\Shop\Orders\Pages\ListOrders;
@@ -102,13 +104,13 @@ class OrderResource extends Resource
 
     public static function getApiTransformer()
     {
-        return \App\Filament\Resources\Shop\Orders\Api\Transformers\OrderTransformer::class;
+        return OrderTransformer::class;
     }
 
     public static function getApiHandlers(): array
     {
         return [
-            \App\Filament\Resources\Shop\Orders\Api\Handlers\PaginationHandler::class,
+            PaginationHandler::class,
         ];
     }
 

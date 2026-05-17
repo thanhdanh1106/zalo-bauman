@@ -2,6 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
+use App\Settings\MembershipSettings;
+use Throwable;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,9 +25,9 @@ class ProcessReferral
             // Check if we haven't already awarded click points for this referral ID from this browser/visitor
             if (!$request->hasCookie('referral_clicked_' . $ref)) {
                 try {
-                    $referrer = \App\Models\User::find($ref);
+                    $referrer = User::find($ref);
                     if ($referrer) {
-                        $settings = app(\App\Settings\MembershipSettings::class);
+                        $settings = app(MembershipSettings::class);
                         $clickPoints = $settings->affiliate_click_points ?? 10;
                         if ($clickPoints > 0) {
                             $referrer->deposit($clickPoints, [
@@ -34,7 +37,7 @@ class ProcessReferral
                             ]);
                         }
                     }
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     // Ignore DB/Settings lookup failures gracefully
                 }
                 // Set cookie for 24 hours to prevent duplicate point increments

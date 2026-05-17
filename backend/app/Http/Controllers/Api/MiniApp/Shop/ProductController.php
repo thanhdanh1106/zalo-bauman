@@ -19,7 +19,7 @@ class ProductController extends Controller
         
         if ($request->has('category_ids')) {
             $categoryIds = explode(',', $request->query('category_ids'));
-            $query->whereHas('productCategories', function($q) use ($categoryIds) {
+            $query->whereHas('productCategories', function($q) use ($categoryIds): void {
                 $q->whereIn('product_category_id', $categoryIds);
             });
         }
@@ -28,7 +28,7 @@ class ProductController extends Controller
             $search = $request->query('search');
             $keywords = array_filter(explode(' ', trim(preg_replace('/\s+/', ' ', $search))));
             if (!empty($keywords)) {
-                $query->where(function ($q) use ($keywords) {
+                $query->where(function ($q) use ($keywords): void {
                     foreach ($keywords as $keyword) {
                         $q->orWhere('name', 'like', '%' . $keyword . '%')
                           ->orWhere('sku', 'like', '%' . $keyword . '%');

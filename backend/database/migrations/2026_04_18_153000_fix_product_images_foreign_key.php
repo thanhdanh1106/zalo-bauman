@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('product_images', function (Blueprint $table) {
+        Schema::table('product_images', function (Blueprint $table): void {
             // Drop existing foreign key that points to the wrong table
             $table->dropForeign(['file_id']);
             
@@ -28,7 +28,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('product_images', function (Blueprint $table) {
+        Schema::table('product_images', function (Blueprint $table): void {
             $table->dropForeign(['file_id']);
             $table->foreign('file_id')
                 ->references('id')

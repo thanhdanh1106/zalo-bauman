@@ -2,6 +2,8 @@
 
 namespace App\Models\Shop;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Awcodes\Curator\Models\Media;
 use App\Models\Address;
 use App\Models\Comment;
 use Database\Factories\Shop\CustomerFactory;
@@ -68,9 +70,9 @@ class Customer extends Model
         return $this->hasManyThrough(Payment::class, Order::class, 'customer_id');
     }
 
-    public function avatar(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function avatar(): BelongsTo
     {
-        return $this->belongsTo(\Awcodes\Curator\Models\Media::class, 'avatar_id');
+        return $this->belongsTo(Media::class, 'avatar_id');
     }
 
     public function getAvatarUrlAttribute(): ?string

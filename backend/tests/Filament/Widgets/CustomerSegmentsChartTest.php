@@ -5,7 +5,7 @@ use App\Models\Shop\Customer;
 use App\Models\Shop\Order;
 use Livewire\Livewire;
 
-it('renders the customer segments widget', function () {
+it('renders the customer segments widget', function (): void {
     $customers = Customer::factory()->count(6)->create();
 
     // One-time customer (1 order)

@@ -6,7 +6,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = Brand::factory()->count(3)->create();
 
     Livewire::test(ListBrands::class)
@@ -14,7 +14,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can toggle brand visibility', function () {
+it('can toggle brand visibility', function (): void {
     $record = Brand::factory()->create(['is_visible' => true]);
 
     Livewire::test(ListBrands::class)
@@ -23,7 +23,7 @@ it('can toggle brand visibility', function () {
     $this->assertDatabaseHas(Brand::class, ['id' => $record->id, 'is_visible' => false]);
 });
 
-it('can bulk delete brands', function () {
+it('can bulk delete brands', function (): void {
     $records = Brand::factory()->count(3)->create();
 
     Livewire::test(ListBrands::class)

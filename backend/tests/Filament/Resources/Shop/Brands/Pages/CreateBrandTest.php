@@ -5,12 +5,12 @@ use App\Models\Shop\Brand;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreateBrand::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $data = Brand::factory()->make();
 
     Livewire::test(CreateBrand::class)
@@ -25,7 +25,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(Brand::class, ['name' => $data->name]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $newData = Brand::factory()->make();
 
     Livewire::test(CreateBrand::class)

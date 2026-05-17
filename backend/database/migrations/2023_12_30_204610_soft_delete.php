@@ -10,26 +10,26 @@ return new class() extends Migration
 {
     public function up(): void
     {
-        Schema::table($this->walletTable(), static function (Blueprint $table) {
+        Schema::table($this->walletTable(), static function (Blueprint $table): void {
             $table->softDeletesTz();
         });
-        Schema::table($this->transferTable(), static function (Blueprint $table) {
+        Schema::table($this->transferTable(), static function (Blueprint $table): void {
             $table->softDeletesTz();
         });
-        Schema::table($this->transactionTable(), static function (Blueprint $table) {
+        Schema::table($this->transactionTable(), static function (Blueprint $table): void {
             $table->softDeletesTz();
         });
     }
 
     public function down(): void
     {
-        Schema::table($this->walletTable(), static function (Blueprint $table) {
+        Schema::table($this->walletTable(), static function (Blueprint $table): void {
             $table->dropSoftDeletes();
         });
-        Schema::table($this->transferTable(), static function (Blueprint $table) {
+        Schema::table($this->transferTable(), static function (Blueprint $table): void {
             $table->dropSoftDeletes();
         });
-        Schema::table($this->transactionTable(), static function (Blueprint $table) {
+        Schema::table($this->transactionTable(), static function (Blueprint $table): void {
             $table->dropSoftDeletes();
         });
     }

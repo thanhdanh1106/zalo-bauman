@@ -9,14 +9,14 @@ use Filament\Forms\Components\Repeater;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the edit page', function () {
+it('can render the edit page', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->has(ExpenseLine::factory()->count(1), 'expenseLines')->create();
 
     Livewire::test(EditExpense::class, ['record' => $record->getRouteKey()])
         ->assertOk();
 });
 
-it('can update a record', function () {
+it('can update a record', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->has(ExpenseLine::factory()->count(1), 'expenseLines')->create();
 
     Livewire::test(EditExpense::class, ['record' => $record->getRouteKey()])
@@ -33,7 +33,7 @@ it('can update a record', function () {
     ]);
 });
 
-it('recalculates total_amount on save', function () {
+it('recalculates total_amount on save', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'total_amount' => 100.00,
     ]);
@@ -54,7 +54,7 @@ it('recalculates total_amount on save', function () {
     expect((float) $record->total_amount)->toBe(100.00);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->has(ExpenseLine::factory()->count(1), 'expenseLines')->create();
 
     Livewire::test(EditExpense::class, ['record' => $record->getRouteKey()])
@@ -74,7 +74,7 @@ it('validates the form data', function (array $data, array $errors) {
     '`currency` is required' => [['currency' => null], ['currency' => 'required']],
 ]);
 
-it('validates expense line numeric fields', function (array $lineData, array $errors) {
+it('validates expense line numeric fields', function (array $lineData, array $errors): void {
     $undoRepeaterFake = Repeater::fake();
 
     $employee = Employee::factory()->create();

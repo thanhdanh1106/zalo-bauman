@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use Rupadana\ApiService\ApiServicePlugin;
+use Filament\Navigation\NavigationItem;
 use App\Filament\Pages\ShopDashboard;
 
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
@@ -57,7 +59,7 @@ class AdminPanelProvider extends PanelProvider
                         'default' => 1,
                         'sm' => 2,
                     ]),
-                \Rupadana\ApiService\ApiServicePlugin::make(),
+                ApiServicePlugin::make(),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -79,12 +81,12 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->navigationItems([
-                \Filament\Navigation\NavigationItem::make('Bảng điều khiển CTV')
+                NavigationItem::make('Bảng điều khiển CTV')
                     ->url('/ctv')
                     ->icon('heroicon-o-presentation-chart-line')
                     ->group('Tiếp thị & Affiliate')
                     ->sort(10),
-                \Filament\Navigation\NavigationItem::make('Tài liệu API')
+                NavigationItem::make('Tài liệu API')
                     ->url('/docs/api')
                     ->icon('heroicon-o-document-text')
                     ->group('Hệ thống')

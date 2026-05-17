@@ -9,12 +9,12 @@ use Filament\Forms\Components\Repeater;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreateExpense::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $undoRepeaterFake = Repeater::fake();
 
     $employee = Employee::factory()->create();
@@ -45,7 +45,7 @@ it('can create a record', function () {
     $undoRepeaterFake();
 });
 
-it('calculates total_amount from line items on create', function () {
+it('calculates total_amount from line items on create', function (): void {
     $undoRepeaterFake = Repeater::fake();
 
     $employee = Employee::factory()->create();
@@ -83,7 +83,7 @@ it('calculates total_amount from line items on create', function () {
     $undoRepeaterFake();
 });
 
-it('sets status to Draft on create', function () {
+it('sets status to Draft on create', function (): void {
     $undoRepeaterFake = Repeater::fake();
 
     $employee = Employee::factory()->create();
@@ -115,7 +115,7 @@ it('sets status to Draft on create', function () {
     $undoRepeaterFake();
 });
 
-it('validates expense line numeric fields', function (array $lineData, array $errors) {
+it('validates expense line numeric fields', function (array $lineData, array $errors): void {
     $undoRepeaterFake = Repeater::fake();
 
     $employee = Employee::factory()->create();
@@ -149,7 +149,7 @@ it('validates expense line numeric fields', function (array $lineData, array $er
     '`unit_price` must not exceed 99999999.99' => [['unit_price' => 100000000], ['expenseLines.0.unit_price' => 'max']],
 ]);
 
-it('validates currency is required', function () {
+it('validates currency is required', function (): void {
     $undoRepeaterFake = Repeater::fake();
 
     $employee = Employee::factory()->create();
@@ -177,7 +177,7 @@ it('validates currency is required', function () {
     $undoRepeaterFake();
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $employee = Employee::factory()->create();
 
     Livewire::test(CreateExpense::class)

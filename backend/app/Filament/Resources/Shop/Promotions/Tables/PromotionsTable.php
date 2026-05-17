@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Shop\Promotions\Tables;
 
+use Awcodes\Curator\Components\Tables\CuratorColumn;
 use App\Models\Promotion;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
@@ -19,7 +20,7 @@ class PromotionsTable
     {
         return $table
             ->columns([
-                \Awcodes\Curator\Components\Tables\CuratorColumn::make('image_id')
+                CuratorColumn::make('image_id')
                     ->label('Hình ảnh')
                     ->size(40),
 

@@ -2,6 +2,7 @@
 
 namespace App\Models\Shop;
 
+use Awcodes\Curator\Models\Media;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -72,9 +73,9 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class);
     }
 
-    /** @return BelongsTo<\Awcodes\Curator\Models\Media, $this> */
+    /** @return BelongsTo<Media, $this> */
     public function image(): BelongsTo
     {
-        return $this->belongsTo(\Awcodes\Curator\Models\Media::class, 'image_id');
+        return $this->belongsTo(Media::class, 'image_id');
     }
 }

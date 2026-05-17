@@ -10,7 +10,7 @@ use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the manage page', function () {
+it('can render the manage page', function (): void {
     $records = Author::factory()->count(3)->create();
 
     Livewire::test(ManageAuthors::class)
@@ -18,7 +18,7 @@ it('can render the manage page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $data = Author::factory()->make();
 
     Livewire::test(ManageAuthors::class)
@@ -31,7 +31,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(Author::class, ['email' => $data->email]);
 });
 
-it('can edit a record', function () {
+it('can edit a record', function (): void {
     $record = Author::factory()->create();
     $newData = Author::factory()->make();
 
@@ -45,7 +45,7 @@ it('can edit a record', function () {
     $this->assertDatabaseHas(Author::class, ['id' => $record->id, 'name' => $newData->name]);
 });
 
-it('validates create action data', function (array $data, array $errors) {
+it('validates create action data', function (array $data, array $errors): void {
     $validData = Author::factory()->make();
 
     Livewire::test(ManageAuthors::class)
@@ -63,7 +63,7 @@ it('validates create action data', function (array $data, array $errors) {
     '`email` must be valid' => [['email' => Str::random()], ['email' => 'email']],
 ]);
 
-it('validates edit action data', function (array $data, array $errors) {
+it('validates edit action data', function (array $data, array $errors): void {
     $record = Author::factory()->create();
     $newData = Author::factory()->make();
 
@@ -81,7 +81,7 @@ it('validates edit action data', function (array $data, array $errors) {
     '`email` must be valid' => [['email' => Str::random()], ['email' => 'email']],
 ]);
 
-it('can delete an author', function () {
+it('can delete an author', function (): void {
     $record = Author::factory()->create();
 
     Livewire::test(ManageAuthors::class)
@@ -89,7 +89,7 @@ it('can delete an author', function () {
         ->assertNotified();
 });
 
-it('can bulk delete authors', function () {
+it('can bulk delete authors', function (): void {
     $records = Author::factory()->count(3)->create();
 
     Livewire::test(ManageAuthors::class)

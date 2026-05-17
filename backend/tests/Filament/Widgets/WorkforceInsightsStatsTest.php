@@ -6,7 +6,7 @@ use App\Models\HR\Department;
 use App\Models\HR\Employee;
 use Livewire\Livewire;
 
-it('renders the workforce insights widget', function () {
+it('renders the workforce insights widget', function (): void {
     $department = Department::factory()->create([
         'headcount_limit' => 20,
         'is_active' => true,

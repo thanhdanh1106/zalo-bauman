@@ -8,7 +8,7 @@ use App\Models\HR\Project;
 use App\Models\HR\Timesheet;
 use Livewire\Livewire;
 
-it('renders the utilization rate widget', function () {
+it('renders the utilization rate widget', function (): void {
     $department = Department::factory()->create();
     $project = Project::factory()->create(['department_id' => $department->id]);
 

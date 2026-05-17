@@ -7,12 +7,12 @@ use App\Models\HR\Timesheet;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreateTimesheet::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $employee = Employee::factory()->create();
     $project = Project::factory()->create();
 
@@ -31,7 +31,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(Timesheet::class, ['employee_id' => $employee->id]);
 });
 
-it('calculates total_cost on create', function () {
+it('calculates total_cost on create', function (): void {
     $employee = Employee::factory()->create();
     $project = Project::factory()->create();
 
@@ -53,7 +53,7 @@ it('calculates total_cost on create', function () {
     ]);
 });
 
-it('calculates total_cost with zero hourly_rate', function () {
+it('calculates total_cost with zero hourly_rate', function (): void {
     $employee = Employee::factory()->create();
     $project = Project::factory()->create();
 
@@ -75,7 +75,7 @@ it('calculates total_cost with zero hourly_rate', function () {
     ]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $employee = Employee::factory()->create();
     $project = Project::factory()->create();
 

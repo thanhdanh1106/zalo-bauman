@@ -8,7 +8,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the list page', function () {
+it('can render the list page', function (): void {
     $records = Timesheet::factory()->for(Employee::factory(), 'employee')->for(Project::factory(), 'project')->count(3)->create();
 
     Livewire::test(ListTimesheets::class)
@@ -16,7 +16,7 @@ it('can render the list page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can toggle billable status', function () {
+it('can toggle billable status', function (): void {
     $record = Timesheet::factory()
         ->for(Employee::factory(), 'employee')
         ->for(Project::factory(), 'project')
@@ -28,7 +28,7 @@ it('can toggle billable status', function () {
     $this->assertDatabaseHas(Timesheet::class, ['id' => $record->id, 'is_billable' => false]);
 });
 
-it('can bulk mark as billable', function () {
+it('can bulk mark as billable', function (): void {
     $records = Timesheet::factory()
         ->for(Employee::factory(), 'employee')
         ->for(Project::factory(), 'project')
@@ -44,7 +44,7 @@ it('can bulk mark as billable', function () {
     }
 });
 
-it('can bulk mark as non-billable', function () {
+it('can bulk mark as non-billable', function (): void {
     $records = Timesheet::factory()
         ->for(Employee::factory(), 'employee')
         ->for(Project::factory(), 'project')
@@ -60,7 +60,7 @@ it('can bulk mark as non-billable', function () {
     }
 });
 
-it('can bulk delete timesheets', function () {
+it('can bulk delete timesheets', function (): void {
     $records = Timesheet::factory()
         ->for(Employee::factory(), 'employee')
         ->for(Project::factory(), 'project')
@@ -73,7 +73,7 @@ it('can bulk delete timesheets', function () {
         ->assertNotified();
 });
 
-it('can filter by employee', function () {
+it('can filter by employee', function (): void {
     $employee1 = Employee::factory()->create();
     $employee2 = Employee::factory()->create();
     $project = Project::factory()->create();
@@ -86,7 +86,7 @@ it('can filter by employee', function () {
         ->assertCanNotSeeTableRecords([$ts2]);
 });
 
-it('can filter by project', function () {
+it('can filter by project', function (): void {
     $employee = Employee::factory()->create();
     $project1 = Project::factory()->create();
     $project2 = Project::factory()->create();
@@ -99,7 +99,7 @@ it('can filter by project', function () {
         ->assertCanNotSeeTableRecords([$ts2]);
 });
 
-it('can filter by billable status', function () {
+it('can filter by billable status', function (): void {
     $employee = Employee::factory()->create();
     $project = Project::factory()->create();
     $billable = Timesheet::factory()->create(['employee_id' => $employee->id, 'project_id' => $project->id, 'is_billable' => true]);
@@ -111,7 +111,7 @@ it('can filter by billable status', function () {
         ->assertCanNotSeeTableRecords([$nonBillable]);
 });
 
-it('can filter by date range', function () {
+it('can filter by date range', function (): void {
     $employee = Employee::factory()->create();
     $project = Project::factory()->create();
     $oldTs = Timesheet::factory()->create(['employee_id' => $employee->id, 'project_id' => $project->id, 'date' => now()->subMonths(3)]);

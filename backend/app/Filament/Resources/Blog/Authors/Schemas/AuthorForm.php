@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Blog\Authors\Schemas;
 
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
 use App\Models\Blog\Author;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
@@ -13,9 +15,9 @@ class AuthorForm
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
-                        \Filament\Schemas\Components\Section::make('Thông tin tác giả')
+                        Section::make('Thông tin tác giả')
                             ->schema([
                                 TextInput::make('name')
                                     ->required()
@@ -35,9 +37,9 @@ class AuthorForm
                     ])
                     ->columnSpan(['lg' => 3]),
 
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
-                        \Filament\Schemas\Components\Section::make('Mạng xã hội')
+                        Section::make('Mạng xã hội')
                             ->schema([
                                 TextInput::make('github_handle')
                                     ->label('GitHub handle')

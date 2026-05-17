@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use Exception;
 use App\Http\Controllers\Controller;
 use App\Models\Shop\Order;
 use App\Settings\PaymentSettings;
@@ -48,7 +49,7 @@ class ZaloPaymentController extends Controller
                         // Cộng điểm thưởng (nếu có logic cộng điểm)
                         try {
                             app(OrderController::class)->awardOrderPoints($order);
-                        } catch (\Exception $e) {
+                        } catch (Exception $e) {
                             Log::error("Zalo Callback Award Points Error: " . $e->getMessage());
                         }
 
@@ -59,7 +60,7 @@ class ZaloPaymentController extends Controller
                 $result["return_code"] = 1;
                 $result["return_message"] = "success";
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error("Zalo Callback Exception: " . $e->getMessage());
             $result["return_code"] = 0; // ZaloPay sẽ callback lại sau
             $result["return_message"] = $e->getMessage();

@@ -5,14 +5,14 @@ use App\Models\HR\Project;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the edit page', function () {
+it('can render the edit page', function (): void {
     $record = Project::factory()->create();
 
     Livewire::test(EditProject::class, ['record' => $record->getRouteKey()])
         ->assertOk();
 });
 
-it('can update a record', function () {
+it('can update a record', function (): void {
     $record = Project::factory()->create();
     $newData = Project::factory()->make();
 
@@ -29,7 +29,7 @@ it('can update a record', function () {
     ]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $record = Project::factory()->create();
     $newData = Project::factory()->make();
 

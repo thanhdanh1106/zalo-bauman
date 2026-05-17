@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Add columns to users table
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('users', function (Blueprint $table): void {
             if (!Schema::hasColumn('users', 'birthday')) {
                 $table->date('birthday')->nullable()->after('email');
             }
@@ -22,7 +22,7 @@ return new class extends Migration
         });
 
         // Add column to customers table
-        Schema::table('customers', function (Blueprint $table) {
+        Schema::table('customers', function (Blueprint $table): void {
             if (!Schema::hasColumn('customers', 'gender')) {
                 $table->string('gender')->nullable()->after('birthday');
             }
@@ -34,11 +34,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('users', function (Blueprint $table): void {
             $table->dropColumn(['birthday', 'gender']);
         });
 
-        Schema::table('customers', function (Blueprint $table) {
+        Schema::table('customers', function (Blueprint $table): void {
             $table->dropColumn('gender');
         });
     }

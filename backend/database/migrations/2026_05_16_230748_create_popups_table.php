@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('popups', function (Blueprint $table) {
+        Schema::create('popups', function (Blueprint $table): void {
             $table->id();
             $table->string('title')->nullable();
             $table->string('link')->nullable();
@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('is_visible')->default(true);
             $table->timestamps();
 
-            $table->foreign('image_id')->references('id')->on('media')->nullOnDelete();
+            $table->foreign('image_id')->references('id')->on('curator')->nullOnDelete();
         });
     }
 

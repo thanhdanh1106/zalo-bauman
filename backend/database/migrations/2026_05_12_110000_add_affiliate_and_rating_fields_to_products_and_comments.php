@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
+        Schema::table('products', function (Blueprint $table): void {
             if (!Schema::hasColumn('products', 'rating')) {
                 $table->decimal('rating', 3, 2)->default(5.00)->after('sold_count');
             }
@@ -23,7 +23,7 @@ return new class extends Migration
             }
         });
 
-        Schema::table('comments', function (Blueprint $table) {
+        Schema::table('comments', function (Blueprint $table): void {
             if (!Schema::hasColumn('comments', 'rating')) {
                 $table->unsignedTinyInteger('rating')->default(5)->after('content');
             }
@@ -35,7 +35,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('products', function (Blueprint $table) {
+        Schema::table('products', function (Blueprint $table): void {
             if (Schema::hasColumn('products', 'rating')) {
                 $table->dropColumn('rating');
             }
@@ -47,7 +47,7 @@ return new class extends Migration
             }
         });
 
-        Schema::table('comments', function (Blueprint $table) {
+        Schema::table('comments', function (Blueprint $table): void {
             if (Schema::hasColumn('comments', 'rating')) {
                 $table->dropColumn('rating');
             }

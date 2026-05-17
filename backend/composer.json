@@ -8,7 +8,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "awcodes/filament-curator": "*",
         "bavix/laravel-wallet": "^11.5",
         "bezhansalleh/filament-shield": "^4.2",
@@ -109,7 +109,7 @@
         },
         "platform-check": false,
         "platform": {
-            "php": "8.3.0"
+            "php": "8.4.0"
         }
     },
     "minimum-stability": "dev",

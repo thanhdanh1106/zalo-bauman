@@ -2,6 +2,11 @@
 
 namespace App\Filament\Resources\Shop\Products\Pages;
 
+use App\Filament\Actions\WooCommerceImportAction;
+use Filament\Actions\ImportAction;
+use App\Filament\Imports\Shop\ProductImporter;
+use Filament\Actions\ExportAction;
+use App\Filament\Exports\Shop\ProductExporter;
 use App\Filament\Resources\Shop\Products\ProductResource;
 use Filament\Actions\CreateAction;
 use Filament\Pages\Concerns\ExposesTableToWidgets;
@@ -16,13 +21,13 @@ class ListProducts extends ListRecords
     public function getHeaderActions(): array
     {
         return [
-            \App\Filament\Actions\WooCommerceImportAction::make(),
-            \Filament\Actions\ImportAction::make()
+            WooCommerceImportAction::make(),
+            ImportAction::make()
                 ->label('Nhập CSV thường')
                 ->color('warning')
-                ->importer(\App\Filament\Imports\Shop\ProductImporter::class),
-            \Filament\Actions\ExportAction::make()
-                ->exporter(\App\Filament\Exports\Shop\ProductExporter::class),
+                ->importer(ProductImporter::class),
+            ExportAction::make()
+                ->exporter(ProductExporter::class),
             CreateAction::make(),
         ];
     }

@@ -6,14 +6,14 @@ use App\Models\HR\Employee;
 use App\Models\HR\Expense;
 use Livewire\Livewire;
 
-it('can render the view page', function () {
+it('can render the view page', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create();
 
     Livewire::test(ViewExpense::class, ['record' => $record->getRouteKey()])
         ->assertOk();
 });
 
-it('can submit a draft expense', function () {
+it('can submit a draft expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Draft,
         'total_amount' => 500,
@@ -27,7 +27,7 @@ it('can submit a draft expense', function () {
     expect($record->status)->toBe(ExpenseStatus::Submitted);
 });
 
-it('submit is hidden for non-draft expenses', function () {
+it('submit is hidden for non-draft expenses', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Submitted,
     ]);
@@ -36,7 +36,7 @@ it('submit is hidden for non-draft expenses', function () {
         ->assertActionHidden('submit');
 });
 
-it('cannot submit an expense with zero amount', function () {
+it('cannot submit an expense with zero amount', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Draft,
         'total_amount' => 0,
@@ -49,7 +49,7 @@ it('cannot submit an expense with zero amount', function () {
     expect($record->status)->toBe(ExpenseStatus::Draft);
 });
 
-it('can approve a submitted expense', function () {
+it('can approve a submitted expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Submitted,
         'total_amount' => 500,
@@ -63,7 +63,7 @@ it('can approve a submitted expense', function () {
     expect($record->status)->toBe(ExpenseStatus::Approved);
 });
 
-it('approve is hidden for non-submitted expenses', function () {
+it('approve is hidden for non-submitted expenses', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Draft,
     ]);
@@ -72,7 +72,7 @@ it('approve is hidden for non-submitted expenses', function () {
         ->assertActionHidden('approve');
 });
 
-it('can reject a submitted expense', function () {
+it('can reject a submitted expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Submitted,
         'total_amount' => 500,
@@ -88,7 +88,7 @@ it('can reject a submitted expense', function () {
     expect($record->status)->toBe(ExpenseStatus::Rejected);
 });
 
-it('reject is hidden for non-submitted expenses', function () {
+it('reject is hidden for non-submitted expenses', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Draft,
     ]);
@@ -97,7 +97,7 @@ it('reject is hidden for non-submitted expenses', function () {
         ->assertActionHidden('reject');
 });
 
-it('can reimburse an approved expense', function () {
+it('can reimburse an approved expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Approved,
         'total_amount' => 500,
@@ -111,7 +111,7 @@ it('can reimburse an approved expense', function () {
     expect($record->status)->toBe(ExpenseStatus::Reimbursed);
 });
 
-it('reimburse is hidden for non-approved expenses', function () {
+it('reimburse is hidden for non-approved expenses', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Draft,
     ]);
@@ -120,7 +120,7 @@ it('reimburse is hidden for non-approved expenses', function () {
         ->assertActionHidden('reimburse');
 });
 
-it('can flag an expense', function () {
+it('can flag an expense', function (): void {
     $record = Expense::factory()->for(Employee::factory(), 'employee')->create([
         'status' => ExpenseStatus::Submitted,
         'total_amount' => 500,

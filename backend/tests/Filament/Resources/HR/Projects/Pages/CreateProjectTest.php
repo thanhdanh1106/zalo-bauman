@@ -7,12 +7,12 @@ use App\Models\HR\Project;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreateProject::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $data = Project::factory()->make();
 
     Livewire::test(CreateProject::class)
@@ -29,7 +29,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(Project::class, ['name' => $data->name]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $newData = Project::factory()->make();
 
     Livewire::test(CreateProject::class)

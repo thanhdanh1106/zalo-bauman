@@ -7,7 +7,7 @@ use App\Models\Shop\OrderItem;
 use App\Models\Shop\Product;
 use App\Models\Shop\ProductCategory;
 
-it('renders the shop dashboard page with all widgets', function () {
+it('renders the shop dashboard page with all widgets', function (): void {
     $categories = ProductCategory::factory()->count(3)->create();
     $customers = Customer::factory()->count(5)->create();
     $products = Product::factory()->count(5)->create();

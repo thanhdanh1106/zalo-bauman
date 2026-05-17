@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Shop\Orders\Tables;
 
+use UnitEnum;
+use App\Http\Controllers\Api\MiniApp\Shop\OrderController;
+use Throwable;
 use App\Enums\OrderStatus;
 use App\Models\Shop\Order;
 use Filament\Actions\Action;
@@ -78,7 +81,7 @@ class OrdersTable
                     ->sortable(),
                 TextColumn::make('currency')
                     ->label('Tiền tệ')
-                    ->formatStateUsing(fn ($state): string => strtoupper($state instanceof \UnitEnum ? $state->value : $state))
+                    ->formatStateUsing(fn ($state): string => strtoupper($state instanceof UnitEnum ? $state->value : $state))
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
@@ -228,8 +231,8 @@ class OrdersTable
                         ->action(function (Order $record): void {
                             $record->update(['payment_status' => 'paid']);
                             try {
-                                app(\App\Http\Controllers\Api\MiniApp\Shop\OrderController::class)->awardOrderPoints($record);
-                            } catch (\Throwable $e) {
+                                app(OrderController::class)->awardOrderPoints($record);
+                            } catch (Throwable $e) {
                                 // Ignore
                             }
 
@@ -253,8 +256,8 @@ class OrdersTable
                         ->action(function (Order $record): void {
                             $record->update(['status' => OrderStatus::Delivered]);
                             try {
-                                app(\App\Http\Controllers\Api\MiniApp\Shop\OrderController::class)->awardOrderPoints($record);
-                            } catch (\Throwable $e) {
+                                app(OrderController::class)->awardOrderPoints($record);
+                            } catch (Throwable $e) {
                                 // Ignore
                             }
 

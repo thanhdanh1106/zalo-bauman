@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Schemas\Components\Section;
 use App\Settings\MembershipSettings;
 use BackedEnum;
 use Filament\Forms\Components\TextInput;
@@ -26,7 +27,7 @@ class ManageMembershipSettings extends SettingsPage
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Chính sách Tiếp thị liên kết & Chia sẻ Link')
+                Section::make('Chính sách Tiếp thị liên kết & Chia sẻ Link')
                     ->description('Quản lý định dạng link chia sẻ và cấu hình giải ngân điểm thưởng tự động khi người dùng phát tán link tiếp thị.')
                     ->icon(Heroicon::OutlinedShare)
                     ->schema([
@@ -48,7 +49,7 @@ class ManageMembershipSettings extends SettingsPage
                             ->helperText('Số điểm thưởng lớn giải ngân khi khách được giới thiệu hoàn tất quy trình xác thực/đăng nhập trở thành cấp dưới hợp lệ.'),
                     ])->columns(1),
 
-                \Filament\Schemas\Components\Section::make('Cấu hình chung Tích điểm & Hoa hồng')
+                Section::make('Cấu hình chung Tích điểm & Hoa hồng')
                     ->schema([
                         TextInput::make('points_earning_rate')
                             ->label('Tỷ lệ tích điểm (Điểm / 1.000 VND)')
@@ -62,7 +63,7 @@ class ManageMembershipSettings extends SettingsPage
                             ->required(),
                     ])->columns(2),
 
-                \Filament\Schemas\Components\Section::make('Hệ thống Hạng Thành viên (Các mốc điểm tối thiểu)')
+                Section::make('Hệ thống Hạng Thành viên (Các mốc điểm tối thiểu)')
                     ->schema([
                         TextInput::make('bronze_label')->label('Tên Hạng 1')->required(),
                         TextInput::make('bronze_min_points')->label('Điểm tối thiểu Hạng 1')->numeric()->required(),

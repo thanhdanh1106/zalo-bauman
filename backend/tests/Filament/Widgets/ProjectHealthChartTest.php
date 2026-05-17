@@ -6,7 +6,7 @@ use App\Models\HR\Department;
 use App\Models\HR\Project;
 use Livewire\Livewire;
 
-it('renders the project health widget', function () {
+it('renders the project health widget', function (): void {
     $department = Department::factory()->create();
 
     Project::factory()->count(5)->create([

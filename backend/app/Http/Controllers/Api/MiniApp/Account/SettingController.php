@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Api\MiniApp\Account;
 
+use Awcodes\Curator\Models\Media;
+use App\Settings\PaymentSettings;
+use Throwable;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -76,7 +79,7 @@ class SettingController extends Controller
 
         // Handle image URLs
         if (isset($data['logo_id']) && $data['logo_id']) {
-            $media = \Awcodes\Curator\Models\Media::find($data['logo_id']);
+            $media = Media::find($data['logo_id']);
             if ($media) {
                 $url = $media->medium_url ?: $media->url;
                 $data['logo_url'] = !filter_var($url, FILTER_VALIDATE_URL) ? url($url) : $url;
@@ -84,7 +87,7 @@ class SettingController extends Controller
         }
 
         if (isset($data['favicon_id']) && $data['favicon_id']) {
-            $media = \Awcodes\Curator\Models\Media::find($data['favicon_id']);
+            $media = Media::find($data['favicon_id']);
             if ($media) {
                 $url = $media->medium_url ?: $media->url;
                 $data['favicon_url'] = !filter_var($url, FILTER_VALIDATE_URL) ? url($url) : $url;
@@ -100,7 +103,7 @@ class SettingController extends Controller
     public function payment()
     {
         try {
-            $settings = app(\App\Settings\PaymentSettings::class);
+            $settings = app(PaymentSettings::class);
             return response()->json([
                 'error' => false,
                 'data' => [
@@ -119,7 +122,7 @@ class SettingController extends Controller
                     'vietqr_template' => $settings->vietqr_template ?? 'compact2',
                 ],
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'error' => true,
                 'message' => 'Không thể tải cấu hình thanh toán',

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Shop\Categories\Pages;
 
+use Filament\Actions\ExportAction;
+use App\Filament\Exports\Shop\ProductCategoryExporter;
 use App\Filament\Imports\Shop\CategoryImporter;
 use App\Filament\Resources\Shop\Categories\CategoryResource;
 use Filament\Actions\CreateAction;
@@ -15,11 +17,11 @@ class ListCategories extends ListRecords
     public function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\ImportAction::make()
+            ImportAction::make()
                 ->color('warning')
                 ->importer(CategoryImporter::class),
-            \Filament\Actions\ExportAction::make()
-                ->exporter(\App\Filament\Exports\Shop\ProductCategoryExporter::class),
+            ExportAction::make()
+                ->exporter(ProductCategoryExporter::class),
             CreateAction::make(),
         ];
     }

@@ -2,6 +2,11 @@
 
 namespace App\Filament\Resources\Shop\Products;
 
+use App\Filament\Resources\Shop\Products\RelationManagers\AttributesRelationManager;
+use App\Filament\Resources\Shop\Products\RelationManagers\VariantsRelationManager;
+use App\Filament\Resources\Shop\Products\RelationManagers\GroupedChildrenRelationManager;
+use App\Filament\Resources\Shop\Products\Api\Transformers\ProductTransformer;
+use App\Filament\Resources\Shop\Products\Api\Handlers\PaginationHandler;
 use App\Filament\Resources\Shop\Products\Pages\CreateProduct;
 use App\Filament\Resources\Shop\Products\Pages\EditProduct;
 use App\Filament\Resources\Shop\Products\Pages\ListProducts;
@@ -50,10 +55,10 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\AttributesRelationManager::class,
-            RelationManagers\VariantsRelationManager::class,
-            RelationManagers\GroupedChildrenRelationManager::class,
-            RelationManagers\CommentsRelationManager::class,
+            AttributesRelationManager::class,
+            VariantsRelationManager::class,
+            GroupedChildrenRelationManager::class,
+            CommentsRelationManager::class,
         ];
     }
 
@@ -95,13 +100,13 @@ class ProductResource extends Resource
 
     public static function getApiTransformer()
     {
-        return \App\Filament\Resources\Shop\Products\Api\Transformers\ProductTransformer::class;
+        return ProductTransformer::class;
     }
 
     public static function getApiHandlers(): array
     {
         return [
-            \App\Filament\Resources\Shop\Products\Api\Handlers\PaginationHandler::class,
+            PaginationHandler::class,
         ];
     }
 

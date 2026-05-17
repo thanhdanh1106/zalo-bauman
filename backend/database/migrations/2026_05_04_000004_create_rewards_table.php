@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('rewards', function (Blueprint $table) {
+        Schema::create('rewards', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->foreign('image_id')->references('id')->on('media')->nullOnDelete();
         });
 
-        Schema::create('reward_redemptions', function (Blueprint $table) {
+        Schema::create('reward_redemptions', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('reward_id');

@@ -2,6 +2,9 @@
 
 namespace App\Filament\Imports\Shop;
 
+use Throwable;
+use Awcodes\Curator\Models\Media;
+use Carbon\Carbon;
 use App\Models\Shop\Product;
 use App\Models\Shop\ProductAttribute;
 use App\Models\Shop\ProductAttributeValue;
@@ -72,7 +75,7 @@ class WooCommerceProductImporter
                     'grouped'   => $this->processGrouped($row),
                     default     => $this->processSimple($row), // fallback
                 };
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->failed++;
                 $this->errors[] = 'Hàng [' . ($row['Name'] ?? '?') . ']: ' . $e->getMessage();
                 Log::error('WooCommerce import error', ['row' => $row, 'error' => $e->getMessage()]);
@@ -409,7 +412,7 @@ class WooCommerceProductImporter
             if ($parent) {
                 try {
                     $this->createVariantForParent($parent, $row);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $this->failed++;
                     $this->errors[] = 'Variation [' . ($row['Name'] ?? '?') . ']: ' . $e->getMessage();
                 }
@@ -471,7 +474,7 @@ class WooCommerceProductImporter
             $storagePath = 'curator/' . Str::random(40) . '_' . $filename;
             Storage::disk('public')->put($storagePath, $contents);
 
-            $media = \Awcodes\Curator\Models\Media::create([
+            $media = Media::create([
                 'disk'      => 'public',
                 'directory' => 'curator',
                 'filename'  => $filenameClean,
@@ -484,7 +487,7 @@ class WooCommerceProductImporter
             ]);
 
             return $media->id;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('WooCommerce import: không tải được ảnh', ['url' => $url, 'error' => $e->getMessage()]);
             return null;
         }
@@ -545,8 +548,8 @@ class WooCommerceProductImporter
         }
 
         try {
-            return \Carbon\Carbon::parse($value)->toDateString();
-        } catch (\Throwable) {
+            return Carbon::parse($value)->toDateString();
+        } catch (Throwable) {
             return null;
         }
     }

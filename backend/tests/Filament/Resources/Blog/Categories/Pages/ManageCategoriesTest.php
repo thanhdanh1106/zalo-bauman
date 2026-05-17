@@ -10,7 +10,7 @@ use Filament\Actions\Testing\TestAction;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the manage page', function () {
+it('can render the manage page', function (): void {
     $records = PostCategory::factory()->count(3)->create();
 
     Livewire::test(ManageCategories::class)
@@ -18,7 +18,7 @@ it('can render the manage page', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $data = PostCategory::factory()->make();
 
     Livewire::test(ManageCategories::class)
@@ -30,7 +30,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(PostCategory::class, ['name' => $data->name]);
 });
 
-it('can edit a record', function () {
+it('can edit a record', function (): void {
     $record = PostCategory::factory()->create();
     $newData = PostCategory::factory()->make();
 
@@ -44,7 +44,7 @@ it('can edit a record', function () {
     $this->assertDatabaseHas(PostCategory::class, ['id' => $record->id, 'name' => $newData->name]);
 });
 
-it('validates create action data', function (array $data, array $errors) {
+it('validates create action data', function (array $data, array $errors): void {
     $validData = PostCategory::factory()->make();
 
     Livewire::test(ManageCategories::class)
@@ -59,7 +59,7 @@ it('validates create action data', function (array $data, array $errors) {
     '`name` is max 255 characters' => [['name' => Str::random(256)], ['name' => 'max']],
 ]);
 
-it('validates edit action data', function (array $data, array $errors) {
+it('validates edit action data', function (array $data, array $errors): void {
     $record = PostCategory::factory()->create();
     $newData = PostCategory::factory()->make();
 
@@ -75,7 +75,7 @@ it('validates edit action data', function (array $data, array $errors) {
     '`name` is max 255 characters' => [['name' => Str::random(256)], ['name' => 'max']],
 ]);
 
-it('can toggle category visibility', function () {
+it('can toggle category visibility', function (): void {
     $record = PostCategory::factory()->create(['is_visible' => true]);
 
     Livewire::test(ManageCategories::class)
@@ -84,7 +84,7 @@ it('can toggle category visibility', function () {
     $this->assertDatabaseHas(PostCategory::class, ['id' => $record->id, 'is_visible' => false]);
 });
 
-it('can delete a category', function () {
+it('can delete a category', function (): void {
     $record = PostCategory::factory()->create();
 
     Livewire::test(ManageCategories::class)
@@ -92,7 +92,7 @@ it('can delete a category', function () {
         ->assertNotified();
 });
 
-it('can bulk delete categories', function () {
+it('can bulk delete categories', function (): void {
     $records = PostCategory::factory()->count(3)->create();
 
     Livewire::test(ManageCategories::class)

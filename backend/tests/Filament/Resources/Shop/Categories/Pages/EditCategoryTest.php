@@ -5,14 +5,14 @@ use App\Models\Shop\ProductCategory;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the edit page', function () {
+it('can render the edit page', function (): void {
     $record = ProductCategory::factory()->create();
 
     Livewire::test(EditCategory::class, ['record' => $record->getRouteKey()])
         ->assertOk();
 });
 
-it('can update a record', function () {
+it('can update a record', function (): void {
     $record = ProductCategory::factory()->create();
     $newData = ProductCategory::factory()->make();
 
@@ -29,7 +29,7 @@ it('can update a record', function () {
     ]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $record = ProductCategory::factory()->create();
     $newData = ProductCategory::factory()->make();
 

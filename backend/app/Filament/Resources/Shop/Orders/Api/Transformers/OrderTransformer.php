@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Shop\Orders\Api\Transformers;
 
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class OrderTransformer extends JsonResource
@@ -9,7 +10,7 @@ class OrderTransformer extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param Request $request
      * @return array
      */
     public function toArray($request)

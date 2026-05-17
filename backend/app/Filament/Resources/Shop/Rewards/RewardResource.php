@@ -2,6 +2,21 @@
 
 namespace App\Filament\Resources\Shop\Rewards;
 
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Toggle;
+use Awcodes\Curator\Components\Forms\CuratorPicker;
+use Awcodes\Curator\Components\Tables\CuratorColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\Shop\Rewards\Api\Transformers\RewardTransformer;
 use App\Filament\Resources\Shop\Rewards\Pages\ListRewards;
 use App\Filament\Resources\Shop\Rewards\Pages\CreateReward;
 use App\Filament\Resources\Shop\Rewards\Pages\EditReward;
@@ -35,26 +50,26 @@ class RewardResource extends Resource
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
-                        \Filament\Schemas\Components\Section::make('Thông tin phần thưởng')
+                        Section::make('Thông tin phần thưởng')
                             ->schema([
-                                \Filament\Forms\Components\TextInput::make('name')
+                                TextInput::make('name')
                                     ->label('Tên phần thưởng')
                                     ->required()
                                     ->maxLength(255),
 
-                                \Filament\Forms\Components\Textarea::make('description')
+                                Textarea::make('description')
                                     ->label('Mô tả')
                                     ->rows(3),
 
-                                \Filament\Forms\Components\TextInput::make('points_required')
+                                TextInput::make('points_required')
                                     ->label('Điểm cần đổi')
                                     ->numeric()
                                     ->required()
                                     ->minValue(0),
 
-                                \Filament\Forms\Components\Select::make('category')
+                                Select::make('category')
                                     ->label('Loại phần thưởng')
                                     ->options([
                                         'voucher' => 'Voucher',
@@ -64,12 +79,12 @@ class RewardResource extends Resource
                                     ->default('voucher')
                                     ->required(),
 
-                                \Filament\Forms\Components\TextInput::make('badge')
+                                TextInput::make('badge')
                                     ->label('Nhãn hiệu (Badge)')
                                     ->maxLength(50)
                                     ->helperText('VD: BÁN CHẠY, MỚI, HOT'),
 
-                                \Filament\Forms\Components\TextInput::make('stock')
+                                TextInput::make('stock')
                                     ->label('Số lượng tồn')
                                     ->numeric()
                                     ->default(-1)
@@ -79,22 +94,22 @@ class RewardResource extends Resource
                     ])
                     ->columnSpan(['lg' => 3]),
 
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
-                        \Filament\Schemas\Components\Section::make('Trạng thái')
+                        Section::make('Trạng thái')
                             ->schema([
-                                \Filament\Forms\Components\Toggle::make('is_visible')
+                                Toggle::make('is_visible')
                                     ->label('Hiển thị')
                                     ->default(true),
 
-                                \Filament\Forms\Components\Toggle::make('out_of_stock')
+                                Toggle::make('out_of_stock')
                                     ->label('Hết hàng')
                                     ->default(false),
                             ]),
 
-                        \Filament\Schemas\Components\Section::make('Hình ảnh')
+                        Section::make('Hình ảnh')
                             ->schema([
-                                \Awcodes\Curator\Components\Forms\CuratorPicker::make('image_id')
+                                CuratorPicker::make('image_id')
                                     ->label('Hình ảnh phần thưởng')
                                     ->relationship('image', 'id'),
                             ])
@@ -109,22 +124,22 @@ class RewardResource extends Resource
     {
         return $table
             ->columns([
-                \Awcodes\Curator\Components\Tables\CuratorColumn::make('image_id')
+                CuratorColumn::make('image_id')
                     ->label('Hình ảnh')
                     ->size(40),
 
-                \Filament\Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label('Tên')
                     ->searchable()
                     ->sortable(),
 
-                \Filament\Tables\Columns\TextColumn::make('points_required')
+                TextColumn::make('points_required')
                     ->label('Điểm')
                     ->sortable()
                     ->badge()
                     ->color('warning'),
 
-                \Filament\Tables\Columns\TextColumn::make('category')
+                TextColumn::make('category')
                     ->label('Loại')
                     ->badge()
                     ->colors([
@@ -133,32 +148,32 @@ class RewardResource extends Resource
                         'warning' => 'service',
                     ]),
 
-                \Filament\Tables\Columns\TextColumn::make('stock')
+                TextColumn::make('stock')
                     ->label('Tồn kho')
                     ->getStateUsing(fn ($record) => $record->stock === -1 ? '∞' : $record->stock),
 
-                \Filament\Tables\Columns\IconColumn::make('is_visible')
+                IconColumn::make('is_visible')
                     ->label('Hiển thị')
                     ->boolean(),
 
-                \Filament\Tables\Columns\IconColumn::make('out_of_stock')
+                IconColumn::make('out_of_stock')
                     ->label('Hết hàng')
                     ->boolean(),
             ])
             ->recordActions([
-                \Filament\Actions\ActionGroup::make([
-                    \Filament\Actions\EditAction::make(),
-                    \Filament\Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
                 ]),
             ])
             ->groupedBulkActions([
-                \Filament\Actions\DeleteBulkAction::make(),
+                DeleteBulkAction::make(),
             ]);
     }
 
     public static function getApiTransformer()
     {
-        return \App\Filament\Resources\Shop\Rewards\Api\Transformers\RewardTransformer::class;
+        return RewardTransformer::class;
     }
 
     public static function getNavigationBadge(): ?string

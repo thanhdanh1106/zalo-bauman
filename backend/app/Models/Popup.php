@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Awcodes\Curator\Models\Media;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\HasMedia;
@@ -24,7 +25,7 @@ class Popup extends Model implements HasMedia
 
     public function image(): BelongsTo
     {
-        return $this->belongsTo(\Awcodes\Curator\Models\Media::class, 'image_id');
+        return $this->belongsTo(Media::class, 'image_id');
     }
 
     /**

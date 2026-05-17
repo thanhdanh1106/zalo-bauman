@@ -2,6 +2,7 @@
 
 namespace App\Models\Shop;
 
+use Awcodes\Curator\Models\Media;
 use Database\Factories\Shop\ProductCategoryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -40,7 +41,7 @@ class ProductCategory extends Model implements HasMedia
 
     public function image(): BelongsTo
     {
-        return $this->belongsTo(\Awcodes\Curator\Models\Media::class, 'image_id');
+        return $this->belongsTo(Media::class, 'image_id');
     }
 
     /** @return HasMany<ProductCategory, $this> */

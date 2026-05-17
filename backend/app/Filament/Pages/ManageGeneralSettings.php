@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use Filament\Schemas\Components\Section;
+use Awcodes\Curator\Components\Forms\CuratorPicker;
 use App\Settings\GeneralSettings;
 use BackedEnum;
 use Filament\Forms\Components\TextInput;
@@ -26,7 +28,7 @@ class ManageGeneralSettings extends SettingsPage
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Thông tin cơ bản')
+                Section::make('Thông tin cơ bản')
                     ->schema([
                         TextInput::make('site_name')
                             ->label('Tên trang web')
@@ -35,15 +37,15 @@ class ManageGeneralSettings extends SettingsPage
                             ->label('Mô tả trang web'),
                     ])->columns(2),
 
-                \Filament\Schemas\Components\Section::make('Hình ảnh & Thương hiệu')
+                Section::make('Hình ảnh & Thương hiệu')
                     ->schema([
-                        \Awcodes\Curator\Components\Forms\CuratorPicker::make('logo_id')
+                        CuratorPicker::make('logo_id')
                             ->label('Logo thương hiệu'),
-                        \Awcodes\Curator\Components\Forms\CuratorPicker::make('favicon_id')
+                        CuratorPicker::make('favicon_id')
                             ->label('Favicon (Biểu tượng trình duyệt)'),
                     ])->columns(2),
 
-                \Filament\Schemas\Components\Section::make('Thông tin liên hệ')
+                Section::make('Thông tin liên hệ')
                     ->schema([
                         TextInput::make('support_email')
                             ->label('Email hỗ trợ')
@@ -53,7 +55,7 @@ class ManageGeneralSettings extends SettingsPage
                             ->tel(),
                     ])->columns(2),
 
-                \Filament\Schemas\Components\Section::make('Mạng xã hội')
+                Section::make('Mạng xã hội')
                     ->schema([
                         TextInput::make('facebook_url')
                             ->label('Link Facebook')

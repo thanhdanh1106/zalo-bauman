@@ -6,7 +6,7 @@ use App\Models\HR\LeaveRequest;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the edit page', function () {
+it('can render the edit page', function (): void {
     $employee = Employee::factory()->create();
     $record = LeaveRequest::factory()->create(['employee_id' => $employee->id]);
 
@@ -14,7 +14,7 @@ it('can render the edit page', function () {
         ->assertOk();
 });
 
-it('can update a record', function () {
+it('can update a record', function (): void {
     $employee = Employee::factory()->create();
     $record = LeaveRequest::factory()->create(['employee_id' => $employee->id]);
 
@@ -31,7 +31,7 @@ it('can update a record', function () {
     ]);
 });
 
-it('recalculates days_requested on save', function () {
+it('recalculates days_requested on save', function (): void {
     $employee = Employee::factory()->create();
     $record = LeaveRequest::factory()->create([
         'employee_id' => $employee->id,
@@ -55,7 +55,7 @@ it('recalculates days_requested on save', function () {
     ]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $employee = Employee::factory()->create();
     $record = LeaveRequest::factory()->create(['employee_id' => $employee->id]);
 

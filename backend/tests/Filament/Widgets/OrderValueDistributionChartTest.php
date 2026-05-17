@@ -5,7 +5,7 @@ use App\Models\Shop\Customer;
 use App\Models\Shop\Order;
 use Livewire\Livewire;
 
-it('renders the order value distribution widget', function () {
+it('renders the order value distribution widget', function (): void {
     $customer = Customer::factory()->create();
 
     // Orders across different price ranges

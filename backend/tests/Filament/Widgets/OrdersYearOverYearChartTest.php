@@ -5,7 +5,7 @@ use App\Models\Shop\Customer;
 use App\Models\Shop\Order;
 use Livewire\Livewire;
 
-it('renders the orders year-over-year widget', function () {
+it('renders the orders year-over-year widget', function (): void {
     $customer = Customer::factory()->create();
 
     // Current year orders spread across months

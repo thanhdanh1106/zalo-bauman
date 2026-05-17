@@ -2,6 +2,7 @@
 
 namespace App\Models\Blog;
 
+use Awcodes\Curator\Models\Media;
 use Database\Factories\Blog\PostCategoryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,7 +36,7 @@ class PostCategory extends Model
 
     public function image(): BelongsTo
     {
-        return $this->belongsTo(\Awcodes\Curator\Models\Media::class, 'image_id');
+        return $this->belongsTo(Media::class, 'image_id');
     }
 
     /** @return HasMany<Post, $this> */

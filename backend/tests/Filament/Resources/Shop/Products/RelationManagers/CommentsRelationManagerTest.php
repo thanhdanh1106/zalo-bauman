@@ -9,7 +9,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-it('can render the relation manager', function () {
+it('can render the relation manager', function (): void {
     $product = Product::factory()->create();
 
     Livewire::test(CommentsRelationManager::class, [
@@ -18,7 +18,7 @@ it('can render the relation manager', function () {
     ])->assertOk();
 });
 
-it('can create a comment and sends database notification', function () {
+it('can create a comment and sends database notification', function (): void {
     $product = Product::factory()->create();
     $customer = Customer::factory()->create();
 
@@ -46,7 +46,7 @@ it('can create a comment and sends database notification', function () {
     expect($user->notifications->first()->data['title'])->toBe('New comment');
 });
 
-it('does not actually delete a comment', function () {
+it('does not actually delete a comment', function (): void {
     $product = Product::factory()->create();
     $customer = Customer::factory()->create();
     $comment = $product->comments()->create([
@@ -68,7 +68,7 @@ it('does not actually delete a comment', function () {
     ]);
 });
 
-it('can edit a comment', function () {
+it('can edit a comment', function (): void {
     $product = Product::factory()->create();
     $customer = Customer::factory()->create();
     $comment = $product->comments()->create([

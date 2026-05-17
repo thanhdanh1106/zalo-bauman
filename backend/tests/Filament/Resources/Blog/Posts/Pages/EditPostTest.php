@@ -7,14 +7,14 @@ use App\Models\Blog\PostCategory;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the edit page', function () {
+it('can render the edit page', function (): void {
     $record = Post::factory()->create();
 
     Livewire::test(EditPost::class, ['record' => $record->getRouteKey()])
         ->assertOk();
 });
 
-it('can update a record', function () {
+it('can update a record', function (): void {
     $author = Author::factory()->create();
     $category = PostCategory::factory()->create();
     $record = Post::factory()->create([
@@ -38,7 +38,7 @@ it('can update a record', function () {
     ]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $author = Author::factory()->create();
     $category = PostCategory::factory()->create();
     $record = Post::factory()->create([

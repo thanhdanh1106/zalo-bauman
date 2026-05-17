@@ -2,6 +2,18 @@
 
 namespace App\Filament\Resources\Banners;
 
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Awcodes\Curator\Components\Forms\CuratorPicker;
+use Awcodes\Curator\Components\Tables\CuratorColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\Banners\Api\Transformers\BannerTransformer;
 use App\Filament\Resources\Banners\Pages\ListBanners;
 use App\Filament\Resources\Banners\Pages\CreateBanner;
 use App\Filament\Resources\Banners\Pages\EditBanner;
@@ -35,31 +47,31 @@ class BannerResource extends Resource
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Thông tin Banner')
+                Section::make('Thông tin Banner')
                     ->schema([
-                        \Filament\Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->label('Tiêu đề')
                             ->maxLength(255),
 
-                        \Filament\Forms\Components\TextInput::make('subtitle')
+                        TextInput::make('subtitle')
                             ->label('Phụ đề')
                             ->maxLength(255),
 
-                        \Filament\Forms\Components\TextInput::make('link')
+                        TextInput::make('link')
                             ->label('Đường dẫn (URL)')
                             ->url()
                             ->maxLength(255),
 
-                        \Filament\Forms\Components\TextInput::make('sort_order')
+                        TextInput::make('sort_order')
                             ->label('Thứ tự')
                             ->numeric()
                             ->default(0),
 
-                        \Filament\Forms\Components\Toggle::make('is_visible')
+                        Toggle::make('is_visible')
                             ->label('Hiển thị')
                             ->default(true),
 
-                        \Awcodes\Curator\Components\Forms\CuratorPicker::make('image_id')
+                        CuratorPicker::make('image_id')
                             ->label('Hình ảnh Banner')
                             ->relationship('image', 'id')
                             ->required(),
@@ -72,34 +84,34 @@ class BannerResource extends Resource
     {
         return $table
             ->columns([
-                \Awcodes\Curator\Components\Tables\CuratorColumn::make('image_id')
+                CuratorColumn::make('image_id')
                     ->label('Hình ảnh')
                     ->size(60),
 
-                \Filament\Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Tiêu đề')
                     ->searchable(),
 
-                \Filament\Tables\Columns\TextColumn::make('link')
+                TextColumn::make('link')
                     ->label('Link')
                     ->limit(30),
 
-                \Filament\Tables\Columns\TextColumn::make('sort_order')
+                TextColumn::make('sort_order')
                     ->label('Thứ tự')
                     ->sortable(),
 
-                \Filament\Tables\Columns\IconColumn::make('is_visible')
+                IconColumn::make('is_visible')
                     ->label('Hiển thị')
                     ->boolean(),
             ])
             ->recordActions([
-                \Filament\Actions\ActionGroup::make([
-                    \Filament\Actions\EditAction::make(),
-                    \Filament\Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
                 ]),
             ])
             ->groupedBulkActions([
-                \Filament\Actions\DeleteBulkAction::make(),
+                DeleteBulkAction::make(),
             ])
             ->defaultSort('sort_order', 'asc')
             ->reorderable('sort_order');
@@ -107,7 +119,7 @@ class BannerResource extends Resource
 
     public static function getApiTransformer()
     {
-        return \App\Filament\Resources\Banners\Api\Transformers\BannerTransformer::class;
+        return BannerTransformer::class;
     }
 
     public static function getRelations(): array

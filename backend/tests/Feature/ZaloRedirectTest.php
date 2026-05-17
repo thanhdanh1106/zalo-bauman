@@ -1,13 +1,13 @@
 <?php
 
-test('redirects to the configured Zalo mini app', function () {
+test('redirects to the configured Zalo mini app', function (): void {
     config(['services.zalo.app_id' => '3716133636548847379']);
 
     $this->get('/')
         ->assertRedirect('https://zalo.me/s/3716133636548847379/');
 });
 
-test('keeps the ref query parameter', function () {
+test('keeps the ref query parameter', function (): void {
     config(['services.zalo.app_id' => '3716133636548847379']);
 
     $this->get('/?ref=abc123')

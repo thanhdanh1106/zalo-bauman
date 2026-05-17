@@ -8,12 +8,12 @@ use App\Models\HR\Task;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreateTask::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $project = Project::factory()->create();
     $data = Task::factory()->make();
 
@@ -31,7 +31,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(Task::class, ['title' => $data->title]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $project = Project::factory()->create();
     $newData = Task::factory()->make();
 

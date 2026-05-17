@@ -7,7 +7,7 @@ use App\Models\HR\Employee;
 use App\Models\HR\LeaveRequest;
 use Livewire\Livewire;
 
-it('renders the department leave load widget', function () {
+it('renders the department leave load widget', function (): void {
     $departments = Department::factory()->count(3)->create();
 
     foreach ($departments as $department) {

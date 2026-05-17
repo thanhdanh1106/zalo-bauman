@@ -18,9 +18,9 @@ class PaginationHandler extends Handlers
             ->where('is_visible', true)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
-            ->where(function($query) {
+            ->where(function($query): void {
                 $query->whereDoesntHave('postCategory')
-                      ->orWhereHas('postCategory', function ($q) {
+                      ->orWhereHas('postCategory', function ($q): void {
                           $q->where('is_visible', true);
                       });
             });

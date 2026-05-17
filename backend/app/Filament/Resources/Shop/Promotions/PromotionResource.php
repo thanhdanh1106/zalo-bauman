@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Shop\Promotions;
 
+use App\Filament\Resources\Shop\Promotions\Api\Transformers\PromotionTransformer;
 use App\Filament\Resources\Shop\Promotions\Pages\CreatePromotion;
 use App\Filament\Resources\Shop\Promotions\Pages\EditPromotion;
 use App\Filament\Resources\Shop\Promotions\Pages\ListPromotions;
@@ -45,7 +46,7 @@ class PromotionResource extends Resource
 
     public static function getApiTransformer()
     {
-        return \App\Filament\Resources\Shop\Promotions\Api\Transformers\PromotionTransformer::class;
+        return PromotionTransformer::class;
     }
 
     public static function getNavigationBadge(): ?string

@@ -4,7 +4,7 @@ use App\Filament\Resources\HR\Projects\Pages\ViewProject;
 use App\Models\HR\Project;
 use Livewire\Livewire;
 
-it('can render the view page', function () {
+it('can render the view page', function (): void {
     $record = Project::factory()->create();
 
     Livewire::test(ViewProject::class, ['record' => $record->getRouteKey()])

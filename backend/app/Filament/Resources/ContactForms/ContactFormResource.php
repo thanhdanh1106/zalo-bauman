@@ -2,6 +2,17 @@
 
 namespace App\Filament\Resources\ContactForms;
 
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\ViewAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use App\Filament\Resources\ContactForms\Api\Transformers\ContactFormTransformer;
 use App\Filament\Resources\ContactForms\Pages\ListContactForms;
 use App\Filament\Resources\ContactForms\Pages\ViewContactForm;
 use App\Models\ContactForm;
@@ -34,24 +45,24 @@ class ContactFormResource extends Resource
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
-                        \Filament\Schemas\Components\Section::make('Thông tin liên hệ')
+                        Section::make('Thông tin liên hệ')
                             ->schema([
-                                \Filament\Forms\Components\TextInput::make('first_name')
+                                TextInput::make('first_name')
                                     ->label('Họ'),
-                                \Filament\Forms\Components\TextInput::make('last_name')
+                                TextInput::make('last_name')
                                     ->label('Tên'),
-                                \Filament\Forms\Components\TextInput::make('email')
+                                TextInput::make('email')
                                     ->label('Email')
                                     ->email(),
-                                \Filament\Forms\Components\TextInput::make('phone')
+                                TextInput::make('phone')
                                     ->label('Số điện thoại')
                                     ->tel(),
-                                \Filament\Forms\Components\TextInput::make('title')
+                                TextInput::make('title')
                                     ->label('Tiêu đề')
                                     ->columnSpanFull(),
-                                \Filament\Forms\Components\Textarea::make('content')
+                                Textarea::make('content')
                                     ->label('Nội dung')
                                     ->rows(5)
                                     ->columnSpanFull(),
@@ -60,11 +71,11 @@ class ContactFormResource extends Resource
                     ])
                     ->columnSpan(['lg' => 3]),
 
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
-                        \Filament\Schemas\Components\Section::make('Trạng thái')
+                        Section::make('Trạng thái')
                             ->schema([
-                                \Filament\Forms\Components\Select::make('status')
+                                Select::make('status')
                                     ->label('Trạng thái')
                                     ->options([
                                         'new' => 'Mới',
@@ -84,24 +95,24 @@ class ContactFormResource extends Resource
     {
         return $table
             ->columns([
-                \Filament\Tables\Columns\TextColumn::make('first_name')
+                TextColumn::make('first_name')
                     ->label('Họ tên')
                     ->getStateUsing(fn ($record) => trim($record->first_name . ' ' . $record->last_name))
                     ->searchable(['first_name', 'last_name']),
 
-                \Filament\Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->label('Email')
                     ->searchable(),
 
-                \Filament\Tables\Columns\TextColumn::make('phone')
+                TextColumn::make('phone')
                     ->label('Số điện thoại')
                     ->searchable(),
 
-                \Filament\Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Tiêu đề')
                     ->limit(40),
 
-                \Filament\Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label('Trạng thái')
                     ->badge()
                     ->colors([
@@ -111,26 +122,26 @@ class ContactFormResource extends Resource
                         'gray' => 'closed',
                     ]),
 
-                \Filament\Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Ngày gửi')
                     ->dateTime()
                     ->sortable(),
             ])
             ->recordActions([
-                \Filament\Actions\ActionGroup::make([
-                    \Filament\Actions\ViewAction::make(),
-                    \Filament\Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    DeleteAction::make(),
                 ]),
             ])
             ->groupedBulkActions([
-                \Filament\Actions\DeleteBulkAction::make(),
+                DeleteBulkAction::make(),
             ])
             ->defaultSort('created_at', 'desc');
     }
 
     public static function getApiTransformer()
     {
-        return \App\Filament\Resources\ContactForms\Api\Transformers\ContactFormTransformer::class;
+        return ContactFormTransformer::class;
     }
 
     public static function getNavigationBadge(): ?string

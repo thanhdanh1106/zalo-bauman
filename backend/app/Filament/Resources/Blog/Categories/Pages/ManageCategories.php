@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Blog\Categories\Pages;
 
+use Filament\Actions\ExportAction;
+use App\Filament\Exports\Blog\PostCategoryExporter;
 use App\Filament\Imports\Blog\CategoryImporter;
 use App\Filament\Resources\Blog\Categories\CategoryResource;
 use Filament\Actions\CreateAction;
@@ -15,11 +17,11 @@ class ManageCategories extends ManageRecords
     public function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\ImportAction::make()
+            ImportAction::make()
                 ->color('warning')
                 ->importer(CategoryImporter::class),
-            \Filament\Actions\ExportAction::make()
-                ->exporter(\App\Filament\Exports\Blog\PostCategoryExporter::class),
+            ExportAction::make()
+                ->exporter(PostCategoryExporter::class),
             CreateAction::make(),
         ];
     }

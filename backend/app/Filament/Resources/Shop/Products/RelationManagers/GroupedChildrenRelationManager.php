@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Shop\Products\RelationManagers;
 
+use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -47,12 +48,12 @@ class GroupedChildrenRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label('Tên sản phẩm')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sku')
+                TextColumn::make('sku')
                     ->label('SKU'),
-                Tables\Columns\TextColumn::make('price')
+                TextColumn::make('price')
                     ->label('Giá')
                     ->money('VND'),
             ])

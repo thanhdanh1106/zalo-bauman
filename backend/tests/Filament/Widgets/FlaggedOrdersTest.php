@@ -6,7 +6,7 @@ use App\Models\Shop\Customer;
 use App\Models\Shop\Order;
 use Livewire\Livewire;
 
-it('renders the flagged orders widget', function () {
+it('renders the flagged orders widget', function (): void {
     $customer = Customer::factory()->create();
 
     // New order older than 3 days (should be flagged)
@@ -33,11 +33,11 @@ it('renders the flagged orders widget', function () {
     Livewire::test(FlaggedOrders::class)
         ->assertOk()
         ->assertCanSeeTableRecords(
-            Order::where(function ($q) {
-                $q->where(function ($q2) {
+            Order::where(function ($q): void {
+                $q->where(function ($q2): void {
                     $q2->where('status', OrderStatus::New)
                         ->where('created_at', '<=', now()->subDays(3));
-                })->orWhere(function ($q2) {
+                })->orWhere(function ($q2): void {
                     $q2->where('status', OrderStatus::Processing)
                         ->where('created_at', '<=', now()->subDays(7));
                 });

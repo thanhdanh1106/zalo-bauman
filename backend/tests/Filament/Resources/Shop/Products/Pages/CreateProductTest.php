@@ -6,12 +6,12 @@ use App\Models\Shop\ProductCategory;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreateProduct::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $data = Product::factory()->make();
     $category = ProductCategory::factory()->create();
 
@@ -35,7 +35,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(Product::class, ['sku' => $data->sku]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $newData = Product::factory()->make();
     $category = ProductCategory::factory()->create();
 

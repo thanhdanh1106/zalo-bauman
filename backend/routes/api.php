@@ -1,5 +1,11 @@
 <?php
 
+use App\Models\Shop\Customer;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Api\MiniApp\Account\NotificationController;
+use App\Http\Controllers\Api\ZaloAuthController;
+use App\Http\Controllers\Api\ZaloPaymentController;
+use App\Http\Controllers\Api\PopupController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\MiniApp\Content\BannerController;
@@ -19,7 +25,7 @@ use App\Http\Controllers\Api\MiniApp\Shop\WishlistController;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/auth/me', fn (Request $request) => $request->user()->load('avatar'));
     Route::post('/auth/me', function (Request $request) {
         $user = $request->user();
@@ -27,7 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Sync with Customer table
         try {
-            \App\Models\Shop\Customer::updateOrCreate(
+            Customer::updateOrCreate(
                 ['email' => $user->email],
                 [
                     'name' => $user->name,
@@ -37,25 +43,25 @@ Route::middleware('auth:sanctum')->group(function () {
                     'avatar_id' => $user->avatar_id,
                 ]
             );
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Customer sync in auth/me failed: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::warning('Customer sync in auth/me failed: ' . $e->getMessage());
         }
 
         return $user->load('avatar');
     });
 
     // Notifications
-    Route::get('/notifications', [\App\Http\Controllers\Api\MiniApp\Account\NotificationController::class, 'index']);
-    Route::get('/notifications/unread-count', [\App\Http\Controllers\Api\MiniApp\Account\NotificationController::class, 'unreadCount']);
-    Route::post('/notifications/{id}/read', [\App\Http\Controllers\Api\MiniApp\Account\NotificationController::class, 'markAsRead']);
-    Route::post('/notifications/read-all', [\App\Http\Controllers\Api\MiniApp\Account\NotificationController::class, 'markAllAsRead']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 });
 
-Route::post('/auth/zalo-login', [\App\Http\Controllers\Api\ZaloAuthController::class, 'login']);
-Route::post('/auth/login', [\App\Http\Controllers\Api\ZaloAuthController::class, 'devLogin']); // DEV ONLY
+Route::post('/auth/zalo-login', [ZaloAuthController::class, 'login']);
+Route::post('/auth/login', [ZaloAuthController::class, 'devLogin']); // DEV ONLY
 
 // Zalo Payment Callback (Public)
-Route::post('/zalopay/callback', [\App\Http\Controllers\Api\ZaloPaymentController::class, 'callback']);
+Route::post('/zalopay/callback', [ZaloPaymentController::class, 'callback']);
 
 // Public Content Routes
 Route::get('/banners', [BannerController::class, 'index']);
@@ -69,7 +75,7 @@ Route::get('/stations', [OrderController::class, 'stations']);
 Route::get('/posts', [PostController::class, 'index']);
 Route::get('/posts/{id}', [PostController::class, 'show']);
 Route::get('/posts/name/{slug}', [PostController::class, 'showBySlug']);
-Route::get('/popups/active', [\App\Http\Controllers\Api\PopupController::class, 'getActive']);
+Route::get('/popups/active', [PopupController::class, 'getActive']);
 
 // Public Shop Routes
 Route::get('/promotions', [PromotionController::class, 'index']);
@@ -87,9 +93,9 @@ Route::get('/settings/pages', [SettingController::class, 'batch']);
 // Public Rewards
 Route::get('/rewards', [MemberController::class, 'rewards']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')->group(function (): void {
     // Account Routes
-    Route::prefix('account')->group(function () {
+    Route::prefix('account')->group(function (): void {
         Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/addresses', [AddressController::class, 'index']);

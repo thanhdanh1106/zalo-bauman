@@ -9,7 +9,7 @@ use App\Models\HR\LeaveRequest;
 use App\Models\HR\Project;
 use App\Models\HR\Timesheet;
 
-it('renders the hr dashboard page with all widgets', function () {
+it('renders the hr dashboard page with all widgets', function (): void {
     $departments = Department::factory()->count(3)->create();
 
     $employees = Employee::factory()->count(10)->sequence(

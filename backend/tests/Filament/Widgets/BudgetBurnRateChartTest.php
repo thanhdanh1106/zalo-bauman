@@ -9,7 +9,7 @@ use App\Models\HR\Expense;
 use App\Models\HR\Project;
 use Livewire\Livewire;
 
-it('renders the budget burn rate widget', function () {
+it('renders the budget burn rate widget', function (): void {
     $department = Department::factory()->create();
     $employee = Employee::factory()->create(['department_id' => $department->id]);
 

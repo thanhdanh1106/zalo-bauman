@@ -2,6 +2,17 @@
 
 namespace App\Filament\Resources\Popups;
 
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Awcodes\Curator\Components\Forms\CuratorPicker;
+use Awcodes\Curator\Components\Tables\CuratorColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use App\Filament\Resources\Popups\Pages\ListPopups;
 use App\Filament\Resources\Popups\Pages\CreatePopup;
 use App\Filament\Resources\Popups\Pages\EditPopup;
@@ -35,21 +46,21 @@ class PopupResource extends Resource
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Thông tin Popup')
+                Section::make('Thông tin Popup')
                     ->schema([
-                        \Filament\Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->label('Tiêu đề')
                             ->maxLength(255),
 
-                        \Filament\Forms\Components\TextInput::make('link')
+                        TextInput::make('link')
                             ->label('Đường dẫn (URL)')
                             ->maxLength(255),
 
-                        \Filament\Forms\Components\Toggle::make('is_visible')
+                        Toggle::make('is_visible')
                             ->label('Hiển thị')
                             ->default(true),
 
-                        \Awcodes\Curator\Components\Forms\CuratorPicker::make('image_id')
+                        CuratorPicker::make('image_id')
                             ->label('Hình ảnh Popup')
                             ->relationship('image', 'id')
                             ->required(),
@@ -62,35 +73,35 @@ class PopupResource extends Resource
     {
         return $table
             ->columns([
-                \Awcodes\Curator\Components\Tables\CuratorColumn::make('image_id')
+                CuratorColumn::make('image_id')
                     ->label('Hình ảnh')
                     ->size(60),
 
-                \Filament\Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Tiêu đề')
                     ->searchable(),
 
-                \Filament\Tables\Columns\TextColumn::make('link')
+                TextColumn::make('link')
                     ->label('Link')
                     ->limit(30),
 
-                \Filament\Tables\Columns\IconColumn::make('is_visible')
+                IconColumn::make('is_visible')
                     ->label('Hiển thị')
                     ->boolean(),
 
-                \Filament\Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Ngày tạo')
                     ->dateTime()
                     ->sortable(),
             ])
             ->recordActions([
-                \Filament\Actions\ActionGroup::make([
-                    \Filament\Actions\EditAction::make(),
-                    \Filament\Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
                 ]),
             ])
             ->groupedBulkActions([
-                \Filament\Actions\DeleteBulkAction::make(),
+                DeleteBulkAction::make(),
             ])
             ->defaultSort('created_at', 'desc');
     }

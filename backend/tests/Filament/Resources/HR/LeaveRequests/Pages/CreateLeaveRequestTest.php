@@ -7,12 +7,12 @@ use App\Models\HR\LeaveRequest;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the create page', function () {
+it('can render the create page', function (): void {
     Livewire::test(CreateLeaveRequest::class)
         ->assertOk();
 });
 
-it('can create a record', function () {
+it('can create a record', function (): void {
     $employee = Employee::factory()->create();
 
     Livewire::test(CreateLeaveRequest::class)
@@ -30,7 +30,7 @@ it('can create a record', function () {
     $this->assertDatabaseHas(LeaveRequest::class, ['employee_id' => $employee->id]);
 });
 
-it('calculates days_requested on create', function () {
+it('calculates days_requested on create', function (): void {
     $employee = Employee::factory()->create();
 
     Livewire::test(CreateLeaveRequest::class)
@@ -51,7 +51,7 @@ it('calculates days_requested on create', function () {
     ]);
 });
 
-it('calculates days_requested for same day', function () {
+it('calculates days_requested for same day', function (): void {
     $employee = Employee::factory()->create();
 
     Livewire::test(CreateLeaveRequest::class)
@@ -72,7 +72,7 @@ it('calculates days_requested for same day', function () {
     ]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $employee = Employee::factory()->create();
 
     Livewire::test(CreateLeaveRequest::class)

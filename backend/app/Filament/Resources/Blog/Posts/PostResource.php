@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Blog\Posts;
 
+use App\Filament\Resources\Blog\Posts\Api\Transformers\PostTransformer;
+use App\Filament\Resources\Blog\Posts\Api\Handlers\PaginationHandler;
 use App\Filament\Resources\Blog\Posts\Pages\CreatePost;
 use App\Filament\Resources\Blog\Posts\Pages\EditPost;
 use App\Filament\Resources\Blog\Posts\Pages\ListPosts;
@@ -68,13 +70,13 @@ class PostResource extends Resource
 
     public static function getApiTransformer()
     {
-        return \App\Filament\Resources\Blog\Posts\Api\Transformers\PostTransformer::class;
+        return PostTransformer::class;
     }
 
     public static function getApiHandlers(): array
     {
         return [
-            \App\Filament\Resources\Blog\Posts\Api\Handlers\PaginationHandler::class,
+            PaginationHandler::class,
         ];
     }
 

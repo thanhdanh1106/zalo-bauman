@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Awcodes\Curator\Models\Media;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;
@@ -90,7 +91,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
 
     public function avatar(): BelongsTo
     {
-        return $this->belongsTo(\Awcodes\Curator\Models\Media::class, 'avatar_id');
+        return $this->belongsTo(Media::class, 'avatar_id');
     }
 
     public function getAvatarUrlAttribute(): ?string

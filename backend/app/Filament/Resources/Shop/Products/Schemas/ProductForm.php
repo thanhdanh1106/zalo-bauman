@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Shop\Products\Schemas;
 
+use RalphJSmit\Filament\SEO\SEO;
 use App\Filament\Resources\Shop\Brands\RelationManagers\ProductsRelationManager;
 use App\Models\Shop\Product;
 use Filament\Forms\Components\Checkbox;
@@ -158,7 +159,7 @@ class ProductForm
                        
                              Section::make('SEO')
                             ->schema([
-                                \RalphJSmit\Filament\SEO\SEO::make(),
+                                SEO::make(),
                                 TextInput::make('seo_title')
                                     ->label('SEO Title (Meta)')
                                     ->maxLength(60),

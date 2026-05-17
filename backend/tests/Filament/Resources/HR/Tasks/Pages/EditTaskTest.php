@@ -6,7 +6,7 @@ use App\Models\HR\Task;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the edit page', function () {
+it('can render the edit page', function (): void {
     $project = Project::factory()->create();
     $record = Task::factory()->create(['project_id' => $project->id]);
 
@@ -14,7 +14,7 @@ it('can render the edit page', function () {
         ->assertOk();
 });
 
-it('can update a record', function () {
+it('can update a record', function (): void {
     $project = Project::factory()->create();
     $record = Task::factory()->create(['project_id' => $project->id]);
     $newData = Task::factory()->make();
@@ -32,7 +32,7 @@ it('can update a record', function () {
     ]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $project = Project::factory()->create();
     $record = Task::factory()->create(['project_id' => $project->id]);
     $newData = Task::factory()->make();

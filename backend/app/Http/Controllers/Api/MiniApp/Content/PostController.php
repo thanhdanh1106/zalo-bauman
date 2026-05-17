@@ -16,9 +16,9 @@ class PostController extends Controller
             ->where('is_visible', true)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
-            ->where(function($q) {
+            ->where(function($q): void {
                 $q->whereDoesntHave('postCategory')
-                  ->orWhereHas('postCategory', function ($subCatQ) {
+                  ->orWhereHas('postCategory', function ($subCatQ): void {
                       $subCatQ->where('is_visible', true);
                   });
             });
@@ -31,7 +31,7 @@ class PostController extends Controller
             $search = $request->query('search');
             $keywords = array_filter(explode(' ', trim(preg_replace('/\s+/', ' ', $search))));
             if (!empty($keywords)) {
-                $query->where(function ($q) use ($keywords) {
+                $query->where(function ($q) use ($keywords): void {
                     foreach ($keywords as $keyword) {
                         $q->orWhere('title', 'like', '%' . $keyword . '%');
                     }

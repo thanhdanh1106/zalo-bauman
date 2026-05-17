@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Artisan;
 use App\Livewire\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,11 +23,11 @@ Route::get('/', function (Request $request) {
 });
 
 Route::get('/clear-server-cache', function () {
-    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-    \Illuminate\Support\Facades\Artisan::call('filament:clear-cached-components');
+    Artisan::call('optimize:clear');
+    Artisan::call('filament:clear-cached-components');
     try {
-        \Illuminate\Support\Facades\Artisan::call('settings:clear-cache');
-    } catch (\Throwable $e) {}
+        Artisan::call('settings:clear-cache');
+    } catch (Throwable $e) {}
     
     if (function_exists('opcache_reset')) {
         opcache_reset();

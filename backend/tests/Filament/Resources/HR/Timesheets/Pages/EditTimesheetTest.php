@@ -7,7 +7,7 @@ use App\Models\HR\Timesheet;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 
-it('can render the edit page', function () {
+it('can render the edit page', function (): void {
     $employee = Employee::factory()->create();
     $project = Project::factory()->create();
     $record = Timesheet::factory()->create(['employee_id' => $employee->id, 'project_id' => $project->id]);
@@ -16,7 +16,7 @@ it('can render the edit page', function () {
         ->assertOk();
 });
 
-it('can update a record', function () {
+it('can update a record', function (): void {
     $employee = Employee::factory()->create();
     $project = Project::factory()->create();
     $record = Timesheet::factory()->create(['employee_id' => $employee->id, 'project_id' => $project->id]);
@@ -34,7 +34,7 @@ it('can update a record', function () {
     ]);
 });
 
-it('recalculates total_cost on save', function () {
+it('recalculates total_cost on save', function (): void {
     $employee = Employee::factory()->create();
     $project = Project::factory()->create();
     $record = Timesheet::factory()->create([
@@ -60,7 +60,7 @@ it('recalculates total_cost on save', function () {
     ]);
 });
 
-it('validates the form data', function (array $data, array $errors) {
+it('validates the form data', function (array $data, array $errors): void {
     $employee = Employee::factory()->create();
     $project = Project::factory()->create();
     $record = Timesheet::factory()->create(['employee_id' => $employee->id, 'project_id' => $project->id]);

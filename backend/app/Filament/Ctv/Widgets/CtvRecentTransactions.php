@@ -2,6 +2,9 @@
 
 namespace App\Filament\Ctv\Widgets;
 
+use App\Models\User;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\BadgeColumn;
 use Bavix\Wallet\Models\Transaction;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -19,22 +22,22 @@ class CtvRecentTransactions extends BaseWidget
             ->query(
                 Transaction::query()
                     ->where('payable_id', auth()->id())
-                    ->where('payable_type', \App\Models\User::class)
+                    ->where('payable_type', User::class)
                     ->latest()
             )
             ->columns([
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Thời gian')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('amount')
+                TextColumn::make('amount')
                     ->label('Số tiền')
                     ->money('VND')
                     ->color(fn ($state) => $state > 0 ? 'success' : 'danger'),
-                Tables\Columns\TextColumn::make('meta.description')
+                TextColumn::make('meta.description')
                     ->label('Nội dung')
                     ->placeholder('Giao dịch hệ thống'),
-                Tables\Columns\BadgeColumn::make('type')
+                BadgeColumn::make('type')
                     ->label('Loại')
                     ->colors([
                         'success' => 'deposit',

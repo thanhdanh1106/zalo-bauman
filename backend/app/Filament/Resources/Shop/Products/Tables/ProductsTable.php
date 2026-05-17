@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Shop\Products\Tables;
 
+use Awcodes\Curator\Components\Tables\CuratorColumn;
 use App\Models\Shop\Product;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -34,7 +35,7 @@ class ProductsTable
         return $table
             ->defaultSort('created_at', 'desc')
             ->columns([
-                \Awcodes\Curator\Components\Tables\CuratorColumn::make('image_id')
+                CuratorColumn::make('image_id')
                     ->label('Hình ảnh')
                     ->size(40),
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use DB;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -10,7 +11,7 @@ class WalletOverview extends BaseWidget
 {
     protected function getStats(): array
     {
-        $totalBalance = \DB::table('wallets')->sum('balance');
+        $totalBalance = DB::table('wallets')->sum('balance');
         $totalCts = User::role('ctv')->count();
 
         return [

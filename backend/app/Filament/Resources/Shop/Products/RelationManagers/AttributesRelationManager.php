@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Shop\Products\RelationManagers;
 
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -67,15 +69,15 @@ class AttributesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                Tables\Columns\TextColumn::make('name')->label('Tên'),
-                Tables\Columns\TextColumn::make('values.value')
+                TextColumn::make('name')->label('Tên'),
+                TextColumn::make('values.value')
                     ->label('Giá trị')
                     ->badge()
                     ->separator(', '),
-                Tables\Columns\IconColumn::make('is_visible')
+                IconColumn::make('is_visible')
                     ->label('Hiển thị')
                     ->boolean(),
-                Tables\Columns\IconColumn::make('for_variations')
+                IconColumn::make('for_variations')
                     ->label('Biến thể')
                     ->boolean(),
             ])
