@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Shop\Customers\Schemas;
 use App\Models\Shop\Customer;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -37,6 +38,14 @@ class CustomerForm
                         DatePicker::make('birthday')
                             ->label('Ngày sinh')
                             ->maxDate('today'),
+
+                        Select::make('gender')
+                            ->label('Giới tính')
+                            ->options([
+                                'male' => 'Nam',
+                                'female' => 'Nữ',
+                                'other' => 'Khác',
+                            ]),
 
                         TextInput::make('photo')
                             ->label('Ảnh đại diện (Zalo URL)')

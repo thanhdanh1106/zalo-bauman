@@ -6,6 +6,7 @@ use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
@@ -35,6 +36,18 @@ class UserForm
                         TextInput::make('phone')
                             ->label('Số điện thoại')
                             ->maxLength(255),
+
+                        DatePicker::make('birthday')
+                            ->label('Ngày sinh')
+                            ->maxDate('today'),
+
+                        Select::make('gender')
+                            ->label('Giới tính')
+                            ->options([
+                                'male' => 'Nam',
+                                'female' => 'Nữ',
+                                'other' => 'Khác',
+                            ]),
 
                         TextInput::make('password')
                             ->label('Mật khẩu')

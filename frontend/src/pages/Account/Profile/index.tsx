@@ -181,13 +181,7 @@ const AccountProfile: React.FC = () => {
 
         {/* Loyalty Section */}
         <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#8f0012] to-[#b32025] p-6 text-white shadow-[0_15px_35px_-5px_rgba(143,0,18,0.05)]">
-          <div className="absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 opacity-20 rotate-12">
-            <img
-              alt="Decor"
-              className="w-full h-full object-contain"
-              src="https://lh3.googleusercontent.com/aida/ADBb0ujFdOgnZHWtnbEQ42kw06dI-IZMzpYhA05zM6NtBLcMHJu5-t_ZEYlBfON2SdI7nhvzgvRee0vo_gGc0Kc47FyJZbHxP3mWZoIfFovNw5-CeLnnYCNkUB_zFRJszz47txnPOO53OFUIaWWyGip7nS0AcLCTElt6I62SB3fwsS_RaXpdE57Ba0oUc7_wIsXtz1YY1g9SiUxBIFn8JGpC0dF7FjaTCGRYbFwCkiyks1k2G6z7l2xHuHUbhDlbLRgUsMQUKcHQJGFskQ"
-            />
-          </div>
+
           <div className="relative z-10">
             <p className="text-[12px] font-semibold uppercase tracking-widest opacity-80">Điểm tích lũy hiện có</p>
             <div className="flex items-baseline mt-2">
@@ -218,7 +212,7 @@ const AccountProfile: React.FC = () => {
               <span className="material-symbols-outlined mr-2">share_reviews</span>
               Chương trình cộng tác
             </h3>
-            <span className="text-[#735c00] text-[12px] font-bold bg-[#fed65b]/30 px-2 py-0.5 rounded">Chiết khấu {affiliate?.commission_rate || 10}%</span>
+
           </div>
           <p className="text-[#5a403e] text-[14px]">Chia sẻ link giới thiệu của bạn để nhận thêm điểm thưởng và ưu đãi đặc quyền.</p>
           <div className="flex items-center space-x-2 p-3 bg-[#f6f3f2] rounded-xl border border-gray-100">

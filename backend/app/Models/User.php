@@ -40,6 +40,8 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         'zalo_id',
         'email_verified_at',
         'phone',
+        'birthday',
+        'gender',
     ];
 
     /**
@@ -61,6 +63,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'birthday' => 'date',
     ];
 
     public function canAccessPanel(Panel $panel): bool

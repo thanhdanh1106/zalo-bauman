@@ -71,7 +71,7 @@ const EditProfilePage: React.FC = () => {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       const responseData = res.data;
 
       if (responseData && !responseData.error) {
@@ -143,19 +143,19 @@ const EditProfilePage: React.FC = () => {
               )}
             </div>
             <div className="absolute bottom-1 right-1">
-              <label 
+              <label
                 htmlFor="avatar-upload"
                 className={`bg-[#8f0012] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-4 border-white active:scale-95 transition-transform cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
               >
                 <span className="material-symbols-outlined text-[20px]">photo_camera</span>
               </label>
-              <input 
-                id="avatar-upload" 
-                type="file" 
-                accept="image/*" 
-                className="hidden" 
-                onChange={handleUpdateAvatarNative} 
-                disabled={uploading} 
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleUpdateAvatarNative}
+                disabled={uploading}
               />
             </div>
           </Box>
@@ -185,12 +185,11 @@ const EditProfilePage: React.FC = () => {
               <input
                 type="text"
                 value={formData.phone}
-                readOnly
-                className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-gray-500 outline-none"
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl focus:border-[#8f0012] focus:ring-1 focus:ring-[#8f0012] outline-none transition-all"
+                placeholder="Nhập số điện thoại"
               />
-              <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-[20px]">lock</span>
             </Box>
-            <Text className="text-[11px] text-gray-400 italic ml-1">Liên hệ bộ phận hỗ trợ để thay đổi số điện thoại</Text>
           </Box>
 
           <Box className="space-y-2">
@@ -240,20 +239,6 @@ const EditProfilePage: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Membership Banner */}
-        <Box className="bg-[#fdf8e9] p-5 rounded-3xl border border-[#f5e6ba] flex items-center space-x-4">
-          <div className="w-12 h-12 flex-shrink-0">
-             <img 
-               src="https://lh3.googleusercontent.com/aida/ADBb0ujFdOgnZHWtnbEQ42kw06dI-IZMzpYhA05zM6NtBLcMHJu5-t_ZEYlBfON2SdI7nhvzgvRee0vo_gGc0Kc47FyJZbHxP3mWZoIfFovNw5-CeLnnYCNkUB_zFRJszz47txnPOO53OFUIaWWyGip7nS0AcLCTElt6I62SB3fwsS_RaXpdE57Ba0oUc7_wIsXtz1YY1g9SiUxBIFn8JGpC0dF7FjaTCGRYbFwCkiyks1k2G6z7l2xHuHUbhDlbLRgUsMQUKcHQJGFskQ" 
-               className="w-full h-full object-contain opacity-40 grayscale"
-               alt="Tier"
-             />
-          </div>
-          <Box className="flex-1">
-            <Text className="text-[#735c00] font-bold text-[15px]">Thành viên {membership?.current_tier || "Đồng"}</Text>
-            <Text className="text-[#5a403e] text-[13px] leading-relaxed">Thông tin cá nhân giúp chúng tôi cá nhân hóa lộ trình sức khỏe của bạn.</Text>
-          </Box>
-        </Box>
 
         {/* Actions */}
         <Box className="space-y-4 pt-4">

@@ -23,7 +23,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', fn (Request $request) => $request->user()->load('avatar'));
     Route::post('/auth/me', function (Request $request) {
         $user = $request->user();
-        $user->update($request->all());
+        $user->update($request->only(['name', 'phone', 'birthday', 'gender']));
+
+        // Sync with Customer table
+        try {
+            \App\Models\Shop\Customer::updateOrCreate(
+                ['email' => $user->email],
+                [
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'birthday' => $user->birthday,
+                    'gender' => $user->gender,
+                    'avatar_id' => $user->avatar_id,
+                ]
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Customer sync in auth/me failed: ' . $e->getMessage());
+        }
+
         return $user->load('avatar');
     });
 

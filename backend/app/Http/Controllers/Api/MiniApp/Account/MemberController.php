@@ -279,12 +279,19 @@ class MemberController extends Controller
 
         $user->update(['avatar_id' => $media->id]);
 
+        // Sync with Customer table
+        try {
+            \App\Models\Shop\Customer::where('email', $user->email)->update(['avatar_id' => $media->id]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Customer uploadAvatar sync failed: ' . $e->getMessage());
+        }
+
         return response()->json([
             'error' => false,
             'message' => 'Cập nhật ảnh đại diện thành công',
             'data' => [
                 'id' => $media->id,
-                'url' => $media->url,
+                'url' => asset('storage/' . $media->path),
             ]
         ]);
     }

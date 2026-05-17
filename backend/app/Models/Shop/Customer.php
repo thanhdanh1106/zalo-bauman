@@ -34,6 +34,7 @@ class Customer extends Model
         'avatar_id',
         'phone',
         'birthday',
+        'gender',
     ];
 
     /**
