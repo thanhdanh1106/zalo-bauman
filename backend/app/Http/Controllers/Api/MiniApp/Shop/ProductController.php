@@ -178,7 +178,7 @@ class ProductController extends Controller
                 'created_at' => $comment->created_at->format('d/m/Y H:i'),
                 'customer' => [
                     'name' => $name,
-                    'avatar' => optional($customer)->avatar ?? 'https://placehold.co/100x100?text=U',
+                    'avatar' => optional($customer)->avatar_url ?? 'https://placehold.co/100x100?text=U',
                 ]
             ]
         ]);
@@ -403,7 +403,7 @@ class ProductController extends Controller
                     'created_at' => $c->created_at?->format('d/m/Y H:i') ?? '',
                     'customer' => [
                         'name' => optional($c->customer)->name ?? 'Khách hàng',
-                        'avatar' => optional($c->customer)->avatar ?? 'https://placehold.co/100x100?text=U',
+                        'avatar' => optional($c->customer)->avatar_url ?? 'https://placehold.co/100x100?text=U',
                     ]
                 ];
             })->values()->toArray() : [],

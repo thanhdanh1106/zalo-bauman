@@ -42,6 +42,17 @@ const EditProfilePage: React.FC = () => {
     gender: user?.gender || "female",
   });
 
+  const [birthDate, setBirthDate] = useState<Date>(() => {
+    if (user?.birthday) {
+      const parts = user.birthday.split('-');
+      if (parts.length === 3) {
+        return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      }
+      return new Date(user.birthday);
+    }
+    return new Date(1995, 7, 15);
+  });
+
   useEffect(() => {
     fetchMembership();
   }, []);
@@ -210,13 +221,21 @@ const EditProfilePage: React.FC = () => {
             <Box className="flex-1 space-y-2">
               <Text className="text-[14px] font-semibold text-gray-700 ml-1">Ngày sinh</Text>
               <Box className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">calendar_today</span>
-                <input
-                  type="text"
-                  value={formData.birthday}
-                  onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px] z-10">calendar_today</span>
+                <DatePicker
+                  placeholder="Chọn ngày sinh"
+                  dateFormat="dd/mm/yyyy"
+                  value={birthDate}
+                  onChange={(date) => {
+                    if (date) {
+                      setBirthDate(date);
+                      const day = String(date.getDate()).padStart(2, '0');
+                      const month = String(date.getMonth() + 1).padStart(2, '0');
+                      const year = date.getFullYear();
+                      setFormData(prev => ({ ...prev, birthday: `${day}/${month}/${year}` }));
+                    }
+                  }}
                   className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl focus:border-[#8f0012] focus:ring-1 focus:ring-[#8f0012] outline-none transition-all"
-                  placeholder="DD/MM/YYYY"
                 />
               </Box>
             </Box>

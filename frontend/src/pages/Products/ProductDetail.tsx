@@ -106,13 +106,18 @@ const ProductDetail: React.FC = () => {
     if (!product?.id) return;
 
     if (!user) {
-      showMessage("error", "Vui lòng đăng nhập để viết đánh giá");
+      showMessage("error", "Vui lòng đăng nhập để viết đánh giá", "top-center");
       setShowReviewModal(false);
       return;
     }
 
     if (!reviewContent.trim()) {
-      showMessage("error", "Vui lòng nhập nội dung đánh giá");
+      showMessage("error", "Vui lòng nhập nội dung đánh giá", "top-center");
+      return;
+    }
+
+    if (reviewContent.trim().length < 5) {
+      showMessage("error", "Nội dung đánh giá phải có ít nhất 5 ký tự", "top-center");
       return;
     }
 
@@ -125,7 +130,7 @@ const ProductDetail: React.FC = () => {
       });
 
       if (response && !response.error) {
-        showMessage("success", "Đã gửi đánh giá thành công!");
+        showMessage("success", "Đã gửi đánh giá thành công!", "top-center");
         setShowReviewModal(false);
         setReviewTitle("");
         setReviewContent("");
@@ -133,11 +138,11 @@ const ProductDetail: React.FC = () => {
         fetchProduct();
       } else {
         const msg = response?.message || "Không thể gửi đánh giá. Vui lòng thử lại.";
-        showMessage("error", msg === "Unauthenticated." ? "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại." : msg);
+        showMessage("error", msg === "Unauthenticated." ? "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại." : msg, "top-center");
       }
     } catch (err) {
       console.error(err);
-      showMessage("error", "Đã có lỗi xảy ra khi gửi đánh giá");
+      showMessage("error", "Đã có lỗi xảy ra khi gửi đánh giá", "top-center");
     } finally {
       setIsSubmittingReview(false);
     }

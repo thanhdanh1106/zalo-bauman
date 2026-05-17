@@ -248,11 +248,9 @@ const AccountProfile: React.FC = () => {
               <span className="text-[12px] font-bold">Copy Link</span>
             </button>
             <button onClick={handleZaloShare} className="flex items-center justify-center space-x-2 py-3 bg-[#b32025] text-white rounded-xl font-semibold hover:opacity-90 transition-all active:scale-95 shadow-sm">
-              <img
-                alt="Zalo"
-                className="w-5 h-5 object-contain invert brightness-0"
-                src="https://lh3.googleusercontent.com/aida/ADBb0ujDq6JnMBfE75CRjC_FeG7nN508SbtHRWfSIFVPZPlBg8WmUd8DMKWWEE0Hoz_QtmB2it_gtVd_n--81XeD2XU3cY1TvA4YX6QAXsqTM0TDss_xdZaURGS8NO1IpqGRYgNsAOGXcQkdXLE-8edvziZknPh9Ut5W_V35e2T7m1KPMTYfcZg8SJEaM9nCsoAGzHzRi5w-g012384FckvGc37R1LnBH3r-09SG--M_kBCfJT4ufb1paylrOY7oP8tmrO30jYW60XgJEw"
-              />
+              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 5.8 2 10.5c0 2.6 1.5 4.9 3.8 6.2-.2.8-.7 2.8-.7 2.8s2.2-.4 3.5-1.2c1 .4 2.1.6 3.4.6 5.5 0 10-3.8 10-8.5S17.52 2 12 2zm3.3 11.5h-5.8c-.4 0-.7-.3-.7-.7 0-.2.1-.4.2-.5l3.8-4.8H9.5c-.4 0-.7-.3-.7-.7s.3-.7.7-.7h5.8c.4 0 .7.3.7.7 0 .2-.1.4-.2.5l-3.8 4.8h3.3c.4 0 .7.3.7.7s-.3.7-.7.7z" />
+              </svg>
               <span className="text-[12px] font-bold">Zalo Share</span>
             </button>
           </div>

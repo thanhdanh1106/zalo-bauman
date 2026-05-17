@@ -124,7 +124,7 @@ export const ToasterProvider = ({
     position?: string | undefined
   ) => {
     const option: object = {
-      position: position || 'bottom-center',
+      position: position || 'top-center',
       autoClose: 5000,
       hideProgressBar: false,
       closeOnClick: true,
@@ -158,7 +158,7 @@ export const ToasterProvider = ({
       <ThemeProvider theme={lightTheme}>
         <LoadingBar ref={ref} color="#cbb27c" />
         {children}
-        <Toaster position="bottom-center" />
+        <Toaster position="top-center" />
       </ThemeProvider>
     </ToasterContext.Provider>
   );
