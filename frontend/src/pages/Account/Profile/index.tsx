@@ -58,9 +58,13 @@ const AccountProfile: React.FC = () => {
   };
 
   const handleCopyLink = () => {
-    if (affiliate?.referral_link) {
-      navigator.clipboard.writeText(affiliate.referral_link);
+    const shareLink = affiliate?.referral_link || `${window.location.origin}/?ref=${user?.id || ''}`;
+    try {
+      navigator.clipboard.writeText(shareLink);
       alert("Đã sao chép link giới thiệu!");
+    } catch (e) {
+      console.error(e);
+      alert("Không thể sao chép link. Vui lòng thử lại.");
     }
   };
 
@@ -82,19 +86,24 @@ const AccountProfile: React.FC = () => {
   };
 
   const handleZaloShare = async () => {
-    if (affiliate?.referral_link) {
+    const shareLink = affiliate?.referral_link || `${window.location.origin}/?ref=${user?.id || ''}`;
+    try {
+      await openShareSheet({
+        type: "link",
+        data: {
+          link: shareLink,
+          title: "Mời bạn tham gia cùng tôi!",
+          description: "Nhận ưu đãi đặc quyền khi đăng ký qua link này.",
+          thumbnail: "https://lh3.googleusercontent.com/aida/ADBb0uiZcunpRn4Wavs-U_I1mnSMvFdBKcrhIqztzw7iox55Z4-LnNQPvmFefGsbFMd8XB9fswLGCyrsyEUv2NyPY5wgOFVDdLbBfgPghZH-2oGTCM5e6pnjI5YbcW3NoQQkvsHkPFDIQdRIUnPmSIXsEYVXRkvlrBCALKkO59kH1sZDtFq64wroM17w0geVKHJspDkg6BwrroEGVoklRHYfmvCHQU5kfZ4ZofckNOt26iXEkMmqZHtQ158AvmV-4YxA3b-W_pD7dNZ4xA"
+        }
+      });
+    } catch (err) {
+      console.error("Zalo sharing failed, falling back to copy:", err);
       try {
-        await openShareSheet({
-          type: "link",
-          data: {
-            link: affiliate.referral_link,
-            title: "Mời bạn tham gia cùng tôi!",
-            description: "Nhận ưu đãi đặc quyền khi đăng ký qua link này.",
-            thumbnail: "https://lh3.googleusercontent.com/aida/ADBb0uiZcunpRn4Wavs-U_I1mnSMvFdBKcrhIqztzw7iox55Z4-LnNQPvmFefGsbFMd8XB9fswLGCyrsyEUv2NyPY5wgOFVDdLbBfgPghZH-2oGTCM5e6pnjI5YbcW3NoQQkvsHkPFDIQdRIUnPmSIXsEYVXRkvlrBCALKkO59kH1sZDtFq64wroM17w0geVKHJspDkg6BwrroEGVoklRHYfmvCHQU5kfZ4ZofckNOt26iXEkMmqZHtQ158AvmV-4YxA3b-W_pD7dNZ4xA"
-          }
-        });
-      } catch (err) {
-        console.error(err);
+        navigator.clipboard.writeText(shareLink);
+        alert("Đã sao chép link giới thiệu!");
+      } catch (copyErr) {
+        console.error(copyErr);
       }
     }
   };

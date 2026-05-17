@@ -17,7 +17,7 @@ import LoadingBar from 'react-top-loading-bar';
 
 interface ToasterContextType {
   showMessage: (
-    type: 'success' | 'error',
+    type: 'success' | 'error' | 'warning' | 'info' | string,
     message: string,
     position?: string
   ) => void;
@@ -119,30 +119,53 @@ export const ToasterProvider = ({
   }
 
   const showMessage = (
-    type?: 'success' | 'error' | undefined,
+    type?: 'success' | 'error' | 'warning' | 'info' | string | undefined,
     message?: string | undefined,
     position?: string | undefined
   ) => {
-    const option: object = {
-      position: position || 'top-center',
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: 'light',
-    };
-    switch (type) {
-      case 'success':
-        toast.success(message ?? '', option);
-        break;
-      case 'error':
-        toast.error(message ?? '', option);
-        break;
-      default:
-        return toast(message ?? '', option);
-    }
+    toast.custom((t) => {
+      let icon = "info";
+      let iconColor = "text-blue-500";
+      
+      if (type === 'success') {
+        icon = "check_circle";
+        iconColor = "text-green-500";
+      } else if (type === 'error') {
+        icon = "error";
+        iconColor = "text-red-500";
+      } else if (type === 'warning') {
+        icon = "warning";
+        iconColor = "text-amber-500";
+      }
+
+      return (
+        <div
+          className={`${
+            t.visible ? 'animate-fade-in' : 'animate-fade-out'
+          } max-w-sm w-[90vw] sm:w-full bg-white shadow-[0_10px_30px_rgba(0,0,0,0.1)] border border-gray-100 rounded-2xl pointer-events-auto flex items-center p-4 gap-3 transition-all duration-300`}
+          style={{
+            transform: t.visible ? 'translateY(0)' : 'translateY(-20px)',
+            opacity: t.visible ? 1 : 0,
+          }}
+        >
+          <span className={`material-symbols-outlined ${iconColor} text-[22px] shrink-0`}>
+            {icon}
+          </span>
+          <p className="text-[13px] font-sans font-medium text-gray-800 flex-1 leading-snug">
+            {message}
+          </p>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 active:scale-90 transition-all shrink-0"
+          >
+            <span className="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      );
+    }, {
+      position: (position as any) || 'top-center',
+      duration: 4500,
+    });
   };
 
   return (

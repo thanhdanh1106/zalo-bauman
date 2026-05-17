@@ -20,17 +20,28 @@ const EditProfilePage: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || user?.avatar || "");
   const [uploading, setUploading] = useState(false);
 
-  // Helper to parse date
+  // Helper to parse date robustly
   const getInitialBirthday = () => {
     if (user?.birthday) {
-      // Assuming backend returns YYYY-MM-DD
-      const parts = user.birthday.split('-');
-      if (parts.length === 3) {
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      try {
+        const dateStr = user.birthday.split('T')[0];
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          if (parts[0].length === 4) {
+            return `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+          } else {
+            return `${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[2]}`;
+          }
+        }
+        if (user.birthday.includes('/')) {
+          return user.birthday;
+        }
+      } catch (e) {
+        console.error("Error parsing initial birthday:", e);
       }
       return user.birthday;
     }
-    return "15/08/1995";
+    return "";
   };
 
   // Form states
@@ -42,20 +53,72 @@ const EditProfilePage: React.FC = () => {
     gender: user?.gender || "female",
   });
 
-  const [birthDate, setBirthDate] = useState<Date>(() => {
+  const [birthDate, setBirthDate] = useState<Date | undefined>(() => {
     if (user?.birthday) {
-      const parts = user.birthday.split('-');
-      if (parts.length === 3) {
-        return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      try {
+        const dateStr = user.birthday.split('T')[0];
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          if (parts[0].length === 4) {
+            return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          } else {
+            return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          }
+        }
+        if (user.birthday.includes('/')) {
+          const slashParts = user.birthday.split('/');
+          if (slashParts.length === 3) {
+            return new Date(parseInt(slashParts[2]), parseInt(slashParts[1]) - 1, parseInt(slashParts[0]));
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing birthdate object:", e);
       }
-      return new Date(user.birthday);
     }
-    return new Date(1995, 7, 15);
+    return undefined;
   });
 
   useEffect(() => {
     fetchMembership();
   }, []);
+
+  // Sync state when user is loaded asynchronously
+  useEffect(() => {
+    if (user) {
+      setAvatarUrl(user.avatar_url || user.avatar || "");
+      const initialBirthday = getInitialBirthday();
+      setFormData({
+        name: user.name || "",
+        phone: user.phone || "",
+        email: user.email || "",
+        birthday: initialBirthday,
+        gender: user.gender || "female"
+      });
+
+      if (user.birthday) {
+        try {
+          const dateStr = user.birthday.split('T')[0];
+          const parts = dateStr.split('-');
+          if (parts.length === 3) {
+            if (parts[0].length === 4) {
+              setBirthDate(new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
+            } else {
+              setBirthDate(new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])));
+            }
+          } else if (user.birthday.includes('/')) {
+            const slashParts = user.birthday.split('/');
+            if (slashParts.length === 3) {
+              setBirthDate(new Date(parseInt(slashParts[2]), parseInt(slashParts[1]) - 1, parseInt(slashParts[0])));
+            }
+          }
+        } catch (e) {
+          console.error("Error updating birthDate state:", e);
+        }
+      } else {
+        setBirthDate(undefined);
+      }
+    }
+  }, [user]);
 
   const fetchMembership = async () => {
     try {
@@ -217,43 +280,44 @@ const EditProfilePage: React.FC = () => {
             </Box>
           </Box>
 
-          <Box className="flex space-x-4">
-            <Box className="flex-1 space-y-2">
-              <Text className="text-[14px] font-semibold text-gray-700 ml-1">Ngày sinh</Text>
-              <Box className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px] z-10">calendar_today</span>
-                <DatePicker
-                  placeholder="Chọn ngày sinh"
-                  dateFormat="dd/mm/yyyy"
-                  value={birthDate}
-                  onChange={(date) => {
-                    if (date) {
-                      setBirthDate(date);
-                      const day = String(date.getDate()).padStart(2, '0');
-                      const month = String(date.getMonth() + 1).padStart(2, '0');
-                      const year = date.getFullYear();
-                      setFormData(prev => ({ ...prev, birthday: `${day}/${month}/${year}` }));
-                    }
-                  }}
-                  className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl focus:border-[#8f0012] focus:ring-1 focus:ring-[#8f0012] outline-none transition-all"
-                />
-              </Box>
+          <Box className="space-y-2">
+            <Text className="text-[14px] font-semibold text-gray-700 ml-1">Ngày sinh</Text>
+            <Box className="relative">
+
+              <DatePicker
+                key={birthDate ? birthDate.getTime() : 'empty'}
+                placeholder="Chọn ngày sinh"
+                dateFormat="dd/mm/yyyy"
+                value={birthDate}
+                defaultValue={birthDate}
+                onChange={(date) => {
+                  if (date) {
+                    setBirthDate(date);
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    setFormData(prev => ({ ...prev, birthday: `${day}/${month}/${year}` }));
+                  }
+                }}
+                inputClass="w-full  bg-white border border-gray-200 "
+              />
             </Box>
-            <Box className="flex-1 space-y-2">
-              <Text className="text-[14px] font-semibold text-gray-700 ml-1">Giới tính</Text>
-              <Box className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">group</span>
-                <select
-                  value={formData.gender}
-                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                  className="w-full pl-12 pr-10 py-4 bg-white border border-gray-200 rounded-2xl focus:border-[#8f0012] focus:ring-1 focus:ring-[#8f0012] outline-none transition-all appearance-none"
-                >
-                  <option value="male">Nam</option>
-                  <option value="female">Nữ</option>
-                  <option value="other">Khác</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
-              </Box>
+          </Box>
+
+          <Box className="space-y-2">
+            <Text className="text-[14px] font-semibold text-gray-700 ml-1">Giới tính</Text>
+            <Box className="relative">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">group</span>
+              <select
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full pl-12 pr-10 py-4 bg-white border border-gray-200 rounded-2xl focus:border-[#8f0012] focus:ring-1 focus:ring-[#8f0012] outline-none transition-all appearance-none"
+              >
+                <option value="male">Nam</option>
+                <option value="female">Nữ</option>
+                <option value="other">Khác</option>
+              </select>
+              <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
             </Box>
           </Box>
         </Box>

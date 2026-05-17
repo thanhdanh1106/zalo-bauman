@@ -112,12 +112,12 @@ const ProductDetail: React.FC = () => {
     }
 
     if (!reviewContent.trim()) {
-      showMessage("error", "Vui lòng nhập nội dung đánh giá", "top-center");
+      showMessage("info", "Vui lòng nhập nội dung đánh giá trước khi gửi.", "top-center");
       return;
     }
 
     if (reviewContent.trim().length < 5) {
-      showMessage("error", "Nội dung đánh giá phải có ít nhất 5 ký tự", "top-center");
+      showMessage("info", "Nội dung đánh giá quá ngắn. Vui lòng nhập tối thiểu 5 ký tự.", "top-center");
       return;
     }
 

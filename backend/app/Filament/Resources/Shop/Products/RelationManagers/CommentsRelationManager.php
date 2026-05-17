@@ -118,25 +118,13 @@ class CommentsRelationManager extends RelationManager
                             ->sendToDatabase($user);
                     }),
             ])
-            ->recordActions([
+            ->actions([
                 ViewAction::make(),
                 EditAction::make(),
-                DeleteAction::make()
-                    ->action(function (): void {
-                        Notification::make()
-                            ->title('Now, now, don\'t be cheeky, leave some records for others to play with!')
-                            ->warning()
-                            ->send();
-                    }),
+                DeleteAction::make(),
             ])
             ->groupedBulkActions([
-                DeleteBulkAction::make()
-                    ->action(function (): void {
-                        Notification::make()
-                            ->title('Now, now, don\'t be cheeky, leave some records for others to play with!')
-                            ->warning()
-                            ->send();
-                    }),
+                DeleteBulkAction::make(),
             ]);
     }
 }

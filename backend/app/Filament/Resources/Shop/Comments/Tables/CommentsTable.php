@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Shop\Comments\Tables;
 use App\Models\Comment;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\FontWeight;
@@ -55,22 +56,17 @@ class CommentsTable
             ->filters([
                 //
             ])
-            ->recordActions([
+            ->actions([
                 Action::make('toggle_visibility')
                     ->icon(fn (Comment $record): Heroicon => $record->is_visible ? Heroicon::EyeSlash : Heroicon::Eye)
                     ->color('gray')
                     ->tooltip(fn (Comment $record): string => $record->is_visible ? 'Ẩn bình luận' : 'Hiện bình luận')
                     ->action(fn (Comment $record) => $record->update(['is_visible' => ! $record->is_visible])),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->groupedBulkActions([
-                DeleteBulkAction::make()
-                    ->action(function (): void {
-                        Notification::make()
-                            ->title('Không được phép xóa hàng loạt để bảo đảm dữ liệu demo.')
-                            ->warning()
-                            ->send();
-                    }),
+                DeleteBulkAction::make(),
             ])
             ->defaultSort('created_at', 'desc');
     }

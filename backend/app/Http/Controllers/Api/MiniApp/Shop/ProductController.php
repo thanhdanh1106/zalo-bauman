@@ -79,7 +79,7 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $prod = Product::with(['productCategories', 'image', 'images', 'variants.image', 'comments.customer'])->find($id);
+        $prod = Product::with(['productCategories', 'image', 'images', 'variants.image', 'comments.customer.avatar'])->find($id);
         
         if (!$prod) {
             return response()->json(['error' => true, 'message' => 'Sản phẩm không tồn tại'], 404);
@@ -95,13 +95,13 @@ class ProductController extends Controller
 
     public function showBySlug($slug)
     {
-        $prod = Product::with(['productCategories', 'image', 'images', 'variants.image', 'comments.customer'])
+        $prod = Product::with(['productCategories', 'image', 'images', 'variants.image', 'comments.customer.avatar'])
             ->where('slug', $slug)
             ->orWhere('id', $slug)
             ->first();
 
         if (!$prod) {
-            $prod = Product::with(['productCategories', 'image', 'variants.image', 'comments.customer'])
+            $prod = Product::with(['productCategories', 'image', 'variants.image', 'comments.customer.avatar'])
                 ->where('is_visible', true)
                 ->get()
                 ->first(function ($p) use ($slug) {
@@ -148,6 +148,13 @@ class ProductController extends Controller
                 'name' => $name,
                 'email' => $email,
                 'phone' => $user->phone,
+                'avatar_id' => $user->avatar_id,
+            ]);
+        } else {
+            $customer->update([
+                'name' => $name,
+                'phone' => $user->phone,
+                'avatar_id' => $user->avatar_id,
             ]);
         }
 
